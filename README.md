@@ -64,3 +64,23 @@
 
 - [도메인 모델](/Users/dongwon/project/bf-match/docs/domain-model.md)
 - [아키텍처와 API 초안](/Users/dongwon/project/bf-match/docs/architecture.md)
+
+## GitLab CI/CD (Option 1)
+
+- 루트에 [`.gitlab-ci.yml`](/Users/dongwon/project/bf-match/.gitlab-ci.yml) 이 포함되어 있습니다.
+- `verify` 단계에서 `backend`/`frontend` 빌드가 자동 실행됩니다.
+- `main` 브랜치에서 `deploy_home_windows` 잡을 수동 실행하면 집 윈도우 러너에서 배포를 진행합니다.
+
+필수 GitLab CI/CD 변수:
+
+- `DEPLOY_DIR`: 윈도우 러너에서 프로젝트가 위치한 경로 (예: `C:\bf-match`)
+
+선택 GitLab CI/CD 변수:
+
+- `BACKEND_RESTART_CMD`: 백엔드 재시작 명령 (예: NSSM/PowerShell 스크립트)
+- `FRONTEND_RESTART_CMD`: 프론트 재시작 명령 (예: PM2/PowerShell 스크립트)
+
+윈도우 러너 요구사항:
+
+- 태그 `home-windows` 로 등록된 GitLab Runner
+- `git`, `JDK 21`, `Node.js 20+`, `npm` 설치

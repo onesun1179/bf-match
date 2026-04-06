@@ -1,0 +1,77 @@
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH
+
+stages:
+  - verify
+  - deploy
+
+default:
+  interruptible: true
+
+backend_build:
+  stage: verify
+  image: gradle:8.10-jdk21
+  cache:
+    key: gradle-cache
+    paths:
+      - backend/.gradle/
+  script:
+    - cd backend
+    - ./gradlew build --no-daemon
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - backend/build/libs/
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+frontend_build:
+  stage: verify
+  image: node:20
+  cache:
+    key: npm-cache
+    paths:
+      - frontend/node_modules/
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  artifacts:
+    when: always
+    expire_in: 1 week
+    paths:
+      - frontend/.next/
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
+deploy_home_windows:
+  stage: deploy
+  tags:
+    - home-windows
+  needs:
+    - job: backend_build
+    - job: frontend_build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+    - when: never
+  environment:
+    name: production
+  script:
+    - echo "Starting deploy on home windows runner"
+    - if (-not $env:DEPLOY_DIR) { throw "DEPLOY_DIR CI/CD 변수를 설정하세요. 예: C:\\bf-match" }
+    - Set-Location $env:DEPLOY_DIR
+    - git fetch origin main
+    - git checkout main
+    - git reset --hard origin/main
+    - Set-Location backend
+    - .\gradlew.bat bootJar --no-daemon
+    - if ($env:BACKEND_RESTART_CMD) { Invoke-Expression $env:BACKEND_RESTART_CMD }
+    - Set-Location ..\frontend
+    - npm ci
+    - npm run build
+    - if ($env:FRONTEND_RESTART_CMD) { Invoke-Expression $env:FRONTEND_RESTART_CMD }
+    - echo "Deploy finished"
