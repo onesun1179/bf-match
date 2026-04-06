@@ -8,6 +8,9 @@ export type NotificationPreferenceKey =
   | "gameCreated"
   | "gameStarted"
   | "gameFinished"
+  | "gameProposalReceived"
+  | "gameProposalApproved"
+  | "gameProposalRejected"
   | "gameScoreRequested"
   | "gameScoreConfirmed"
   | "gameScoreRejected";
@@ -24,6 +27,9 @@ export const defaultNotificationPreferences: NotificationPreferences = {
   gameCreated: true,
   gameStarted: true,
   gameFinished: true,
+  gameProposalReceived: true,
+  gameProposalApproved: true,
+  gameProposalRejected: true,
   gameScoreRequested: true,
   gameScoreConfirmed: true,
   gameScoreRejected: true,

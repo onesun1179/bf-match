@@ -63,6 +63,21 @@ const notificationItems: { key: NotificationPreferenceKey; title: string; descri
     description: "내가 포함된 게임이 종료되었을 때 알림",
   },
   {
+    key: "gameProposalReceived",
+    title: "게임 제안 도착",
+    description: "관리자에게 새로운 게임 제안이 도착했을 때 알림",
+  },
+  {
+    key: "gameProposalApproved",
+    title: "게임 제안 수락",
+    description: "내가 제안한/참여한 게임 제안이 수락되었을 때 알림",
+  },
+  {
+    key: "gameProposalRejected",
+    title: "게임 제안 거절",
+    description: "내가 제안한 게임이 거절되었을 때 알림",
+  },
+  {
     key: "gameScoreRequested",
     title: "점수 확인 요청",
     description: "상대 팀이 점수 확인을 요청했을 때 알림",

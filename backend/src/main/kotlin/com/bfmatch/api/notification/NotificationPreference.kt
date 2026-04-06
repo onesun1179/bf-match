@@ -40,6 +40,15 @@ class NotificationPreference(
     var gameFinished: Boolean = true,
 
     @Column(nullable = false)
+    var gameProposalReceived: Boolean = true,
+
+    @Column(nullable = false)
+    var gameProposalApproved: Boolean = true,
+
+    @Column(nullable = false)
+    var gameProposalRejected: Boolean = true,
+
+    @Column(nullable = false)
     var gameScoreRequested: Boolean = true,
 
     @Column(nullable = false)
@@ -59,6 +68,9 @@ data class NotificationPreferencesResponse(
     val gameCreated: Boolean,
     val gameStarted: Boolean,
     val gameFinished: Boolean,
+    val gameProposalReceived: Boolean,
+    val gameProposalApproved: Boolean,
+    val gameProposalRejected: Boolean,
     val gameScoreRequested: Boolean,
     val gameScoreConfirmed: Boolean,
     val gameScoreRejected: Boolean,
@@ -74,8 +86,10 @@ data class UpdateNotificationPreferencesRequest(
     val gameCreated: Boolean? = null,
     val gameStarted: Boolean? = null,
     val gameFinished: Boolean? = null,
+    val gameProposalReceived: Boolean? = null,
+    val gameProposalApproved: Boolean? = null,
+    val gameProposalRejected: Boolean? = null,
     val gameScoreRequested: Boolean? = null,
     val gameScoreConfirmed: Boolean? = null,
     val gameScoreRejected: Boolean? = null,
 )
-

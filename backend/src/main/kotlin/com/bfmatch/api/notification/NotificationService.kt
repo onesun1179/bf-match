@@ -104,6 +104,9 @@ class NotificationService(
         request.gameCreated?.let { preference.gameCreated = it }
         request.gameStarted?.let { preference.gameStarted = it }
         request.gameFinished?.let { preference.gameFinished = it }
+        request.gameProposalReceived?.let { preference.gameProposalReceived = it }
+        request.gameProposalApproved?.let { preference.gameProposalApproved = it }
+        request.gameProposalRejected?.let { preference.gameProposalRejected = it }
         request.gameScoreRequested?.let { preference.gameScoreRequested = it }
         request.gameScoreConfirmed?.let { preference.gameScoreConfirmed = it }
         request.gameScoreRejected?.let { preference.gameScoreRejected = it }
@@ -125,6 +128,9 @@ class NotificationService(
         NotificationType.GAME_CREATED -> preference.gameCreated
         NotificationType.GAME_STARTED -> preference.gameStarted
         NotificationType.GAME_FINISHED -> preference.gameFinished
+        NotificationType.GAME_PROPOSAL_RECEIVED -> preference.gameProposalReceived
+        NotificationType.GAME_PROPOSAL_APPROVED -> preference.gameProposalApproved
+        NotificationType.GAME_PROPOSAL_REJECTED -> preference.gameProposalRejected
         NotificationType.GAME_SCORE_REQUESTED -> preference.gameScoreRequested
         NotificationType.GAME_SCORE_CONFIRMED -> preference.gameScoreConfirmed
         NotificationType.GAME_SCORE_REJECTED -> preference.gameScoreRejected
@@ -151,6 +157,9 @@ class NotificationService(
         gameCreated = gameCreated,
         gameStarted = gameStarted,
         gameFinished = gameFinished,
+        gameProposalReceived = gameProposalReceived,
+        gameProposalApproved = gameProposalApproved,
+        gameProposalRejected = gameProposalRejected,
         gameScoreRequested = gameScoreRequested,
         gameScoreConfirmed = gameScoreConfirmed,
         gameScoreRejected = gameScoreRejected,

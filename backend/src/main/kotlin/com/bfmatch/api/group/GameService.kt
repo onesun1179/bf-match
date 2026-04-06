@@ -107,7 +107,7 @@ class GameService(
             notificationService.sendToGroupMembers(
                 managerIds,
                 authenticatedUser.userId,
-                NotificationType.GROUP_UPDATED,
+                NotificationType.GAME_PROPOSAL_RECEIVED,
                 "게임 제안 도착",
                 "${creator.nickname}님이 ${group.name} 이벤트에 게임을 제안했습니다.",
                 "GAME",
@@ -212,7 +212,7 @@ class GameService(
         notificationService.sendToGroupMembers(
             playerUserIds,
             authenticatedUser.userId,
-            NotificationType.GAME_CREATED,
+            NotificationType.GAME_PROPOSAL_APPROVED,
             "게임 제안 수락",
             "${game.group.name} 이벤트에서 제안된 게임이 수락되었습니다.",
             "GAME",
@@ -250,7 +250,7 @@ class GameService(
             val reasonMessage = game.proposalRejectReason?.let { " (사유: $it)" } ?: ""
             notificationService.send(
                 proposalUserId,
-                NotificationType.GROUP_UPDATED,
+                NotificationType.GAME_PROPOSAL_REJECTED,
                 "게임 제안 거절",
                 "${game.group.name} 이벤트에서 게임 제안이 거절되었습니다$reasonMessage.",
                 "GAME",
@@ -288,7 +288,11 @@ class GameService(
     @Transactional
     fun submitScore(authenticatedUser: AuthenticatedUser, groupId: Long, gameId: Long, request: FinishGameRequest): GameResponse {
         val game = getGameInGroup(groupId, gameId)
-        requireGameParticipant(game, authenticatedUser.userId)
+        val managerOrOwner = isOwnerOrManager(groupId, authenticatedUser.userId)
+        val participant = gamePlayerRepository.findByGameIdAndUserId(game.id!!, authenticatedUser.userId)
+        if (!managerOrOwner && participant == null) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "게임 참여자만 점수를 입력할 수 있습니다.")
+        }
 
         if (game.status != GameStatus.FINISHED) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only FINISHED games can have scores submitted.")
@@ -303,8 +307,8 @@ class GameService(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "동점은 입력할 수 없습니다.")
         }
 
-        val requesterTeam = getParticipantTeam(game.id!!, authenticatedUser.userId)
-        val targetTeam = oppositeTeam(requesterTeam)
+        val requesterTeam = participant?.team
+        val targetTeam = requesterTeam?.let { oppositeTeam(it) }
 
         game.pendingTeamAScore = request.teamAScore
         game.pendingTeamBScore = request.teamBScore
@@ -313,16 +317,18 @@ class GameService(
         game.pendingRequestedAt = Instant.now()
         gameRepository.save(game)
 
-        val targetUserIds = gamePlayerRepository.findAllByGameId(gameId)
-            .filter { it.team == targetTeam }
-            .mapNotNull { it.user.id }
+        if (targetTeam != null) {
+            val targetUserIds = gamePlayerRepository.findAllByGameId(gameId)
+                .filter { it.team == targetTeam }
+                .mapNotNull { it.user.id }
 
-        notificationService.sendToGroupMembers(
-            targetUserIds, authenticatedUser.userId,
-            NotificationType.GAME_SCORE_REQUESTED, "점수 확인 요청",
-            "${game.group.name} 이벤트 게임의 점수 확인 요청이 도착했습니다.",
-            "GAME", game.id!!,
-        )
+            notificationService.sendToGroupMembers(
+                targetUserIds, authenticatedUser.userId,
+                NotificationType.GAME_SCORE_REQUESTED, "점수 확인 요청",
+                "${game.group.name} 이벤트 게임의 점수 확인 요청이 도착했습니다.",
+                "GAME", game.id!!,
+            )
+        }
 
         return toGameResponse(game)
     }
@@ -334,13 +340,11 @@ class GameService(
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "확인할 점수 요청이 없습니다.")
         val pendingB = game.pendingTeamBScore
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "확인할 점수 요청이 없습니다.")
-        val requesterTeam = game.pendingRequestedByTeam
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "점수 요청 정보가 올바르지 않습니다.")
-        val requesterUserId = game.pendingRequestedByUserId
-            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "점수 요청 정보가 올바르지 않습니다.")
 
         val managerOrOwner = isOwnerOrManager(groupId, authenticatedUser.userId)
         if (!managerOrOwner) {
+            val requesterTeam = game.pendingRequestedByTeam
+                ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "점수 요청 정보가 올바르지 않습니다.")
             val confirmerTeam = getParticipantTeam(game.id!!, authenticatedUser.userId)
             if (confirmerTeam != oppositeTeam(requesterTeam)) {
                 throw ResponseStatusException(HttpStatus.FORBIDDEN, "상대 팀 플레이어만 점수를 확정할 수 있습니다.")
@@ -365,18 +369,21 @@ class GameService(
             }
         }
 
-        notificationService.send(
-            requesterUserId,
-            NotificationType.GAME_SCORE_CONFIRMED,
-            "점수 입력 확정",
-            if (managerOrOwner) {
-                "${game.group.name} 이벤트 게임의 점수가 관리자 확정으로 반영되었습니다."
-            } else {
-                "${game.group.name} 이벤트 게임의 점수가 상대 팀 확인으로 확정되었습니다."
-            },
-            "GAME",
-            game.id!!,
-        )
+        val requesterUserId = game.pendingRequestedByUserId
+        if (requesterUserId != null) {
+            notificationService.send(
+                requesterUserId,
+                NotificationType.GAME_SCORE_CONFIRMED,
+                "점수 입력 확정",
+                if (managerOrOwner) {
+                    "${game.group.name} 이벤트 게임의 점수가 관리자 확정으로 반영되었습니다."
+                } else {
+                    "${game.group.name} 이벤트 게임의 점수가 상대 팀 확인으로 확정되었습니다."
+                },
+                "GAME",
+                game.id!!,
+            )
+        }
 
         return toGameResponse(game)
     }

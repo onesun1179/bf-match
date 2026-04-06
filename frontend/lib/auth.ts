@@ -461,6 +461,9 @@ export type NotificationPreferences = {
   gameCreated: boolean;
   gameStarted: boolean;
   gameFinished: boolean;
+  gameProposalReceived: boolean;
+  gameProposalApproved: boolean;
+  gameProposalRejected: boolean;
   gameScoreRequested: boolean;
   gameScoreConfirmed: boolean;
   gameScoreRejected: boolean;

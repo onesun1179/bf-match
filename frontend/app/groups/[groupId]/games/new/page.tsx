@@ -167,51 +167,66 @@ export default function NewGamePage() {
           )}
         </div>
 
-        <div style={card}>
-          <h2 style={sh}>선택된 팀</h2>
-          <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
-            <div style={selectedTeamRow}>
-              <p style={{ ...teamLabel, color: "var(--brand-light)" }}>팀 A ({selectedTeamA.length}/2)</p>
-              {teamAKey && (
-                <p style={{ margin: 0, fontSize: 12, color: "var(--ink-secondary)", fontWeight: 700 }}>
-                  팀 전적: 이벤트 {teamARecord.eventWins}승/{teamARecord.eventGames}전 · 총 {teamARecord.overallWins}승/{teamARecord.overallGames}전
-                </p>
-              )}
-              {selectedTeamA.length === 0 ? (
-                <p style={teamMembersText}>-</p>
-              ) : (
-                selectedTeamA.map((m) => {
-                  const stat = memberStats.find((s) => s.userId === m.userId);
-                  return (
-                    <p key={m.userId} style={{ margin: 0, fontSize: 12, color: "var(--ink)" }}>
-                      {displayName(m.nickname, m.gender, m.nationalGrade)}
-                      {stat && ` · 이벤트 ${stat.winCount}승/${stat.finishedGameCount}전 · 총 ${stat.overallWinCount}승/${stat.overallFinishedGameCount}전`}
-                    </p>
-                  );
-                })
-              )}
+        <div style={stickyWrap}>
+          <div style={card}>
+            <h2 style={sh}>선택된 팀</h2>
+            <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
+              <div style={selectedTeamRow}>
+                <p style={{ ...teamLabel, color: "var(--brand-light)" }}>팀 A ({selectedTeamA.length}/2)</p>
+                {teamAKey && (
+                  <p style={{ margin: 0, fontSize: 12, color: "var(--ink-secondary)", fontWeight: 700 }}>
+                    팀 전적: 이벤트 {teamARecord.eventWins}승/{teamARecord.eventGames}전 · 총 {teamARecord.overallWins}승/{teamARecord.overallGames}전
+                  </p>
+                )}
+                {selectedTeamA.length === 0 ? (
+                  <p style={teamMembersText}>-</p>
+                ) : (
+                  selectedTeamA.map((m) => {
+                    const stat = memberStats.find((s) => s.userId === m.userId);
+                    return (
+                      <p key={m.userId} style={{ margin: 0, fontSize: 12, color: "var(--ink)" }}>
+                        {displayName(m.nickname, m.gender, m.nationalGrade)}
+                        {stat && ` · 이벤트 ${stat.winCount}승/${stat.finishedGameCount}전 · 총 ${stat.overallWinCount}승/${stat.overallFinishedGameCount}전`}
+                      </p>
+                    );
+                  })
+                )}
+              </div>
+              <div style={selectedTeamRow}>
+                <p style={{ ...teamLabel, color: "var(--accent)" }}>팀 B ({selectedTeamB.length}/2)</p>
+                {teamBKey && (
+                  <p style={{ margin: 0, fontSize: 12, color: "var(--ink-secondary)", fontWeight: 700 }}>
+                    팀 전적: 이벤트 {teamBRecord.eventWins}승/{teamBRecord.eventGames}전 · 총 {teamBRecord.overallWins}승/{teamBRecord.overallGames}전
+                  </p>
+                )}
+                {selectedTeamB.length === 0 ? (
+                  <p style={teamMembersText}>-</p>
+                ) : (
+                  selectedTeamB.map((m) => {
+                    const stat = memberStats.find((s) => s.userId === m.userId);
+                    return (
+                      <p key={m.userId} style={{ margin: 0, fontSize: 12, color: "var(--ink)" }}>
+                        {displayName(m.nickname, m.gender, m.nationalGrade)}
+                        {stat && ` · 이벤트 ${stat.winCount}승/${stat.finishedGameCount}전 · 총 ${stat.overallWinCount}승/${stat.overallFinishedGameCount}전`}
+                      </p>
+                    );
+                  })
+                )}
+              </div>
             </div>
-            <div style={selectedTeamRow}>
-              <p style={{ ...teamLabel, color: "var(--accent)" }}>팀 B ({selectedTeamB.length}/2)</p>
-              {teamBKey && (
-                <p style={{ margin: 0, fontSize: 12, color: "var(--ink-secondary)", fontWeight: 700 }}>
-                  팀 전적: 이벤트 {teamBRecord.eventWins}승/{teamBRecord.eventGames}전 · 총 {teamBRecord.overallWins}승/{teamBRecord.overallGames}전
-                </p>
-              )}
-              {selectedTeamB.length === 0 ? (
-                <p style={teamMembersText}>-</p>
-              ) : (
-                selectedTeamB.map((m) => {
-                  const stat = memberStats.find((s) => s.userId === m.userId);
-                  return (
-                    <p key={m.userId} style={{ margin: 0, fontSize: 12, color: "var(--ink)" }}>
-                      {displayName(m.nickname, m.gender, m.nationalGrade)}
-                      {stat && ` · 이벤트 ${stat.winCount}승/${stat.finishedGameCount}전 · 총 ${stat.overallWinCount}승/${stat.overallFinishedGameCount}전`}
-                    </p>
-                  );
-                })
-              )}
-            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={() => { void handleSubmit(); }}
+              disabled={!isMember || teamA.length !== 2 || teamB.length !== 2 || submitting}
+              style={{ ...actionBtn, ...actionPrimary, opacity: isMember && teamA.length === 2 && teamB.length === 2 && !submitting ? 1 : 0.45 }}
+            >
+              {submitting ? "처리 중..." : effectiveMode === "CREATE" ? "생성하기" : "제안하기"}
+            </button>
+            <Link href={`/groups/${group.id}?view=games`} style={{ ...actionBtn, ...actionSecondary, textDecoration: "none" }}>
+              취소
+            </Link>
           </div>
         </div>
 
@@ -266,19 +281,6 @@ export default function NewGamePage() {
 
         {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 13 }}>{error}</p>}
         {!isMember && <p style={{ margin: 0, color: "var(--danger)", fontSize: 13 }}>활성 멤버만 게임 생성/제안을 할 수 있습니다.</p>}
-
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={() => { void handleSubmit(); }}
-            disabled={!isMember || teamA.length !== 2 || teamB.length !== 2 || submitting}
-            style={{ ...actionBtn, ...actionPrimary, opacity: isMember && teamA.length === 2 && teamB.length === 2 && !submitting ? 1 : 0.45 }}
-          >
-            {submitting ? "처리 중..." : effectiveMode === "CREATE" ? "생성하기" : "제안하기"}
-          </button>
-          <Link href={`/groups/${group.id}?view=games`} style={{ ...actionBtn, ...actionSecondary, textDecoration: "none" }}>
-            취소
-          </Link>
-        </div>
       </section>
     </main>
   );
@@ -292,6 +294,16 @@ const muted: CSSProperties = { color: "var(--muted)", textAlign: "center", paddi
 const selectedTeamRow: CSSProperties = { borderRadius: 10, border: "1px solid var(--line)", background: "var(--surface-2)", padding: "10px 12px", display: "grid", gap: 4 };
 const teamLabel: CSSProperties = { margin: 0, fontSize: 12, fontWeight: 800 };
 const teamMembersText: CSSProperties = { margin: 0, fontSize: 13, color: "var(--ink)", fontWeight: 700 };
+const stickyWrap: CSSProperties = {
+  position: "sticky",
+  top: 10,
+  zIndex: 20,
+  display: "grid",
+  gap: 8,
+  paddingBottom: 2,
+  background: "linear-gradient(to bottom, rgba(8,10,20,0.95), rgba(8,10,20,0.82) 70%, rgba(8,10,20,0))",
+  backdropFilter: "blur(6px)",
+};
 const chipBtn: CSSProperties = { border: 0, borderRadius: 999, padding: "6px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer", background: "var(--surface-2)", color: "var(--ink-secondary)" };
 const pickBtn: CSSProperties = { border: 0, borderRadius: 999, minWidth: 34, height: 28, fontSize: 12, fontWeight: 800, cursor: "pointer" };
 const actionBtn: CSSProperties = { flex: 1, minHeight: 40, borderRadius: "var(--radius-sm)", border: 0, fontWeight: 700, fontSize: 14, textAlign: "center", display: "inline-flex", alignItems: "center", justifyContent: "center" };

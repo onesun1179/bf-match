@@ -37,7 +37,7 @@ export default function GroupDetailPage() {
   const [games, setGames] = useState<GameResponse[]>([]);
   const [memberStats, setMemberStats] = useState<MemberStat[]>([]);
   const [teamStats, setTeamStats] = useState<TeamStat[]>([]);
-  const [scoreDialog, setScoreDialog] = useState<{ gameId: number } | null>(null);
+  const [scoreDialog, setScoreDialog] = useState<{ gameId: number; autoConfirm: boolean } | null>(null);
   const [scoreA, setScoreA] = useState("");
   const [scoreB, setScoreB] = useState("");
   const [courtInputs, setCourtInputs] = useState<Record<number, string>>({});
@@ -162,11 +162,15 @@ export default function GroupDetailPage() {
 
   async function handleSubmitScore() {
     if (!group || !scoreDialog) return;
+    const { gameId, autoConfirm } = scoreDialog;
     const a = Number(scoreA); const b = Number(scoreB);
     if (isNaN(a) || isNaN(b) || a === b) { setError("올바른 점수를 입력하세요. (동점 불가)"); return; }
     try {
-      const g = await submitScore(group.id, scoreDialog.gameId, a, b);
-      setGames((prev) => prev.map((x) => x.id === scoreDialog.gameId ? g : x));
+      let g = await submitScore(group.id, gameId, a, b);
+      if (autoConfirm) {
+        g = await confirmScore(group.id, gameId);
+      }
+      setGames((prev) => prev.map((x) => x.id === gameId ? g : x));
       setScoreDialog(null); setScoreA(""); setScoreB("");
     } catch (err) { setError(err instanceof Error ? err.message : "점수 요청 실패"); }
   }
@@ -584,14 +588,32 @@ export default function GroupDetailPage() {
               const teamAOverall = teamStatsMap.get(teamAKey);
               const teamBOverall = teamStatsMap.get(teamBKey);
               const pendingRequesterTeam = g.pendingRequestedByTeam;
-              const canConfirmOrReject = g.status === "FINISHED" && isPlayer && g.teamAScore == null && pendingRequesterTeam != null && myTeam != null && myTeam !== pendingRequesterTeam;
-              const canManagerForceConfirm = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore == null && g.pendingTeamAScore != null;
+              const canManagerForceConfirm = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore == null;
+              const hasPendingScore = g.pendingTeamAScore != null && g.pendingTeamBScore != null;
+              const canPlayerRejectScore =
+                g.status === "FINISHED" &&
+                !isOwnerOrManager &&
+                isPlayer &&
+                g.teamAScore == null &&
+                pendingRequesterTeam != null &&
+                myTeam != null &&
+                myTeam !== pendingRequesterTeam;
               const pendingMessage = g.pendingTeamAScore != null && g.pendingTeamBScore != null && pendingRequesterTeam
                 ? `점수 확인 대기: 팀 ${pendingRequesterTeam}가 ${g.pendingTeamAScore} : ${g.pendingTeamBScore} 요청`
                 : null;
-              const statusLabel = g.status === "PENDING" ? "대기" : g.status === "IN_PROGRESS" ? "진행중" : g.status === "FINISHED" ? "종료" : "취소";
+              const statusLabel = g.status === "PENDING"
+                ? "대기"
+                : g.status === "IN_PROGRESS"
+                  ? "진행중"
+                  : g.status === "FINISHED" && g.teamAScore == null
+                    ? "입력대기"
+                    : g.status === "FINISHED"
+                      ? "종료"
+                      : "취소";
               const statusTone = g.status === "IN_PROGRESS"
                 ? { background: "rgba(0,206,201,0.14)", color: "var(--accent)", borderColor: "rgba(0,206,201,0.35)" }
+                : g.status === "FINISHED" && g.teamAScore == null
+                  ? { background: "rgba(255,193,7,0.12)", color: "var(--warning)", borderColor: "rgba(255,193,7,0.35)" }
                 : g.status === "FINISHED"
                   ? { background: "var(--success-bg)", color: "var(--success)", borderColor: "rgba(16,185,129,0.35)" }
                   : g.status === "CANCELLED"
@@ -738,18 +760,28 @@ export default function GroupDetailPage() {
                       </>
                     )}
                     {g.status === "PENDING" && isMember && isProposalApproved && <button onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
-                    {g.status === "IN_PROGRESS" && isMember && <button onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>종료</button>}
-                    {g.status === "FINISHED" && isPlayer && g.teamAScore == null && g.pendingTeamAScore == null && <button onClick={() => { setScoreDialog({ gameId: g.id }); setScoreA(""); setScoreB(""); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>점수 입력</button>}
+                    {g.status === "IN_PROGRESS" && isMember && <button onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>게임 완료</button>}
+                    {g.status === "FINISHED" && isPlayer && g.teamAScore == null && g.pendingTeamAScore == null && <button onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setScoreA(""); setScoreB(""); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>점수 입력</button>}
                     {canManagerForceConfirm && (
-                      <button onClick={() => { void handleConfirmScore(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}>
-                        관리자 점수 확정
+                      <button
+                        onClick={() => {
+                          if (hasPendingScore) {
+                            void handleConfirmScore(g.id);
+                          } else {
+                            setScoreDialog({ gameId: g.id, autoConfirm: true });
+                            setScoreA("");
+                            setScoreB("");
+                          }
+                        }}
+                        style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}
+                      >
+                        {hasPendingScore ? "관리자 점수 확정" : "점수 확정"}
                       </button>
                     )}
-                    {canConfirmOrReject && (
-                      <>
-                        <button onClick={() => { void handleConfirmScore(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}>점수 수락</button>
-                        <button onClick={() => { void handleRejectScore(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>점수 거절</button>
-                      </>
+                    {canPlayerRejectScore && (
+                      <button onClick={() => { void handleRejectScore(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>
+                        점수 거절
+                      </button>
                     )}
                     {isOwnerOrManager && g.status !== "CANCELLED" && <button onClick={() => { void handleCancelGame(g.id); }} style={{ ...btnDng, flex: 0, minHeight: 36, fontSize: 13, padding: "0 12px" }}>취소</button>}
                   </div>
