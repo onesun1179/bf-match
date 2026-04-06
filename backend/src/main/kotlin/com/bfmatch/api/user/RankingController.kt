@@ -11,4 +11,7 @@ class RankingController(
 ) {
     @GetMapping
     fun ranking(): RankingByGradeResponse = rankingService.getRanking()
+
+    @GetMapping("/teams")
+    fun teamRanking(): TeamRankingByGradeResponse = rankingService.getTeamRanking()
 }

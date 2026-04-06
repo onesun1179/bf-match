@@ -297,14 +297,25 @@ class GameService(
         if (game.status != GameStatus.FINISHED) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only FINISHED games can have scores submitted.")
         }
-        if (game.teamAScore != null) {
+        if (game.teamAScore != null && !managerOrOwner) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 점수가 입력되었습니다.")
         }
-        if (game.pendingTeamAScore != null) {
+        if (game.pendingTeamAScore != null && !managerOrOwner) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 점수 확인 요청이 대기 중입니다.")
         }
         if (request.teamAScore == request.teamBScore) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "동점은 입력할 수 없습니다.")
+        }
+
+        if (managerOrOwner && game.teamAScore != null) {
+            rollbackExpIfScored(game)
+            game.teamAScore = null
+            game.teamBScore = null
+            game.winnerTeam = null
+        }
+
+        if (managerOrOwner && game.pendingTeamAScore != null) {
+            clearPendingScore(game)
         }
 
         val requesterTeam = participant?.team

@@ -154,6 +154,9 @@ export default function NewGamePage() {
     <main style={main}>
       <section style={sec}>
         <div style={card}>
+          <Link href={`/groups/${group.id}?view=games`} style={closeIconLink} aria-label="닫기">
+            ×
+          </Link>
           <Link href={`/groups/${group.id}?view=games`} style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 게임으로</Link>
           <h1 style={{ margin: "8px 0 0", fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em" }}>
             {effectiveMode === "CREATE" ? "게임 생성" : "게임 제안"}
@@ -217,17 +220,14 @@ export default function NewGamePage() {
           </div>
 
           <div style={{ display: "flex", gap: 8 }}>
-            <button
-              onClick={() => { void handleSubmit(); }}
-              disabled={!isMember || teamA.length !== 2 || teamB.length !== 2 || submitting}
-              style={{ ...actionBtn, ...actionPrimary, opacity: isMember && teamA.length === 2 && teamB.length === 2 && !submitting ? 1 : 0.45 }}
-            >
-              {submitting ? "처리 중..." : effectiveMode === "CREATE" ? "생성하기" : "제안하기"}
-            </button>
-            <Link href={`/groups/${group.id}?view=games`} style={{ ...actionBtn, ...actionSecondary, textDecoration: "none" }}>
-              취소
-            </Link>
-          </div>
+          <button
+            onClick={() => { void handleSubmit(); }}
+            disabled={!isMember || teamA.length !== 2 || teamB.length !== 2 || submitting}
+            style={{ ...actionBtn, ...actionPrimary, opacity: isMember && teamA.length === 2 && teamB.length === 2 && !submitting ? 1 : 0.45 }}
+          >
+            {submitting ? "처리 중..." : effectiveMode === "CREATE" ? "생성하기" : "제안하기"}
+          </button>
+        </div>
         </div>
 
         <div style={card}>
@@ -288,7 +288,7 @@ export default function NewGamePage() {
 
 const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 40px" };
 const sec: CSSProperties = { maxWidth: 560, margin: "0 auto", display: "grid", gap: 12 };
-const card: CSSProperties = { padding: "16px 18px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid" };
+const card: CSSProperties = { position: "relative", padding: "16px 18px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid" };
 const sh: CSSProperties = { margin: 0, fontSize: 15, fontWeight: 800, color: "var(--ink-secondary)" };
 const muted: CSSProperties = { color: "var(--muted)", textAlign: "center", padding: 60 };
 const selectedTeamRow: CSSProperties = { borderRadius: 10, border: "1px solid var(--line)", background: "var(--surface-2)", padding: "10px 12px", display: "grid", gap: 4 };
@@ -308,7 +308,23 @@ const chipBtn: CSSProperties = { border: 0, borderRadius: 999, padding: "6px 10p
 const pickBtn: CSSProperties = { border: 0, borderRadius: 999, minWidth: 34, height: 28, fontSize: 12, fontWeight: 800, cursor: "pointer" };
 const actionBtn: CSSProperties = { flex: 1, minHeight: 40, borderRadius: "var(--radius-sm)", border: 0, fontWeight: 700, fontSize: 14, textAlign: "center", display: "inline-flex", alignItems: "center", justifyContent: "center" };
 const actionPrimary: CSSProperties = { background: "var(--brand)", color: "#fff", cursor: "pointer" };
-const actionSecondary: CSSProperties = { background: "var(--surface-2)", color: "var(--ink)", border: "1px solid var(--line-2)" };
 const modeBtn: CSSProperties = { border: 0, borderRadius: 999, height: 30, padding: "0 12px", fontSize: 12, fontWeight: 800, cursor: "pointer" };
 const modeBtnOn: CSSProperties = { background: "var(--brand)", color: "#fff" };
 const modeBtnOff: CSSProperties = { background: "var(--surface-2)", color: "var(--ink-secondary)" };
+const closeIconLink: CSSProperties = {
+  position: "absolute",
+  top: 12,
+  right: 12,
+  width: 30,
+  height: 30,
+  borderRadius: 999,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  textDecoration: "none",
+  background: "var(--surface-2)",
+  color: "var(--ink-secondary)",
+  fontSize: 20,
+  lineHeight: 1,
+  border: "1px solid var(--line-2)",
+};

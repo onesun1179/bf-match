@@ -295,12 +295,24 @@ export default function GroupDetailPage() {
   function fmtDate(s: string | null) { return s ? new Date(s).toLocaleString("ko-KR") : "-"; }
 
   const inviteInfo = dialog.type !== "none" ? dialog.info : null;
+  const toTime = (value: string | null | undefined) => (value ? new Date(value).getTime() : Number.MAX_SAFE_INTEGER);
   const gameOrderMap = new Map(
     games
       .slice()
       .sort((a, b) => {
-        const t = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        return t !== 0 ? t : a.id - b.id;
+        const aStarted = a.startedAt != null;
+        const bStarted = b.startedAt != null;
+        if (aStarted && bStarted) {
+          const startedDiff = toTime(a.startedAt) - toTime(b.startedAt);
+          if (startedDiff !== 0) return startedDiff;
+          return a.id - b.id;
+        }
+        if (aStarted && !bStarted) return -1;
+        if (!aStarted && bStarted) return 1;
+
+        const createdDiff = toTime(a.createdAt) - toTime(b.createdAt);
+        if (createdDiff !== 0) return createdDiff;
+        return a.id - b.id;
       })
       .map((g, idx) => [g.id, idx + 1] as const),
   );
@@ -589,6 +601,7 @@ export default function GroupDetailPage() {
               const teamBOverall = teamStatsMap.get(teamBKey);
               const pendingRequesterTeam = g.pendingRequestedByTeam;
               const canManagerForceConfirm = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore == null;
+              const canManagerEditScoredGame = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore != null;
               const hasPendingScore = g.pendingTeamAScore != null && g.pendingTeamBScore != null;
               const canPlayerRejectScore =
                 g.status === "FINISHED" &&
@@ -624,7 +637,7 @@ export default function GroupDetailPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       <span style={{ ...gBadge, background: "var(--surface-3)", color: "var(--ink)", padding: "5px 11px", border: "1px solid var(--line-2)" }}>
-                        {gameOrderMap.get(g.id)}번 게임
+                        {(gameOrderMap.get(g.id) ?? "-")}번 게임
                       </span>
                       <span style={{ ...gBadge, padding: "5px 11px", border: `1px solid ${statusTone.borderColor}`, background: statusTone.background, color: statusTone.color }}>
                         {statusLabel}
@@ -645,9 +658,21 @@ export default function GroupDetailPage() {
                         </span>
                       )}
                     </div>
-                    <span style={{ fontSize: 12, color: "var(--muted)", flexShrink: 0 }}>
-                      {new Date(g.createdAt).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                      <span style={{ fontSize: 12, color: "var(--muted)" }}>
+                        {new Date(g.createdAt).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                      {isOwnerOrManager && g.status !== "CANCELLED" && (
+                        <button
+                          onClick={() => { void handleCancelGame(g.id); }}
+                          aria-label="게임 삭제"
+                          title="게임 삭제"
+                          style={gameCloseBtn}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div style={gameTeamsGrid}>
@@ -778,12 +803,23 @@ export default function GroupDetailPage() {
                         {hasPendingScore ? "관리자 점수 확정" : "점수 확정"}
                       </button>
                     )}
+                    {canManagerEditScoredGame && (
+                      <button
+                        onClick={() => {
+                          setScoreDialog({ gameId: g.id, autoConfirm: true });
+                          setScoreA(g.teamAScore != null ? String(g.teamAScore) : "");
+                          setScoreB(g.teamBScore != null ? String(g.teamBScore) : "");
+                        }}
+                        style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}
+                      >
+                        점수 수정
+                      </button>
+                    )}
                     {canPlayerRejectScore && (
                       <button onClick={() => { void handleRejectScore(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>
                         점수 거절
                       </button>
                     )}
-                    {isOwnerOrManager && g.status !== "CANCELLED" && <button onClick={() => { void handleCancelGame(g.id); }} style={{ ...btnDng, flex: 0, minHeight: 36, fontSize: 13, padding: "0 12px" }}>취소</button>}
                   </div>
                 </div>
               );
@@ -884,6 +920,13 @@ export default function GroupDetailPage() {
         {/* Score Dialog */}
         {scoreDialog && (
           <div style={overlay}><div style={dlg}>
+            <button
+              onClick={() => setScoreDialog(null)}
+              aria-label="닫기"
+              style={closeIconBtn}
+            >
+              ×
+            </button>
             <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, textAlign: "center" }}>점수 입력</h2>
             <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 14, textAlign: "center" }}>세트 승수를 입력하세요</p>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
@@ -900,7 +943,6 @@ export default function GroupDetailPage() {
             {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{error}</p>}
             <div style={{ display: "grid", gap: 10 }}>
               <button onClick={() => { void handleSubmitScore(); }} style={{ ...btnP, width: "100%" }}>확인</button>
-              <button onClick={() => setScoreDialog(null)} style={{ ...btnSec, width: "100%" }}>취소</button>
             </div>
           </div></div>
         )}
@@ -986,7 +1028,36 @@ const teamRecordLink: CSSProperties = {
   fontWeight: 800,
   textDecoration: "none",
 };
+const gameCloseBtn: CSSProperties = {
+  width: 26,
+  height: 26,
+  borderRadius: 999,
+  border: "1px solid rgba(255,107,107,0.35)",
+  background: "rgba(255,107,107,0.12)",
+  color: "var(--danger)",
+  fontSize: 18,
+  lineHeight: 1,
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 0,
+};
 const scoreInput: CSSProperties = { width: 80, height: 64, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", background: "var(--surface-2)", color: "var(--ink)", fontSize: 28, fontWeight: 800, textAlign: "center", outline: "none" };
 const ta: CSSProperties = { borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: 14, fontSize: 15, resize: "vertical", minHeight: 80, background: "var(--surface-2)", color: "var(--ink)", fontFamily: "inherit" };
 const overlay: CSSProperties = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 };
-const dlg: CSSProperties = { background: "var(--surface)", border: "1px solid var(--line-2)", borderRadius: "var(--radius-xl)", padding: "32px 24px", maxWidth: 400, width: "100%", display: "grid", gap: 16, boxShadow: "var(--shadow-lg)" };
+const dlg: CSSProperties = { position: "relative", background: "var(--surface)", border: "1px solid var(--line-2)", borderRadius: "var(--radius-xl)", padding: "32px 24px", maxWidth: 400, width: "100%", display: "grid", gap: 16, boxShadow: "var(--shadow-lg)" };
+const closeIconBtn: CSSProperties = {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  width: 30,
+  height: 30,
+  borderRadius: 999,
+  border: "1px solid var(--line-2)",
+  background: "var(--surface-2)",
+  color: "var(--ink-secondary)",
+  fontSize: 20,
+  lineHeight: 1,
+  cursor: "pointer",
+};

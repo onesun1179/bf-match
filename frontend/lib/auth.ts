@@ -584,6 +584,33 @@ export async function fetchRanking(): Promise<RankingByGrade> {
   return (await r.json()) as RankingByGrade;
 }
 
+export type TeamRankingMember = {
+  userId: number;
+  nickname: string;
+  gender: Gender | null;
+  grade: Grade;
+};
+
+export type TeamRankingEntry = {
+  rank: number;
+  teamKey: string;
+  teamGrade: Grade;
+  members: TeamRankingMember[];
+  gameCount: number;
+  winCount: number;
+  winRate: number;
+};
+
+export type TeamRankingResponse = {
+  grades: Record<Grade, Record<string, TeamRankingEntry[]>>;
+};
+
+export async function fetchTeamRanking(): Promise<TeamRankingResponse> {
+  const r = await apiFetch("/api/v1/ranking/teams");
+  if (!r.ok) throw new Error("팀 랭킹을 불러오지 못했습니다.");
+  return (await r.json()) as TeamRankingResponse;
+}
+
 // ── Helpers ──
 
 export function displayName(nickname: string, gender?: Gender | null, grade?: Grade | null): string {
