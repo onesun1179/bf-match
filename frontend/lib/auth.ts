@@ -268,6 +268,7 @@ export async function declineInvite(token: string, reason?: string): Promise<voi
 // ── Games ──
 
 export type GameStatus = "PENDING" | "IN_PROGRESS" | "FINISHED" | "CANCELLED";
+export type GameProposalStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export type GamePlayerResponse = {
   userId: number;
@@ -280,6 +281,11 @@ export type GameResponse = {
   id: number;
   groupId: number;
   status: GameStatus;
+  proposalStatus: GameProposalStatus;
+  proposedByUserId: number | null;
+  proposalReviewedByUserId: number | null;
+  proposalReviewedAt: string | null;
+  proposalRejectReason: string | null;
   gameType: GameType | null;
   teamA: GamePlayerResponse[];
   teamB: GamePlayerResponse[];
@@ -303,8 +309,17 @@ export async function fetchGames(groupId: number): Promise<GameResponse[]> {
   return (await r.json()) as GameResponse[];
 }
 
-export async function createGame(groupId: number, teamAUserIds: number[], teamBUserIds: number[]): Promise<GameResponse> {
-  const r = await apiFetch(`/api/v1/groups/${groupId}/games`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ teamAUserIds, teamBUserIds }) });
+export async function createGame(
+  groupId: number,
+  teamAUserIds: number[],
+  teamBUserIds: number[],
+  asProposal?: boolean,
+): Promise<GameResponse> {
+  const r = await apiFetch(`/api/v1/groups/${groupId}/games`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ teamAUserIds, teamBUserIds, asProposal }),
+  });
   if (!r.ok) throw new Error("게임 생성에 실패했습니다.");
   return (await r.json()) as GameResponse;
 }
@@ -349,6 +364,22 @@ export async function updateGameCourtNumber(groupId: number, gameId: number, cou
   return (await r.json()) as GameResponse;
 }
 
+export async function approveGameProposal(groupId: number, gameId: number): Promise<GameResponse> {
+  const r = await apiFetch(`/api/v1/groups/${groupId}/games/${gameId}/proposal/approve`, { method: "POST" });
+  if (!r.ok) { const b = await r.json().catch(() => null) as { message?: string } | null; throw new Error(b?.message ?? "게임 제안 수락에 실패했습니다."); }
+  return (await r.json()) as GameResponse;
+}
+
+export async function rejectGameProposal(groupId: number, gameId: number, reason?: string): Promise<GameResponse> {
+  const r = await apiFetch(`/api/v1/groups/${groupId}/games/${gameId}/proposal/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ reason: reason ?? null }),
+  });
+  if (!r.ok) { const b = await r.json().catch(() => null) as { message?: string } | null; throw new Error(b?.message ?? "게임 제안 거절에 실패했습니다."); }
+  return (await r.json()) as GameResponse;
+}
+
 export async function deleteGame(groupId: number, gameId: number): Promise<void> {
   const r = await apiFetch(`/api/v1/groups/${groupId}/games/${gameId}`, { method: "DELETE" });
   if (!r.ok) throw new Error("게임 삭제에 실패했습니다.");
@@ -371,6 +402,20 @@ export type MemberStat = {
   totalGameCount: number;
   winCount: number;
   winRate: number;
+  overallFinishedGameCount: number;
+  overallTotalGameCount: number;
+  overallWinCount: number;
+  overallWinRate: number;
+};
+
+export type TeamStat = {
+  teamKey: string;
+  eventGames: number;
+  eventWins: number;
+  eventWinRate: number;
+  overallGames: number;
+  overallWins: number;
+  overallWinRate: number;
 };
 
 export type GameType = "MALE_DOUBLES" | "FEMALE_DOUBLES" | "MIXED_DOUBLES" | "FREE";
@@ -379,6 +424,12 @@ export async function fetchMemberStats(groupId: number): Promise<MemberStat[]> {
   const r = await apiFetch(`/api/v1/groups/${groupId}/games/member-stats`);
   if (!r.ok) throw new Error("멤버 통계를 불러오지 못했습니다.");
   return (await r.json()) as MemberStat[];
+}
+
+export async function fetchTeamStats(groupId: number): Promise<TeamStat[]> {
+  const r = await apiFetch(`/api/v1/groups/${groupId}/games/team-stats`);
+  if (!r.ok) throw new Error("팀 통계를 불러오지 못했습니다.");
+  return (await r.json()) as TeamStat[];
 }
 
 export async function recommendGame(groupId: number, type: GameType): Promise<{ teamAUserIds: number[]; teamBUserIds: number[] }> {

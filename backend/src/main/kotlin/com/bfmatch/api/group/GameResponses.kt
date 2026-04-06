@@ -14,6 +14,11 @@ data class GameResponse(
     val id: Long,
     val groupId: Long,
     val status: GameStatus,
+    val proposalStatus: GameProposalStatus,
+    val proposedByUserId: Long?,
+    val proposalReviewedByUserId: Long?,
+    val proposalReviewedAt: String?,
+    val proposalRejectReason: String?,
     val gameType: GameType?,
     val teamA: List<GamePlayerResponse>,
     val teamB: List<GamePlayerResponse>,
@@ -34,6 +39,7 @@ data class GameResponse(
 data class CreateGameRequest(
     val teamAUserIds: List<Long>,
     val teamBUserIds: List<Long>,
+    val asProposal: Boolean? = null,
 )
 
 data class FinishGameRequest(
@@ -43,6 +49,10 @@ data class FinishGameRequest(
 
 data class UpdateGameCourtNumberRequest(
     val courtNumber: Int?,
+)
+
+data class RejectGameProposalRequest(
+    val reason: String? = null,
 )
 
 data class MemberStatResponse(
@@ -56,6 +66,20 @@ data class MemberStatResponse(
     val totalGameCount: Int,
     val winCount: Int,
     val winRate: Double,
+    val overallFinishedGameCount: Int,
+    val overallTotalGameCount: Int,
+    val overallWinCount: Int,
+    val overallWinRate: Double,
+)
+
+data class TeamStatResponse(
+    val teamKey: String,
+    val eventGames: Int,
+    val eventWins: Int,
+    val eventWinRate: Double,
+    val overallGames: Int,
+    val overallWins: Int,
+    val overallWinRate: Double,
 )
 
 enum class GameType { MALE_DOUBLES, FEMALE_DOUBLES, MIXED_DOUBLES, FREE }

@@ -31,6 +31,10 @@ class GameController(
     fun memberStats(@PathVariable groupId: Long): List<MemberStatResponse> =
         gameService.getMemberStats(groupId)
 
+    @GetMapping("/team-stats")
+    fun teamStats(@PathVariable groupId: Long): List<TeamStatResponse> =
+        gameService.getTeamStats(groupId)
+
     @PostMapping("/recommend")
     fun recommendGame(
         @PathVariable groupId: Long,
@@ -80,6 +84,21 @@ class GameController(
         @PathVariable gameId: Long,
         @RequestBody request: UpdateGameCourtNumberRequest,
     ): GameResponse = gameService.updateCourtNumber(principal, groupId, gameId, request)
+
+    @PostMapping("/{gameId}/proposal/approve")
+    fun approveProposal(
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+        @PathVariable groupId: Long,
+        @PathVariable gameId: Long,
+    ): GameResponse = gameService.approveProposal(principal, groupId, gameId)
+
+    @PostMapping("/{gameId}/proposal/reject")
+    fun rejectProposal(
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+        @PathVariable groupId: Long,
+        @PathVariable gameId: Long,
+        @RequestBody request: RejectGameProposalRequest,
+    ): GameResponse = gameService.rejectProposal(principal, groupId, gameId, request)
 
     @PostMapping("/{gameId}/cancel")
     fun cancelGame(

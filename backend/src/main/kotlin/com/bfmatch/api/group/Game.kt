@@ -5,6 +5,7 @@ import jakarta.persistence.*
 import java.time.Instant
 
 enum class GameStatus { PENDING, IN_PROGRESS, FINISHED, CANCELLED }
+enum class GameProposalStatus { PENDING, APPROVED, REJECTED }
 
 @Entity
 @Table(name = "games")
@@ -17,6 +18,16 @@ class Game(
     var createdBy: User,
     @Enumerated(EnumType.STRING) @Column(nullable = false, length = 20)
     var status: GameStatus = GameStatus.PENDING,
+    @Enumerated(EnumType.STRING) @Column(length = 20)
+    var proposalStatus: GameProposalStatus? = GameProposalStatus.APPROVED,
+    @Column
+    var proposedByUserId: Long? = null,
+    @Column
+    var proposalReviewedByUserId: Long? = null,
+    @Column
+    var proposalReviewedAt: Instant? = null,
+    @Column(length = 200)
+    var proposalRejectReason: String? = null,
     @Enumerated(EnumType.STRING) @Column(length = 20)
     var gameType: GameType? = null,
     @Column

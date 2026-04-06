@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import {
-  acceptInvite, cancelGame, changeMemberRole, closeGroup, createGame, createInviteLink, declineInvite,
+  acceptInvite, approveGameProposal, cancelGame, changeMemberRole, closeGroup, createInviteLink, declineInvite,
   confirmScore,
-  displayName, fetchGames, fetchGroupDetail, fetchInviteLinkInfo, fetchMe, fetchMemberStats,
-  finishGame, getAccessToken, joinPublicGroup, kickGroupMember, leaveGroup, recommendGame, refreshAccessToken,
-  rejectScore, startGame, submitScore, updateGameCourtNumber,
-  type GameResponse, type GameType, type Grade, type GroupDetail, type InviteLinkInfo, type MeResponse, type MemberStat,
+  displayName, fetchGames, fetchGroupDetail, fetchInviteLinkInfo, fetchMe, fetchMemberStats, fetchTeamStats,
+  finishGame, getAccessToken, joinPublicGroup, kickGroupMember, leaveGroup, refreshAccessToken,
+  rejectGameProposal, rejectScore, startGame, submitScore, updateGameCourtNumber,
+  type GameResponse, type Grade, type GroupDetail, type InviteLinkInfo, type MeResponse, type MemberStat, type TeamStat,
 } from "@/lib/auth";
 import { BottomNavGroupDetail } from "@/components/bottom-nav-group-detail";
 
@@ -35,16 +35,16 @@ export default function GroupDetailPage() {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [games, setGames] = useState<GameResponse[]>([]);
-  const [showCreateGame, setShowCreateGame] = useState(false);
-  const [teamA, setTeamA] = useState<number[]>([]);
-  const [teamB, setTeamB] = useState<number[]>([]);
   const [memberStats, setMemberStats] = useState<MemberStat[]>([]);
+  const [teamStats, setTeamStats] = useState<TeamStat[]>([]);
   const [scoreDialog, setScoreDialog] = useState<{ gameId: number } | null>(null);
   const [scoreA, setScoreA] = useState("");
   const [scoreB, setScoreB] = useState("");
   const [courtInputs, setCourtInputs] = useState<Record<number, string>>({});
-  const [gameSubTab, setGameSubTab] = useState<"IN_PROGRESS" | "PENDING" | "SCORE_PENDING" | "FINISHED" | "CANCELLED">("IN_PROGRESS");
+  const [gameSubTab, setGameSubTab] = useState<"PROPOSAL" | "IN_PROGRESS" | "PENDING" | "SCORE_PENDING" | "FINISHED" | "CANCELLED">("IN_PROGRESS");
   const [showAllRanking, setShowAllRanking] = useState(false);
+  const [showAllTeamRanking, setShowAllTeamRanking] = useState(false);
+  const [rankingMode, setRankingMode] = useState<"PERSONAL" | "TEAM">("PERSONAL");
 
   const isOwner = group?.myRole === "OWNER";
   const isOwnerOrManager = group?.myRole === "OWNER" || group?.myRole === "MANAGER";
@@ -129,8 +129,8 @@ export default function GroupDetailPage() {
   async function loadGames() {
     if (!group) return;
     try {
-      const [g, s] = await Promise.all([fetchGames(group.id), fetchMemberStats(group.id)]);
-      setGames(g); setMemberStats(s);
+      const [g, s, ts] = await Promise.all([fetchGames(group.id), fetchMemberStats(group.id), fetchTeamStats(group.id)]);
+      setGames(g); setMemberStats(s); setTeamStats(ts);
     } catch {}
   }
 
@@ -145,30 +145,6 @@ export default function GroupDetailPage() {
       router.replace(`/groups/${group.id}?view=info`);
     }
   }, [tab, group, isOwnerOrManager, router]);
-
-  function togglePlayer(userId: number, team: "A" | "B") {
-    const setter = team === "A" ? setTeamA : setTeamB;
-    const other = team === "A" ? setTeamB : setTeamA;
-    setter((prev) => prev.includes(userId) ? prev.filter((id) => id !== userId) : prev.length < 2 ? [...prev, userId] : prev);
-    other((prev) => prev.filter((id) => id !== userId));
-  }
-
-  async function handleCreateGame() {
-    if (!group || teamA.length !== 2 || teamB.length !== 2) { setError("각 팀에 2명씩 선택하세요."); return; }
-    try {
-      const g = await createGame(group.id, teamA, teamB);
-      setGames((prev) => [g, ...prev]);
-      setShowCreateGame(false); setTeamA([]); setTeamB([]);
-    } catch (err) { setError(err instanceof Error ? err.message : "게임 생성 실패"); }
-  }
-
-  async function handleRecommend(type: GameType) {
-    if (!group) return;
-    try {
-      const r = await recommendGame(group.id, type);
-      setTeamA(r.teamAUserIds); setTeamB(r.teamBUserIds);
-    } catch (err) { setError(err instanceof Error ? err.message : "추천 실패"); }
-  }
 
   async function handleStartGame(gameId: number) {
     if (!group) return;
@@ -224,6 +200,24 @@ export default function GroupDetailPage() {
       setGames((prev) => prev.map((x) => x.id === gameId ? g : x));
       setCourtInputs((prev) => ({ ...prev, [gameId]: parsedCourtNumber == null ? "" : String(parsedCourtNumber) }));
     } catch (err) { setError(err instanceof Error ? err.message : "코트 번호 저장 실패"); }
+  }
+
+  async function handleApproveProposal(gameId: number) {
+    if (!group) return;
+    try {
+      const g = await approveGameProposal(group.id, gameId);
+      setGames((prev) => prev.map((x) => x.id === gameId ? g : x));
+    } catch (err) { setError(err instanceof Error ? err.message : "게임 제안 수락 실패"); }
+  }
+
+  async function handleRejectProposal(gameId: number) {
+    if (!group) return;
+    const reason = window.prompt("거절 사유를 입력하세요. (선택)");
+    if (reason === null) return;
+    try {
+      const g = await rejectGameProposal(group.id, gameId, reason.trim() || undefined);
+      setGames((prev) => prev.map((x) => x.id === gameId ? g : x));
+    } catch (err) { setError(err instanceof Error ? err.message : "게임 제안 거절 실패"); }
   }
 
   async function handleCancelGame(gameId: number) {
@@ -306,6 +300,62 @@ export default function GroupDetailPage() {
       })
       .map((g, idx) => [g.id, idx + 1] as const),
   );
+  const finishedScoredGames = games.filter((g) => g.status === "FINISHED" && g.teamAScore != null && g.teamBScore != null);
+  const teamStatsMap = new Map(teamStats.map((s) => [s.teamKey, s] as const));
+
+  const pairStatsMap = new Map<string, { games: number; wins: number }>();
+  const teamRankingMap = new Map<string, { players: GameResponse["teamA"]; games: number; wins: number }>();
+  const gradePriority: Record<Grade, number> = { S: 0, A: 1, B: 2, C: 3, D: 4, E: 5, F: 6 };
+  const compareTeamPlayer = (a: GameResponse["teamA"][number], b: GameResponse["teamA"][number]) => {
+    const aGrade = a.nationalGrade == null ? Number.MAX_SAFE_INTEGER : gradePriority[a.nationalGrade];
+    const bGrade = b.nationalGrade == null ? Number.MAX_SAFE_INTEGER : gradePriority[b.nationalGrade];
+    if (aGrade !== bGrade) return aGrade - bGrade;
+
+    const nicknameDiff = a.nickname.localeCompare(b.nickname, "ko");
+    if (nicknameDiff !== 0) return nicknameDiff;
+
+    return a.userId - b.userId;
+  };
+  const sortTeamPlayers = (players: GameResponse["teamA"]): GameResponse["teamA"] =>
+    players.slice().sort(compareTeamPlayer);
+  const getTeamGrade = (players: GameResponse["teamA"]): Grade | null => {
+    const grades = players.map((p) => p.nationalGrade).filter((g): g is Grade => g != null);
+    if (grades.length === 0) return null;
+    return grades.slice().sort((a, b) => gradePriority[a] - gradePriority[b])[0];
+  };
+  finishedScoredGames.forEach((g) => {
+    const teamAIds = g.teamA.map((p) => p.userId).sort((x, y) => x - y);
+    const teamBIds = g.teamB.map((p) => p.userId).sort((x, y) => x - y);
+    if (teamAIds.length === 2) {
+      const keyA = `${teamAIds[0]}-${teamAIds[1]}`;
+      const prev = pairStatsMap.get(keyA) ?? { games: 0, wins: 0 };
+      pairStatsMap.set(keyA, { games: prev.games + 1, wins: prev.wins + (g.winnerTeam === "A" ? 1 : 0) });
+    }
+    if (teamBIds.length === 2) {
+      const keyB = `${teamBIds[0]}-${teamBIds[1]}`;
+      const prev = pairStatsMap.get(keyB) ?? { games: 0, wins: 0 };
+      pairStatsMap.set(keyB, { games: prev.games + 1, wins: prev.wins + (g.winnerTeam === "B" ? 1 : 0) });
+    }
+
+    if (teamAIds.length === 2) {
+      const keyA = `${teamAIds[0]}-${teamAIds[1]}`;
+      const prev = teamRankingMap.get(keyA) ?? { players: g.teamA, games: 0, wins: 0 };
+      teamRankingMap.set(keyA, { players: prev.players, games: prev.games + 1, wins: prev.wins + (g.winnerTeam === "A" ? 1 : 0) });
+    }
+    if (teamBIds.length === 2) {
+      const keyB = `${teamBIds[0]}-${teamBIds[1]}`;
+      const prev = teamRankingMap.get(keyB) ?? { players: g.teamB, games: 0, wins: 0 };
+      teamRankingMap.set(keyB, { players: prev.players, games: prev.games + 1, wins: prev.wins + (g.winnerTeam === "B" ? 1 : 0) });
+    }
+  });
+  const teamRankingEntries = Array.from(teamRankingMap.entries())
+    .map(([teamKey, value]) => {
+      const losses = Math.max(value.games - value.wins, 0);
+      const winRate = value.games > 0 ? (value.wins / value.games) * 100 : 0;
+      const teamGrade = getTeamGrade(value.players);
+      return { teamKey, players: value.players, games: value.games, wins: value.wins, losses, winRate, teamGrade };
+    })
+    .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins || b.games - a.games || a.teamKey.localeCompare(b.teamKey));
 
   if (loading) return <main style={main}><p style={{ color: "var(--muted)", textAlign: "center", padding: 60 }}>불러오는 중...</p></main>;
   if (error && !group && dialog.type === "none") return <main style={main}><div style={{ ...card, maxWidth: 400, margin: "60px auto" }}><p style={{ margin: 0, color: "var(--danger)", textAlign: "center" }}>{error}</p><Link href="/groups/list" style={{ color: "var(--brand-light)", fontWeight: 700, textAlign: "center" }}>이벤트 목록으로</Link></div></main>;
@@ -455,86 +505,59 @@ export default function GroupDetailPage() {
           <div style={{ ...card, gap: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={sh}>게임</h2>
-              {isOwnerOrManager && !showCreateGame && (
-                <button onClick={() => { setShowCreateGame(true); setTeamA([]); setTeamB([]); void loadGames(); }} style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", border: 0, background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>+ 게임 생성</button>
+              {isMember && (
+                <div style={{ display: "flex", gap: 6 }}>
+                  {isOwnerOrManager && (
+                    <Link
+                      href={`/groups/${group.id}/games/new?mode=create`}
+                      style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", border: 0, background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "none" }}
+                    >
+                      + 게임 생성
+                    </Link>
+                  )}
+                  <Link
+                    href={`/groups/${group.id}/games/new?mode=propose`}
+                    style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", border: 0, background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "none" }}
+                  >
+                    + 게임 제안
+                  </Link>
+                </div>
               )}
             </div>
 
-            {/* Create Game */}
-            {showCreateGame && (
-              <div style={{ ...item, gap: 10, display: "grid" }}>
-                {/* Recommend Buttons */}
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>자동 추천</p>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {([["MALE_DOUBLES", "남복"], ["FEMALE_DOUBLES", "여복"], ["MIXED_DOUBLES", "혼복"], ["FREE", "자유"]] as [GameType, string][]).map(([t, label]) => (
-                    <button key={t} onClick={() => { void handleRecommend(t); }} style={{ ...gBadge, cursor: "pointer", border: 0, background: "var(--surface-2)", color: "var(--ink-secondary)" }}>{label}</button>
-                  ))}
-                </div>
-
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>멤버 선택 (팀당 2명)</p>
-                <div style={{ display: "flex", gap: 6, marginBottom: 4 }}>
-                  <span style={{ ...gBadge, background: "rgba(108,92,231,0.15)", color: "var(--brand-light)" }}>팀A: {teamA.length}/2</span>
-                  <span style={{ ...gBadge, background: "rgba(0,206,201,0.15)", color: "var(--accent)" }}>팀B: {teamB.length}/2</span>
-                </div>
-                <div style={{ display: "grid", gap: 6 }}>
-                  {group.members.filter((m) => m.status === "ACTIVE").map((m) => {
-                    const inA = teamA.includes(m.userId);
-                    const inB = teamB.includes(m.userId);
-                    const stat = memberStats.find((s) => s.userId === m.userId);
-                    return (
-                      <div key={m.userId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: inA ? "rgba(108,92,231,0.08)" : inB ? "rgba(0,206,201,0.08)" : "var(--surface-3)" }}>
-                        <div>
-                          <Link href={`/users/${m.userId}/record`} style={{ ...userRecordLink, fontSize: 14 }}>
-                            {displayName(m.nickname, m.gender, m.nationalGrade)}
-                          </Link>
-                          {stat && <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: 8 }}>{stat.finishedGameCount}/{stat.totalGameCount}게임 / {stat.winRate.toFixed(0)}%</span>}
-                        </div>
-                        <div style={{ display: "flex", gap: 4 }}>
-                          <button onClick={() => togglePlayer(m.userId, "A")} style={{ ...gBadge, cursor: "pointer", border: 0, background: inA ? "var(--brand)" : "var(--surface-2)", color: inA ? "#fff" : "var(--muted)" }}>A</button>
-                          <button onClick={() => togglePlayer(m.userId, "B")} style={{ ...gBadge, cursor: "pointer", border: 0, background: inB ? "var(--accent)" : "var(--surface-2)", color: inB ? "#fff" : "var(--muted)" }}>B</button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { void handleCreateGame(); }} disabled={teamA.length !== 2 || teamB.length !== 2} style={{ ...btnP, flex: 1, opacity: teamA.length === 2 && teamB.length === 2 ? 1 : 0.4 }}>생성</button>
-                  <button onClick={() => setShowCreateGame(false)} style={{ ...btnSec, flex: 1 }}>취소</button>
-                </div>
-              </div>
-            )}
-
             {/* Game Sub Tabs */}
-            {!showCreateGame && (
-              <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)" }}>
-                {([
-                  ["PENDING", "대기"],
-                  ["IN_PROGRESS", "진행중"],
-                  ["SCORE_PENDING", "입력 대기"],
-                  ["FINISHED", "종료"],
-                  ...(isOwnerOrManager ? [["CANCELLED", "취소"]] : []),
-                ] as [typeof gameSubTab, string][]).map(([s, label]) => (
-                  <button key={s} onClick={() => setGameSubTab(s)} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: gameSubTab === s ? "var(--brand)" : "transparent", color: gameSubTab === s ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all .15s" }}>{label}</button>
-                ))}
-              </div>
-            )}
+            <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)" }}>
+              {([
+                ...(isOwnerOrManager ? [["PROPOSAL", "제안"]] as [typeof gameSubTab, string][] : []),
+                ["PENDING", "대기"],
+                ["IN_PROGRESS", "진행중"],
+                ["SCORE_PENDING", "입력대기"],
+                ["FINISHED", "종료"],
+                ...(isOwnerOrManager ? [["CANCELLED", "취소"]] : []),
+              ] as [typeof gameSubTab, string][]).map(([s, label]) => (
+                <button key={s} onClick={() => setGameSubTab(s)} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: gameSubTab === s ? "var(--brand)" : "transparent", color: gameSubTab === s ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all .15s" }}>{label}</button>
+              ))}
+            </div>
 
             {/* Game List */}
             {(() => {
               const filtered = games.filter((g) => {
+                if (gameSubTab === "PROPOSAL") return g.status === "PENDING" && g.proposalStatus === "PENDING";
+                if (gameSubTab === "PENDING") return g.status === "PENDING" && g.proposalStatus !== "PENDING";
                 if (gameSubTab === "IN_PROGRESS") return g.status === "IN_PROGRESS";
-                if (gameSubTab === "PENDING") return g.status === "PENDING";
                 if (gameSubTab === "SCORE_PENDING") return g.status === "FINISHED" && g.teamAScore == null;
                 if (gameSubTab === "FINISHED") return g.status === "FINISHED" && g.teamAScore != null;
                 return g.status === "CANCELLED";
               });
-              if (filtered.length === 0 && !showCreateGame) {
-                const label = gameSubTab === "IN_PROGRESS"
+              if (filtered.length === 0) {
+                const label = gameSubTab === "PROPOSAL"
+                  ? "제안된"
+                  : gameSubTab === "IN_PROGRESS"
                   ? "진행중인"
                   : gameSubTab === "PENDING"
                     ? "대기중인"
                     : gameSubTab === "SCORE_PENDING"
-                      ? "입력 대기중인"
+                      ? "입력대기중인"
                       : gameSubTab === "FINISHED"
                         ? "종료된"
                         : "취소된";
@@ -542,9 +565,27 @@ export default function GroupDetailPage() {
               }
               return filtered.map((g) => {
               const isPlayer = [...g.teamA, ...g.teamB].some((p) => p.userId === me?.id);
+              const isProposalPending = g.proposalStatus === "PENDING";
+              const isProposalApproved = g.proposalStatus === "APPROVED";
+              const canManageProposal = isOwnerOrManager && g.status === "PENDING" && isProposalPending;
               const myTeam = g.teamA.some((p) => p.userId === me?.id) ? "A" : g.teamB.some((p) => p.userId === me?.id) ? "B" : null;
+              const teamAIds = g.teamA.map((p) => p.userId).sort((x, y) => x - y);
+              const teamBIds = g.teamB.map((p) => p.userId).sort((x, y) => x - y);
+              const teamAKey = teamAIds.length === 2 ? `${teamAIds[0]}-${teamAIds[1]}` : "";
+              const teamBKey = teamBIds.length === 2 ? `${teamBIds[0]}-${teamBIds[1]}` : "";
+              const teamARecordHref = teamAKey ? `/groups/${group.id}/teams/${teamAKey}` : undefined;
+              const teamBRecordHref = teamBKey ? `/groups/${group.id}/teams/${teamBKey}` : undefined;
+              const teamARecord = pairStatsMap.get(teamAKey) ?? { games: 0, wins: 0 };
+              const teamBRecord = pairStatsMap.get(teamBKey) ?? { games: 0, wins: 0 };
+              const teamARecordRate = teamARecord.games > 0 ? (teamARecord.wins / teamARecord.games) * 100 : 0;
+              const teamBRecordRate = teamBRecord.games > 0 ? (teamBRecord.wins / teamBRecord.games) * 100 : 0;
+              const sortedTeamA = sortTeamPlayers(g.teamA);
+              const sortedTeamB = sortTeamPlayers(g.teamB);
+              const teamAOverall = teamStatsMap.get(teamAKey);
+              const teamBOverall = teamStatsMap.get(teamBKey);
               const pendingRequesterTeam = g.pendingRequestedByTeam;
               const canConfirmOrReject = g.status === "FINISHED" && isPlayer && g.teamAScore == null && pendingRequesterTeam != null && myTeam != null && myTeam !== pendingRequesterTeam;
+              const canManagerForceConfirm = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore == null && g.pendingTeamAScore != null;
               const pendingMessage = g.pendingTeamAScore != null && g.pendingTeamBScore != null && pendingRequesterTeam
                 ? `점수 확인 대기: 팀 ${pendingRequesterTeam}가 ${g.pendingTeamAScore} : ${g.pendingTeamBScore} 요청`
                 : null;
@@ -566,6 +607,16 @@ export default function GroupDetailPage() {
                       <span style={{ ...gBadge, padding: "5px 11px", border: `1px solid ${statusTone.borderColor}`, background: statusTone.background, color: statusTone.color }}>
                         {statusLabel}
                       </span>
+                      {isProposalPending && (
+                        <span style={{ ...gBadge, padding: "5px 11px", border: "1px solid rgba(255,193,7,0.35)", background: "rgba(255,193,7,0.10)", color: "var(--warning)" }}>
+                          제안 대기
+                        </span>
+                      )}
+                      {g.proposalStatus === "REJECTED" && (
+                        <span style={{ ...gBadge, padding: "5px 11px", border: "1px solid rgba(255,107,107,0.35)", background: "var(--danger-bg)", color: "var(--danger)" }}>
+                          제안 거절
+                        </span>
+                      )}
                       {g.courtNumber != null && (
                         <span style={{ ...gBadge, padding: "5px 11px", border: "1px solid rgba(108,92,231,0.35)", background: "rgba(108,92,231,0.12)", color: "var(--brand-light)" }}>
                           코트 {g.courtNumber}번
@@ -579,16 +630,33 @@ export default function GroupDetailPage() {
 
                   <div style={gameTeamsGrid}>
                     <div style={gameTeamPanelLeft}>
-                      <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--brand-light)", marginBottom: 6 }}>
-                        팀 A {g.winnerTeam === "A" ? "🏆" : ""}
-                      </p>
-                      {g.teamA.map((p) => (
+                      {teamARecordHref ? (
+                        <Link href={teamARecordHref} style={{ ...teamRecordLink, color: "var(--brand-light)", marginBottom: 6 }}>
+                          팀 A {g.winnerTeam === "A" ? "🏆" : ""}
+                        </Link>
+                      ) : (
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--brand-light)", marginBottom: 6 }}>
+                          팀 A {g.winnerTeam === "A" ? "🏆" : ""}
+                        </p>
+                      )}
+                      {sortedTeamA.map((p) => (
                         <p key={p.userId} style={{ margin: 0, fontSize: 13, lineHeight: 1.45 }}>
                           <Link href={`/users/${p.userId}/record`} style={{ ...userRecordLink, fontSize: 13 }}>
                             {displayName(p.nickname, p.gender, p.nationalGrade)}
                           </Link>
                         </p>
                       ))}
+                      {teamARecordHref ? (
+                        <Link href={teamARecordHref} style={{ ...teamRecordLink, marginTop: 6, color: "var(--ink-secondary)", fontSize: 11 }}>
+                          팀 전적 {teamARecord.wins}승 {Math.max(teamARecord.games - teamARecord.wins, 0)}패 / {teamARecord.games}전 · 승률 {teamARecordRate.toFixed(0)}%
+                          {teamAOverall && ` · 총 ${teamAOverall.overallWins}승 ${Math.max(teamAOverall.overallGames - teamAOverall.overallWins, 0)}패`}
+                        </Link>
+                      ) : (
+                        <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-secondary)" }}>
+                          팀 전적 {teamARecord.wins}승 {Math.max(teamARecord.games - teamARecord.wins, 0)}패 / {teamARecord.games}전 · 승률 {teamARecordRate.toFixed(0)}%
+                          {teamAOverall && ` · 총 ${teamAOverall.overallWins}승 ${Math.max(teamAOverall.overallGames - teamAOverall.overallWins, 0)}패`}
+                        </p>
+                      )}
                     </div>
                     <div style={gameScoreWrap}>
                       {g.teamAScore != null ? (
@@ -598,18 +666,46 @@ export default function GroupDetailPage() {
                       )}
                     </div>
                     <div style={gameTeamPanelRight}>
-                      <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--accent)", marginBottom: 6 }}>
-                        팀 B {g.winnerTeam === "B" ? "🏆" : ""}
-                      </p>
-                      {g.teamB.map((p) => (
+                      {teamBRecordHref ? (
+                        <Link href={teamBRecordHref} style={{ ...teamRecordLink, color: "var(--accent)", marginBottom: 6, textAlign: "right" }}>
+                          팀 B {g.winnerTeam === "B" ? "🏆" : ""}
+                        </Link>
+                      ) : (
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--accent)", marginBottom: 6 }}>
+                          팀 B {g.winnerTeam === "B" ? "🏆" : ""}
+                        </p>
+                      )}
+                      {sortedTeamB.map((p) => (
                         <p key={p.userId} style={{ margin: 0, fontSize: 13, lineHeight: 1.45 }}>
                           <Link href={`/users/${p.userId}/record`} style={{ ...userRecordLink, fontSize: 13 }}>
                             {displayName(p.nickname, p.gender, p.nationalGrade)}
                           </Link>
                         </p>
                       ))}
+                      {teamBRecordHref ? (
+                        <Link href={teamBRecordHref} style={{ ...teamRecordLink, marginTop: 6, color: "var(--ink-secondary)", fontSize: 11, textAlign: "right" }}>
+                          팀 전적 {teamBRecord.wins}승 {Math.max(teamBRecord.games - teamBRecord.wins, 0)}패 / {teamBRecord.games}전 · 승률 {teamBRecordRate.toFixed(0)}%
+                          {teamBOverall && ` · 총 ${teamBOverall.overallWins}승 ${Math.max(teamBOverall.overallGames - teamBOverall.overallWins, 0)}패`}
+                        </Link>
+                      ) : (
+                        <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-secondary)" }}>
+                          팀 전적 {teamBRecord.wins}승 {Math.max(teamBRecord.games - teamBRecord.wins, 0)}패 / {teamBRecord.games}전 · 승률 {teamBRecordRate.toFixed(0)}%
+                          {teamBOverall && ` · 총 ${teamBOverall.overallWins}승 ${Math.max(teamBOverall.overallGames - teamBOverall.overallWins, 0)}패`}
+                        </p>
+                      )}
                     </div>
                   </div>
+
+                  {isProposalPending && (
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--warning)", fontWeight: 700 }}>
+                      관리자 수락 대기 중인 게임 제안입니다.
+                    </p>
+                  )}
+                  {g.proposalStatus === "REJECTED" && g.proposalRejectReason && (
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--danger)", fontWeight: 700 }}>
+                      거절 사유: {g.proposalRejectReason}
+                    </p>
+                  )}
 
                   {(g.status === "PENDING" || g.status === "IN_PROGRESS") && isMember && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -620,9 +716,10 @@ export default function GroupDetailPage() {
                         placeholder="번호"
                         value={courtInputs[g.id] ?? (g.courtNumber != null ? String(g.courtNumber) : "")}
                         onChange={(e) => setCourtInputs((prev) => ({ ...prev, [g.id]: e.target.value }))}
+                        disabled={!isProposalApproved}
                         style={{ width: 84, height: 34, borderRadius: 9, border: "1px solid var(--line-2)", background: "var(--surface-2)", color: "var(--ink)", padding: "0 10px", fontSize: 13, fontWeight: 700 }}
                       />
-                      <button onClick={() => { void handleSaveCourtNumber(g.id, g.courtNumber); }} style={{ ...btnSec, minHeight: 34, padding: "0 12px", fontSize: 12 }}>
+                      <button disabled={!isProposalApproved} onClick={() => { void handleSaveCourtNumber(g.id, g.courtNumber); }} style={{ ...btnSec, minHeight: 34, padding: "0 12px", fontSize: 12, opacity: isProposalApproved ? 1 : 0.4 }}>
                         저장
                       </button>
                     </div>
@@ -634,9 +731,20 @@ export default function GroupDetailPage() {
                   )}
                   {/* Actions */}
                   <div style={{ display: "flex", gap: 6, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
-                    {g.status === "PENDING" && isMember && <button onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
+                    {canManageProposal && (
+                      <>
+                        <button onClick={() => { void handleApproveProposal(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}>제안 수락</button>
+                        <button onClick={() => { void handleRejectProposal(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>제안 거절</button>
+                      </>
+                    )}
+                    {g.status === "PENDING" && isMember && isProposalApproved && <button onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
                     {g.status === "IN_PROGRESS" && isMember && <button onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>종료</button>}
                     {g.status === "FINISHED" && isPlayer && g.teamAScore == null && g.pendingTeamAScore == null && <button onClick={() => { setScoreDialog({ gameId: g.id }); setScoreA(""); setScoreB(""); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>점수 입력</button>}
+                    {canManagerForceConfirm && (
+                      <button onClick={() => { void handleConfirmScore(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}>
+                        관리자 점수 확정
+                      </button>
+                    )}
                     {canConfirmOrReject && (
                       <>
                         <button onClick={() => { void handleConfirmScore(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}>점수 수락</button>
@@ -656,10 +764,15 @@ export default function GroupDetailPage() {
         {tab === "stats" && (
           <div style={{ ...card, gap: 10 }}>
             <h2 style={sh}>랭킹</h2>
-            {memberStats.length === 0 && <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center", padding: 20 }}>랭킹 데이터가 없습니다</p>}
+            <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)" }}>
+              <button onClick={() => setRankingMode("PERSONAL")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "PERSONAL" ? "var(--brand)" : "transparent", color: rankingMode === "PERSONAL" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>개인</button>
+              <button onClick={() => setRankingMode("TEAM")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "TEAM" ? "var(--brand)" : "transparent", color: rankingMode === "TEAM" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>팀</button>
+            </div>
+            {rankingMode === "PERSONAL" && memberStats.length === 0 && <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center", padding: 20 }}>개인 랭킹 데이터가 없습니다</p>}
+            {rankingMode === "TEAM" && teamRankingEntries.length === 0 && <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center", padding: 20 }}>팀 랭킹 데이터가 없습니다</p>}
 
             {/* 이벤트 내 랭킹 */}
-            <div style={{ ...item, display: "grid", gap: 8 }}>
+            {rankingMode === "PERSONAL" && <div style={{ ...item, display: "grid", gap: 8 }}>
               <p style={{ margin: 0, fontWeight: 800, fontSize: 14 }}>이벤트 내 랭킹</p>
               {memberStats
                 .slice()
@@ -680,7 +793,9 @@ export default function GroupDetailPage() {
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "var(--accent)" }}>{s.winRate.toFixed(0)}%</p>
-                      <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 12 }}>{s.winCount}승 / {s.finishedGameCount}전</p>
+                      <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 12 }}>
+                        이벤트 {s.winCount}승 / {s.finishedGameCount}전 · 총 {s.overallWinCount}승 / {s.overallFinishedGameCount}전
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -692,7 +807,45 @@ export default function GroupDetailPage() {
                   {showAllRanking ? "접기" : "더보기"}
                 </button>
               )}
-            </div>
+            </div>}
+
+            {rankingMode === "TEAM" && <div style={{ ...item, display: "grid", gap: 8 }}>
+              <p style={{ margin: 0, fontWeight: 800, fontSize: 14 }}>팀 랭킹</p>
+              {teamRankingEntries
+                .slice(0, showAllTeamRanking ? undefined : 5)
+                .map((t, idx) => {
+                  const sortedPlayers = sortTeamPlayers(t.players);
+                  return (
+                  <Link key={t.teamKey} href={`/groups/${group.id}/teams/${t.teamKey}`} style={{ textDecoration: "none", color: "inherit" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderTop: "1px solid var(--line)" }}>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <span style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{idx + 1}.</span>
+                          <span style={{ ...userRecordLink, fontSize: 14 }}>
+                            {displayName(sortedPlayers[0]?.nickname ?? "-", sortedPlayers[0]?.gender ?? null, sortedPlayers[0]?.nationalGrade ?? null)} / {displayName(sortedPlayers[1]?.nickname ?? "-", sortedPlayers[1]?.gender ?? null, sortedPlayers[1]?.nationalGrade ?? null)}
+                          </span>
+                          {t.teamGrade && <span style={{ ...gBadge, background: "var(--surface-3)", color: "var(--ink-secondary)", padding: "2px 8px" }}>팀 급수 {t.teamGrade}</span>}
+                        </div>
+                        <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 12 }}>
+                          이벤트 {t.wins}승 {t.losses}패 / {t.games}전
+                          {teamStatsMap.get(t.teamKey) && ` · 총 ${teamStatsMap.get(t.teamKey)!.overallWins}승 ${Math.max(teamStatsMap.get(t.teamKey)!.overallGames - teamStatsMap.get(t.teamKey)!.overallWins, 0)}패 / ${teamStatsMap.get(t.teamKey)!.overallGames}전`}
+                        </p>
+                      </div>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "var(--accent)" }}>{t.winRate.toFixed(0)}%</p>
+                    </div>
+                  </Link>
+                  );
+                })}
+              {teamRankingEntries.length > 5 && (
+                <button
+                  onClick={() => setShowAllTeamRanking((prev) => !prev)}
+                  style={{ ...btnSec, minHeight: 36, fontSize: 13, marginTop: 4 }}
+                >
+                  {showAllTeamRanking ? "접기" : "더보기"}
+                </button>
+              )}
+              <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>기준: 점수가 확정된 종료 게임</p>
+            </div>}
           </div>
         )}
 
@@ -792,6 +945,13 @@ const userRecordLink: CSSProperties = {
   fontWeight: 700,
   fontSize: 15,
   color: "var(--ink)",
+  textDecoration: "none",
+};
+const teamRecordLink: CSSProperties = {
+  display: "block",
+  margin: 0,
+  fontSize: 12,
+  fontWeight: 800,
   textDecoration: "none",
 };
 const scoreInput: CSSProperties = { width: 80, height: 64, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", background: "var(--surface-2)", color: "var(--ink)", fontSize: 28, fontWeight: 800, textAlign: "center", outline: "none" };

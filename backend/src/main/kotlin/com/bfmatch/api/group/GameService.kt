@@ -25,7 +25,7 @@ class GameService(
 ) {
     @Transactional
     fun createGame(authenticatedUser: AuthenticatedUser, groupId: Long, request: CreateGameRequest): GameResponse {
-        requireOwnerOrManager(groupId, authenticatedUser.userId)
+        val requesterMembership = requireActiveMembership(groupId, authenticatedUser.userId)
         val group = getGroup(groupId)
 
         if (request.teamAUserIds.size != 2 || request.teamBUserIds.size != 2) {
@@ -59,7 +59,22 @@ class GameService(
             else -> GameType.FREE
         }
 
-        val game = gameRepository.save(Game(group = group, createdBy = creator, gameType = autoGameType))
+        val isManagerOrOwner = requesterMembership.role == GroupRole.OWNER || requesterMembership.role == GroupRole.MANAGER
+        val shouldCreateAsProposal = if (isManagerOrOwner) {
+            request.asProposal == true
+        } else {
+            true
+        }
+        val proposalStatus = if (shouldCreateAsProposal) GameProposalStatus.PENDING else GameProposalStatus.APPROVED
+        val game = gameRepository.save(
+            Game(
+                group = group,
+                createdBy = creator,
+                gameType = autoGameType,
+                proposalStatus = proposalStatus,
+                proposedByUserId = authenticatedUser.userId,
+            ),
+        )
 
         request.teamAUserIds.forEach { userId ->
             val user = userRepository.findById(userId).orElseThrow {
@@ -76,11 +91,29 @@ class GameService(
             gamePlayerRepository.save(GamePlayer(game = game, user = user, team = "B", gradeAtTime = skill?.nationalGrade))
         }
 
-        notificationService.sendToGroupMembers(
-            allUserIds, authenticatedUser.userId,
-            NotificationType.GAME_CREATED, "게임 생성", "${group.name} 이벤트에서 새 게임이 생성되었습니다.",
-            "GAME", game.id!!,
-        )
+        if (proposalStatus == GameProposalStatus.APPROVED) {
+            notificationService.sendToGroupMembers(
+                allUserIds, authenticatedUser.userId,
+                NotificationType.GAME_CREATED, "게임 생성", "${group.name} 이벤트에서 새 게임이 생성되었습니다.",
+                "GAME", game.id!!,
+            )
+        } else {
+            val managerIds = groupMemberRepository.findAllByGroupId(groupId)
+                .filter {
+                    it.status == GroupMemberStatus.ACTIVE &&
+                        (it.role == GroupRole.OWNER || it.role == GroupRole.MANAGER)
+                }
+                .mapNotNull { it.user.id }
+            notificationService.sendToGroupMembers(
+                managerIds,
+                authenticatedUser.userId,
+                NotificationType.GROUP_UPDATED,
+                "게임 제안 도착",
+                "${creator.nickname}님이 ${group.name} 이벤트에 게임을 제안했습니다.",
+                "GAME",
+                game.id!!,
+            )
+        }
 
         return toGameResponse(game)
     }
@@ -94,6 +127,9 @@ class GameService(
     fun startGame(authenticatedUser: AuthenticatedUser, groupId: Long, gameId: Long): GameResponse {
         val game = getGameInGroup(groupId, gameId)
         requireActiveMember(groupId, authenticatedUser.userId)
+        if (effectiveProposalStatus(game) != GameProposalStatus.APPROVED) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "관리자 승인된 게임만 시작할 수 있습니다.")
+        }
 
         if (game.status != GameStatus.PENDING) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PENDING games can be started.")
@@ -139,6 +175,9 @@ class GameService(
     ): GameResponse {
         val game = getGameInGroup(groupId, gameId)
         requireActiveMember(groupId, authenticatedUser.userId)
+        if (effectiveProposalStatus(game) != GameProposalStatus.APPROVED) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "승인된 게임만 코트 번호를 수정할 수 있습니다.")
+        }
 
         if (game.status != GameStatus.PENDING && game.status != GameStatus.IN_PROGRESS) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only PENDING or IN_PROGRESS games can update court number.")
@@ -149,6 +188,76 @@ class GameService(
 
         game.courtNumber = request.courtNumber
         gameRepository.save(game)
+        return toGameResponse(game)
+    }
+
+    @Transactional
+    fun approveProposal(authenticatedUser: AuthenticatedUser, groupId: Long, gameId: Long): GameResponse {
+        requireOwnerOrManager(groupId, authenticatedUser.userId)
+        val game = getGameInGroup(groupId, gameId)
+        if (game.status != GameStatus.PENDING) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "대기 상태 게임만 제안 수락할 수 있습니다.")
+        }
+        if (effectiveProposalStatus(game) != GameProposalStatus.PENDING) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "수락 가능한 제안 상태가 아닙니다.")
+        }
+
+        game.proposalStatus = GameProposalStatus.APPROVED
+        game.proposalReviewedByUserId = authenticatedUser.userId
+        game.proposalReviewedAt = Instant.now()
+        game.proposalRejectReason = null
+        gameRepository.save(game)
+
+        val playerUserIds = gamePlayerRepository.findAllByGameId(gameId).mapNotNull { it.user.id }
+        notificationService.sendToGroupMembers(
+            playerUserIds,
+            authenticatedUser.userId,
+            NotificationType.GAME_CREATED,
+            "게임 제안 수락",
+            "${game.group.name} 이벤트에서 제안된 게임이 수락되었습니다.",
+            "GAME",
+            game.id!!,
+        )
+
+        return toGameResponse(game)
+    }
+
+    @Transactional
+    fun rejectProposal(
+        authenticatedUser: AuthenticatedUser,
+        groupId: Long,
+        gameId: Long,
+        request: RejectGameProposalRequest,
+    ): GameResponse {
+        requireOwnerOrManager(groupId, authenticatedUser.userId)
+        val game = getGameInGroup(groupId, gameId)
+        if (game.status != GameStatus.PENDING) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "대기 상태 게임만 제안 거절할 수 있습니다.")
+        }
+        if (effectiveProposalStatus(game) != GameProposalStatus.PENDING) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "거절 가능한 제안 상태가 아닙니다.")
+        }
+
+        game.proposalStatus = GameProposalStatus.REJECTED
+        game.proposalReviewedByUserId = authenticatedUser.userId
+        game.proposalReviewedAt = Instant.now()
+        game.proposalRejectReason = request.reason?.trim()?.ifBlank { null }
+        game.status = GameStatus.CANCELLED
+        gameRepository.save(game)
+
+        val proposalUserId = game.proposedByUserId
+        if (proposalUserId != null && proposalUserId != authenticatedUser.userId) {
+            val reasonMessage = game.proposalRejectReason?.let { " (사유: $it)" } ?: ""
+            notificationService.send(
+                proposalUserId,
+                NotificationType.GROUP_UPDATED,
+                "게임 제안 거절",
+                "${game.group.name} 이벤트에서 게임 제안이 거절되었습니다$reasonMessage.",
+                "GAME",
+                game.id!!,
+            )
+        }
+
         return toGameResponse(game)
     }
 
@@ -230,9 +339,12 @@ class GameService(
         val requesterUserId = game.pendingRequestedByUserId
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "점수 요청 정보가 올바르지 않습니다.")
 
-        val confirmerTeam = getParticipantTeam(game.id!!, authenticatedUser.userId)
-        if (confirmerTeam != oppositeTeam(requesterTeam)) {
-            throw ResponseStatusException(HttpStatus.FORBIDDEN, "상대 팀 플레이어만 점수를 확정할 수 있습니다.")
+        val managerOrOwner = isOwnerOrManager(groupId, authenticatedUser.userId)
+        if (!managerOrOwner) {
+            val confirmerTeam = getParticipantTeam(game.id!!, authenticatedUser.userId)
+            if (confirmerTeam != oppositeTeam(requesterTeam)) {
+                throw ResponseStatusException(HttpStatus.FORBIDDEN, "상대 팀 플레이어만 점수를 확정할 수 있습니다.")
+            }
         }
 
         game.teamAScore = pendingA
@@ -257,7 +369,11 @@ class GameService(
             requesterUserId,
             NotificationType.GAME_SCORE_CONFIRMED,
             "점수 입력 확정",
-            "${game.group.name} 이벤트 게임의 점수가 상대 팀 확인으로 확정되었습니다.",
+            if (managerOrOwner) {
+                "${game.group.name} 이벤트 게임의 점수가 관리자 확정으로 반영되었습니다."
+            } else {
+                "${game.group.name} 이벤트 게임의 점수가 상대 팀 확인으로 확정되었습니다."
+            },
             "GAME",
             game.id!!,
         )
@@ -355,6 +471,10 @@ class GameService(
                 .filter { it.game.id!! in allGameIds }
             val finishedPlays = allPlays.filter { it.game.id!! in finishedGameIds }
             val winCount = finishedPlays.count { it.team == it.game.winnerTeam }
+            val overallPlays = gamePlayerRepository.findAllByUserId(userId)
+                .filter { it.game.status != GameStatus.CANCELLED }
+            val overallFinishedPlays = overallPlays.filter { it.game.status == GameStatus.FINISHED }
+            val overallWinCount = overallFinishedPlays.count { it.team == it.game.winnerTeam }
             MemberStatResponse(
                 userId = userId,
                 nickname = member.user.nickname,
@@ -366,6 +486,58 @@ class GameService(
                 totalGameCount = allPlays.size,
                 winCount = winCount,
                 winRate = if (finishedPlays.isNotEmpty()) (winCount.toDouble() / finishedPlays.size * 100) else 0.0,
+                overallFinishedGameCount = overallFinishedPlays.size,
+                overallTotalGameCount = overallPlays.size,
+                overallWinCount = overallWinCount,
+                overallWinRate = if (overallFinishedPlays.isNotEmpty()) {
+                    overallWinCount.toDouble() / overallFinishedPlays.size * 100
+                } else {
+                    0.0
+                },
+            )
+        }
+    }
+
+    @Transactional(readOnly = true)
+    fun getTeamStats(groupId: Long): List<TeamStatResponse> {
+        data class Counter(
+            var eventGames: Int = 0,
+            var eventWins: Int = 0,
+            var overallGames: Int = 0,
+            var overallWins: Int = 0,
+        )
+
+        val counters = mutableMapOf<String, Counter>()
+        val allScoredFinishedGames = gameRepository.findAll()
+            .filter { it.status == GameStatus.FINISHED && it.teamAScore != null && it.teamBScore != null }
+
+        allScoredFinishedGames.forEach { game ->
+            val players = gamePlayerRepository.findAllByGameId(game.id!!)
+            fun addTeam(team: String) {
+                val ids = players.filter { it.team == team }.mapNotNull { it.user.id }.sorted()
+                if (ids.size != 2 || ids[0] == ids[1]) return
+                val key = "${ids[0]}-${ids[1]}"
+                val c = counters.getOrPut(key) { Counter() }
+                c.overallGames += 1
+                if (game.winnerTeam == team) c.overallWins += 1
+                if (game.group.id == groupId) {
+                    c.eventGames += 1
+                    if (game.winnerTeam == team) c.eventWins += 1
+                }
+            }
+            addTeam("A")
+            addTeam("B")
+        }
+
+        return counters.entries.map { (teamKey, c) ->
+            TeamStatResponse(
+                teamKey = teamKey,
+                eventGames = c.eventGames,
+                eventWins = c.eventWins,
+                eventWinRate = if (c.eventGames > 0) c.eventWins.toDouble() / c.eventGames * 100 else 0.0,
+                overallGames = c.overallGames,
+                overallWins = c.overallWins,
+                overallWinRate = if (c.overallGames > 0) c.overallWins.toDouble() / c.overallGames * 100 else 0.0,
             )
         }
     }
@@ -520,13 +692,26 @@ class GameService(
     }
 
     private fun requireOwnerOrManager(groupId: Long, userId: Long) {
-        val membership = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
-            ?: throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only members can perform this action.")
-        val allowed = membership.status == GroupMemberStatus.ACTIVE &&
-            (membership.role == GroupRole.OWNER || membership.role == GroupRole.MANAGER)
+        val membership = requireActiveMembership(groupId, userId)
+        val allowed = membership.role == GroupRole.OWNER || membership.role == GroupRole.MANAGER
         if (!allowed) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only owner or manager can perform this action.")
         }
+    }
+
+    private fun isOwnerOrManager(groupId: Long, userId: Long): Boolean {
+        val membership = groupMemberRepository.findByGroupIdAndUserId(groupId, userId) ?: return false
+        if (membership.status != GroupMemberStatus.ACTIVE) return false
+        return membership.role == GroupRole.OWNER || membership.role == GroupRole.MANAGER
+    }
+
+    private fun requireActiveMembership(groupId: Long, userId: Long): GroupMember {
+        val membership = groupMemberRepository.findByGroupIdAndUserId(groupId, userId)
+            ?: throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only members can perform this action.")
+        if (membership.status != GroupMemberStatus.ACTIVE) {
+            throw ResponseStatusException(HttpStatus.FORBIDDEN, "Only active members can perform this action.")
+        }
+        return membership
     }
 
     private fun requireGameParticipant(game: Game, userId: Long) {
@@ -584,6 +769,11 @@ class GameService(
             id = game.id!!,
             groupId = game.group.id!!,
             status = game.status,
+            proposalStatus = effectiveProposalStatus(game),
+            proposedByUserId = game.proposedByUserId,
+            proposalReviewedByUserId = game.proposalReviewedByUserId,
+            proposalReviewedAt = game.proposalReviewedAt?.toString(),
+            proposalRejectReason = game.proposalRejectReason,
             gameType = game.gameType,
             teamA = teamA,
             teamB = teamB,
@@ -601,6 +791,9 @@ class GameService(
             finishedAt = game.finishedAt?.toString(),
         )
     }
+
+    private fun effectiveProposalStatus(game: Game): GameProposalStatus =
+        game.proposalStatus ?: GameProposalStatus.APPROVED
 
     private fun toPlayerResponse(gamePlayer: GamePlayer): GamePlayerResponse {
         val user = gamePlayer.user
