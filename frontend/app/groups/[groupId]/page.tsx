@@ -521,7 +521,7 @@ export default function GroupDetailPage() {
           <div style={{ ...card, gap: 12 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <h2 style={sh}>게임</h2>
-              {isMember && (
+              {isMember && !group.closed && (
                 <div style={{ display: "flex", gap: 6 }}>
                   {isOwnerOrManager && (
                     <Link
@@ -554,6 +554,11 @@ export default function GroupDetailPage() {
                 <button key={s} onClick={() => setGameSubTab(s)} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: gameSubTab === s ? "var(--brand)" : "transparent", color: gameSubTab === s ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all .15s" }}>{label}</button>
               ))}
             </div>
+            {group.closed && (
+              <p style={{ margin: 0, color: "var(--warning)", fontSize: 12, fontWeight: 700 }}>
+                종료된 이벤트에서는 점수 확정, 점수 수정, 게임 취소만 가능합니다.
+              </p>
+            )}
 
             {/* Game List */}
             {(() => {
@@ -583,7 +588,7 @@ export default function GroupDetailPage() {
               const isPlayer = [...g.teamA, ...g.teamB].some((p) => p.userId === me?.id);
               const isProposalPending = g.proposalStatus === "PENDING";
               const isProposalApproved = g.proposalStatus === "APPROVED";
-              const canManageProposal = isOwnerOrManager && g.status === "PENDING" && isProposalPending;
+              const canManageProposal = !group.closed && isOwnerOrManager && g.status === "PENDING" && isProposalPending;
               const myTeam = g.teamA.some((p) => p.userId === me?.id) ? "A" : g.teamB.some((p) => p.userId === me?.id) ? "B" : null;
               const teamAIds = g.teamA.map((p) => p.userId).sort((x, y) => x - y);
               const teamBIds = g.teamB.map((p) => p.userId).sort((x, y) => x - y);
@@ -605,6 +610,7 @@ export default function GroupDetailPage() {
               const hasPendingScore = g.pendingTeamAScore != null && g.pendingTeamBScore != null;
               const canPlayerRejectScore =
                 g.status === "FINISHED" &&
+                !group.closed &&
                 !isOwnerOrManager &&
                 isPlayer &&
                 g.teamAScore == null &&
@@ -754,7 +760,7 @@ export default function GroupDetailPage() {
                     </p>
                   )}
 
-                  {(g.status === "PENDING" || g.status === "IN_PROGRESS") && isMember && (
+                  {(g.status === "PENDING" || g.status === "IN_PROGRESS") && isMember && !group.closed && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 700 }}>코트 번호</span>
                       <input
@@ -784,9 +790,9 @@ export default function GroupDetailPage() {
                         <button onClick={() => { void handleRejectProposal(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>제안 거절</button>
                       </>
                     )}
-                    {g.status === "PENDING" && isMember && isProposalApproved && <button onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
-                    {g.status === "IN_PROGRESS" && isMember && <button onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>게임 완료</button>}
-                    {g.status === "FINISHED" && isPlayer && g.teamAScore == null && g.pendingTeamAScore == null && <button onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setScoreA(""); setScoreB(""); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>점수 입력</button>}
+                    {g.status === "PENDING" && isMember && isProposalApproved && !group.closed && <button onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
+                    {g.status === "IN_PROGRESS" && isMember && !group.closed && <button onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>게임 완료</button>}
+                    {g.status === "FINISHED" && isPlayer && !group.closed && g.teamAScore == null && g.pendingTeamAScore == null && <button onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setScoreA(""); setScoreB(""); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>점수 입력</button>}
                     {canManagerForceConfirm && (
                       <button
                         onClick={() => {
@@ -855,9 +861,6 @@ export default function GroupDetailPage() {
                           {displayName(s.nickname, s.gender, s.nationalGrade)}
                         </Link>
                       </div>
-                      <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 12 }}>
-                        LV {s.lv} / 경험치 {s.exp.toFixed(1)}%
-                      </p>
                     </div>
                     <div style={{ textAlign: "right" }}>
                       <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "var(--accent)" }}>{s.winRate.toFixed(0)}%</p>

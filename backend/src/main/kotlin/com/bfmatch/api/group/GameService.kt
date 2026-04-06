@@ -27,6 +27,9 @@ class GameService(
     fun createGame(authenticatedUser: AuthenticatedUser, groupId: Long, request: CreateGameRequest): GameResponse {
         val requesterMembership = requireActiveMembership(groupId, authenticatedUser.userId)
         val group = getGroup(groupId)
+        if (group.closed) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "종료된 이벤트에서는 게임 생성/제안을 할 수 없습니다.")
+        }
 
         if (request.teamAUserIds.size != 2 || request.teamBUserIds.size != 2) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Each team must have exactly 2 players.")
@@ -127,6 +130,9 @@ class GameService(
     fun startGame(authenticatedUser: AuthenticatedUser, groupId: Long, gameId: Long): GameResponse {
         val game = getGameInGroup(groupId, gameId)
         requireActiveMember(groupId, authenticatedUser.userId)
+        if (game.group.closed) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "종료된 이벤트에서는 게임을 시작할 수 없습니다.")
+        }
         if (effectiveProposalStatus(game) != GameProposalStatus.APPROVED) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "관리자 승인된 게임만 시작할 수 있습니다.")
         }
@@ -175,6 +181,9 @@ class GameService(
     ): GameResponse {
         val game = getGameInGroup(groupId, gameId)
         requireActiveMember(groupId, authenticatedUser.userId)
+        if (game.group.closed) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "종료된 이벤트에서는 코트 번호를 수정할 수 없습니다.")
+        }
         if (effectiveProposalStatus(game) != GameProposalStatus.APPROVED) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "승인된 게임만 코트 번호를 수정할 수 있습니다.")
         }
@@ -195,6 +204,9 @@ class GameService(
     fun approveProposal(authenticatedUser: AuthenticatedUser, groupId: Long, gameId: Long): GameResponse {
         requireOwnerOrManager(groupId, authenticatedUser.userId)
         val game = getGameInGroup(groupId, gameId)
+        if (game.group.closed) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "종료된 이벤트에서는 게임 제안을 수락할 수 없습니다.")
+        }
         if (game.status != GameStatus.PENDING) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "대기 상태 게임만 제안 수락할 수 있습니다.")
         }
@@ -231,6 +243,9 @@ class GameService(
     ): GameResponse {
         requireOwnerOrManager(groupId, authenticatedUser.userId)
         val game = getGameInGroup(groupId, gameId)
+        if (game.group.closed) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "종료된 이벤트에서는 게임 제안을 거절할 수 없습니다.")
+        }
         if (game.status != GameStatus.PENDING) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "대기 상태 게임만 제안 거절할 수 있습니다.")
         }
@@ -265,6 +280,9 @@ class GameService(
     fun finishGame(authenticatedUser: AuthenticatedUser, groupId: Long, gameId: Long): GameResponse {
         val game = getGameInGroup(groupId, gameId)
         requireActiveMember(groupId, authenticatedUser.userId)
+        if (game.group.closed) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "종료된 이벤트에서는 게임을 종료할 수 없습니다.")
+        }
 
         if (game.status != GameStatus.IN_PROGRESS) {
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Only IN_PROGRESS games can be finished.")
@@ -289,6 +307,9 @@ class GameService(
     fun submitScore(authenticatedUser: AuthenticatedUser, groupId: Long, gameId: Long, request: FinishGameRequest): GameResponse {
         val game = getGameInGroup(groupId, gameId)
         val managerOrOwner = isOwnerOrManager(groupId, authenticatedUser.userId)
+        if (game.group.closed && !managerOrOwner) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "종료된 이벤트에서는 관리자만 점수 입력/수정이 가능합니다.")
+        }
         val participant = gamePlayerRepository.findByGameIdAndUserId(game.id!!, authenticatedUser.userId)
         if (!managerOrOwner && participant == null) {
             throw ResponseStatusException(HttpStatus.FORBIDDEN, "게임 참여자만 점수를 입력할 수 있습니다.")
@@ -402,6 +423,9 @@ class GameService(
     @Transactional
     fun rejectScore(authenticatedUser: AuthenticatedUser, groupId: Long, gameId: Long): GameResponse {
         val game = getGameInGroup(groupId, gameId)
+        if (game.group.closed) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "종료된 이벤트에서는 점수 거절이 불가합니다. 관리자 점수 확정/수정만 가능합니다.")
+        }
         val requesterTeam = game.pendingRequestedByTeam
             ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "거절할 점수 요청이 없습니다.")
         val requesterUserId = game.pendingRequestedByUserId

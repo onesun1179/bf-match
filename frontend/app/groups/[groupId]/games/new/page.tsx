@@ -71,6 +71,7 @@ export default function NewGamePage() {
 
   const isOwnerOrManager = group?.myRole === "OWNER" || group?.myRole === "MANAGER";
   const isMember = group?.myRole != null && group?.myStatus === "ACTIVE";
+  const isClosed = group?.closed === true;
   const effectiveMode: "CREATE" | "PROPOSE" = isOwnerOrManager ? mode : "PROPOSE";
 
   const activeMembers = useMemo(() => {
@@ -105,6 +106,7 @@ export default function NewGamePage() {
   const teamBRecord = teamBStat ?? { teamKey: teamBKey ?? "", eventGames: 0, eventWins: 0, eventWinRate: 0, overallGames: 0, overallWins: 0, overallWinRate: 0 };
 
   function togglePlayer(userId: number, team: "A" | "B") {
+    if (isClosed) return;
     const setter = team === "A" ? setTeamA : setTeamB;
     const other = team === "A" ? setTeamB : setTeamA;
     setter((prev) =>
@@ -118,7 +120,7 @@ export default function NewGamePage() {
   }
 
   async function handleRecommend(type: GameType) {
-    if (!group) return;
+    if (!group || isClosed) return;
     try {
       const r = await recommendGame(group.id, type);
       setTeamA(r.teamAUserIds);
@@ -129,7 +131,7 @@ export default function NewGamePage() {
   }
 
   async function handleSubmit() {
-    if (!group || !isMember) return;
+    if (!group || !isMember || isClosed) return;
     if (teamA.length !== 2 || teamB.length !== 2) {
       setError("각 팀에 2명씩 선택하세요.");
       return;
@@ -162,10 +164,27 @@ export default function NewGamePage() {
             {effectiveMode === "CREATE" ? "게임 생성" : "게임 제안"}
           </h1>
           <p style={{ margin: "4px 0 0", color: "var(--ink-secondary)", fontSize: 13 }}>{group.name}</p>
+          {isClosed && (
+            <p style={{ margin: "8px 0 0", color: "var(--danger)", fontSize: 13, fontWeight: 700 }}>
+              종료된 이벤트에서는 게임 생성/제안을 할 수 없습니다.
+            </p>
+          )}
           {isOwnerOrManager && (
             <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
-              <button onClick={() => setMode("CREATE")} style={{ ...modeBtn, ...(effectiveMode === "CREATE" ? modeBtnOn : modeBtnOff) }}>생성</button>
-              <button onClick={() => setMode("PROPOSE")} style={{ ...modeBtn, ...(effectiveMode === "PROPOSE" ? modeBtnOn : modeBtnOff) }}>제안</button>
+              <button
+                disabled={isClosed}
+                onClick={() => setMode("CREATE")}
+                style={{ ...modeBtn, ...(effectiveMode === "CREATE" ? modeBtnOn : modeBtnOff), opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
+              >
+                생성
+              </button>
+              <button
+                disabled={isClosed}
+                onClick={() => setMode("PROPOSE")}
+                style={{ ...modeBtn, ...(effectiveMode === "PROPOSE" ? modeBtnOn : modeBtnOff), opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
+              >
+                제안
+              </button>
             </div>
           )}
         </div>
@@ -222,8 +241,8 @@ export default function NewGamePage() {
           <div style={{ display: "flex", gap: 8 }}>
           <button
             onClick={() => { void handleSubmit(); }}
-            disabled={!isMember || teamA.length !== 2 || teamB.length !== 2 || submitting}
-            style={{ ...actionBtn, ...actionPrimary, opacity: isMember && teamA.length === 2 && teamB.length === 2 && !submitting ? 1 : 0.45 }}
+            disabled={!isMember || isClosed || teamA.length !== 2 || teamB.length !== 2 || submitting}
+            style={{ ...actionBtn, ...actionPrimary, opacity: isMember && !isClosed && teamA.length === 2 && teamB.length === 2 && !submitting ? 1 : 0.45 }}
           >
             {submitting ? "처리 중..." : effectiveMode === "CREATE" ? "생성하기" : "제안하기"}
           </button>
@@ -235,7 +254,7 @@ export default function NewGamePage() {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
             {([["MALE_DOUBLES", "남복"], ["FEMALE_DOUBLES", "여복"], ["MIXED_DOUBLES", "혼복"], ["FREE", "자유"]] as [GameType, string][])
               .map(([t, label]) => (
-                <button key={t} onClick={() => { void handleRecommend(t); }} style={chipBtn}>{label}</button>
+                <button key={t} disabled={isClosed} onClick={() => { void handleRecommend(t); }} style={{ ...chipBtn, opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}>{label}</button>
               ))}
           </div>
         </div>
@@ -270,8 +289,20 @@ export default function NewGamePage() {
                     )}
                   </div>
                   <div style={{ display: "flex", gap: 4 }}>
-                    <button onClick={() => togglePlayer(m.userId, "A")} style={{ ...pickBtn, background: inA ? "var(--brand)" : "var(--surface-2)", color: inA ? "#fff" : "var(--muted)" }}>A</button>
-                    <button onClick={() => togglePlayer(m.userId, "B")} style={{ ...pickBtn, background: inB ? "var(--accent)" : "var(--surface-2)", color: inB ? "#fff" : "var(--muted)" }}>B</button>
+                    <button
+                      disabled={isClosed}
+                      onClick={() => togglePlayer(m.userId, "A")}
+                      style={{ ...pickBtn, background: inA ? "var(--brand)" : "var(--surface-2)", color: inA ? "#fff" : "var(--muted)", opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
+                    >
+                      A
+                    </button>
+                    <button
+                      disabled={isClosed}
+                      onClick={() => togglePlayer(m.userId, "B")}
+                      style={{ ...pickBtn, background: inB ? "var(--accent)" : "var(--surface-2)", color: inB ? "#fff" : "var(--muted)", opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
+                    >
+                      B
+                    </button>
                   </div>
                 </div>
               );
