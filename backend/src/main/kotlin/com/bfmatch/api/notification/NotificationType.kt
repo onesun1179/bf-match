@@ -1,0 +1,17 @@
+package com.bfmatch.api.notification
+
+enum class NotificationType {
+    INVITE_ACCEPTED,
+    INVITE_DECLINED,
+    MEMBER_JOINED,
+    MEMBER_KICKED,
+    GROUP_UPDATED,
+    GROUP_REMINDER,
+    GRADE_UPGRADED,
+    GAME_CREATED,
+    GAME_STARTED,
+    GAME_FINISHED,
+    GAME_SCORE_REQUESTED,
+    GAME_SCORE_CONFIRMED,
+    GAME_SCORE_REJECTED,
+}

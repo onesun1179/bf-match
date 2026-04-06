@@ -1,0 +1,21 @@
+# OS / Editor
+.DS_Store
+.idea/
+
+# Env
+*.env
+*.env.*
+!*.env.example
+
+# Node / Next
+node_modules/
+.next/
+out/
+
+# Gradle / Kotlin
+.gradle/
+build/
+
+# Local tool folders
+.claude/
+.codex/

@@ -1,0 +1,179 @@
+"use client";
+
+import Link from "next/link";
+import { CSSProperties, useEffect, useState } from "react";
+import { displayName, fetchMyRecord, getAccessToken, refreshAccessToken, type MyRecord, type PartnerStat, type RecentGame, type TypeStat } from "@/lib/auth";
+import { BottomNavMain } from "@/components/bottom-nav-main";
+
+function gameTypeLabel(t: string | null) {
+  switch (t) { case "MALE_DOUBLES": return "남복"; case "FEMALE_DOUBLES": return "여복"; case "MIXED_DOUBLES": return "혼복"; case "FREE": return "자유"; default: return "-"; }
+}
+
+function PartnerRow({ p, color }: { p: PartnerStat; color: string }) {
+  return (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+      <span style={{ fontSize: 14 }}>{displayName(p.nickname, p.gender, p.nationalGrade)}</span>
+      <span style={{ fontSize: 13, color }}>{p.wins}승 {p.games}전 ({p.winRate.toFixed(0)}%)</span>
+    </div>
+  );
+}
+
+function GameRow({ g }: { g: RecentGame }) {
+  return (
+    <div style={{ padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: g.isWin ? "var(--accent)" : "var(--danger)" }}>{g.isWin ? "승" : "패"}</span>
+            <span style={{ fontSize: 13, color: "var(--muted)" }}>{gameTypeLabel(g.gameType)}</span>
+            {g.gradeAtTime && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 6, background: "var(--surface-3)", color: "var(--ink-secondary)" }}>{g.gradeAtTime}</span>}
+          </div>
+          <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--muted)" }}>{g.groupName}</p>
+          {g.teammates.length > 0 && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--ink-secondary)" }}>파트너: {g.teammates.map((t) => displayName(t.nickname, t.gender, t.grade)).join(", ")}</p>}
+          {g.opponents.length > 0 && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>상대: {g.opponents.map((t) => displayName(t.nickname, t.gender, t.grade)).join(", ")}</p>}
+        </div>
+        <div style={{ textAlign: "right", flexShrink: 0 }}>
+          {g.teamAScore != null && <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{g.teamAScore} : {g.teamBScore}</p>}
+          {g.finishedAt && <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)" }}>{new Date(g.finishedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function MyRecordPage() {
+  const [data, setData] = useState<MyRecord | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!getAccessToken()) await refreshAccessToken();
+        setData(await fetchMyRecord());
+      } catch {}
+      finally { setLoading(false); }
+    })();
+  }, []);
+
+  if (loading) return <main style={main}><p style={{ color: "var(--muted)", textAlign: "center", padding: 60 }}>불러오는 중...</p></main>;
+  if (!data) return <main style={main}><p style={{ color: "var(--muted)", textAlign: "center", padding: 60 }}>기록 없음</p></main>;
+
+  return (
+    <main style={main}>
+      <section style={sec}>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>내 기록</h1>
+
+        {/* Profile */}
+        <div style={card}>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: 18 }}>{displayName(data.nickname, data.gender, data.nationalGrade)}</p>
+          <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>LV {data.lv} / 경험치 {data.exp.toFixed(1)}%</p>
+        </div>
+
+        {/* Overall */}
+        <div style={card}>
+          <h2 style={sh}>전체 전적</h2>
+          <div style={{ display: "flex", justifyContent: "space-around", textAlign: "center", padding: "12px 0" }}>
+            <Stat value={`${data.totalWinRate.toFixed(0)}%`} label="승률" color="var(--brand-light)" />
+            <Stat value={`${data.totalGames}`} label="전체" />
+            <Stat value={`${data.totalWins}`} label="승" color="var(--accent)" />
+            <Stat value={`${data.totalLosses}`} label="패" color="var(--danger)" />
+          </div>
+          {data.currentStreak > 0 && (
+            <p style={{ margin: 0, textAlign: "center", fontSize: 14, fontWeight: 700, color: data.currentStreakType === "WIN" ? "var(--accent)" : "var(--danger)" }}>
+              현재 {data.currentStreak}{data.currentStreakType === "WIN" ? "연승" : "연패"} 중
+            </p>
+          )}
+        </div>
+
+        {/* Game Type */}
+        <div style={card}>
+          <h2 style={sh}>타입별</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+            <TypeCard label="남복" stat={data.maleDoubles} />
+            <TypeCard label="여복" stat={data.femaleDoubles} />
+            <TypeCard label="혼복" stat={data.mixedDoubles} />
+            <TypeCard label="자유" stat={data.freeGame} />
+          </div>
+        </div>
+
+        {/* Grade Stats */}
+        {Object.keys(data.gradeStats).length > 0 && (
+          <div style={card}>
+            <h2 style={sh}>급수별 전적</h2>
+            {Object.entries(data.gradeStats).sort((a, b) => b[0].localeCompare(a[0])).map(([grade, stat]) => (
+              <div key={grade} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+                <span style={{ fontWeight: 700, fontSize: 15 }}>{grade}급</span>
+                <span style={{ fontSize: 14, color: "var(--ink-secondary)" }}>{stat.wins}승 {stat.losses}패 ({stat.winRate.toFixed(0)}%)</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Best Partners */}
+        <Section title="베스트 파트너" moreHref="/my-record/best-partners">
+          {data.topPartners.length === 0 ? <Empty /> : data.topPartners.slice(0, 3).map((p) => <PartnerRow key={p.userId} p={p} color="var(--ink-secondary)" />)}
+        </Section>
+
+        {/* Worst Partners */}
+        <Section title="워스트 파트너" moreHref="/my-record/worst-partners">
+          {data.worstPartners.length === 0 ? <Empty /> : data.worstPartners.slice(0, 3).map((p) => <PartnerRow key={p.userId} p={p} color="var(--danger)" />)}
+        </Section>
+
+        {/* Worst Opponents */}
+        <Section title="워스트 상대" moreHref="/my-record/worst-opponents">
+          {data.worstOpponents.length === 0 ? <Empty /> : data.worstOpponents.slice(0, 3).map((p) => <PartnerRow key={p.userId} p={p} color="var(--danger)" />)}
+        </Section>
+
+        {/* Monthly */}
+        <Section title="월별 전적" moreHref="/my-record/monthly">
+          {data.monthlyStats.length === 0 ? <Empty /> : data.monthlyStats.slice(0, 3).map((m) => (
+            <div key={m.month} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--line)" }}>
+              <span style={{ fontSize: 14, fontWeight: 600 }}>{m.month}</span>
+              <span style={{ fontSize: 13, color: "var(--ink-secondary)" }}>{m.wins}승 {m.losses}패 / {m.games}전</span>
+            </div>
+          ))}
+        </Section>
+
+        {/* Recent Games */}
+        <Section title="최근 경기" moreHref="/my-record/recent-games">
+          {data.recentGames.length === 0 ? <Empty /> : data.recentGames.slice(0, 3).map((g) => <GameRow key={g.gameId} g={g} />)}
+        </Section>
+      </section>
+
+      <BottomNavMain active="my" />
+    </main>
+  );
+}
+
+function Stat({ value, label, color }: { value: string; label: string; color?: string }) {
+  return <div><p style={{ margin: 0, fontSize: 28, fontWeight: 800, color }}>{value}</p><p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 12 }}>{label}</p></div>;
+}
+
+function TypeCard({ label, stat }: { label: string; stat: TypeStat }) {
+  return (
+    <div style={{ padding: "12px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", textAlign: "center" }}>
+      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>{label}</p>
+      <p style={{ margin: "6px 0 0", fontSize: 22, fontWeight: 800 }}>{stat.games > 0 ? `${stat.winRate.toFixed(0)}%` : "-"}</p>
+      <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>{stat.wins}승 {stat.losses}패 / {stat.games}전</p>
+    </div>
+  );
+}
+
+function Section({ title, moreHref, children }: { title: string; moreHref: string; children: React.ReactNode }) {
+  return (
+    <div style={card}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 style={sh}>{title}</h2>
+        <Link href={moreHref} style={{ fontSize: 13, color: "var(--brand-light)", fontWeight: 700 }}>더보기</Link>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Empty() { return <p style={{ margin: "8px 0 0", color: "var(--muted)", fontSize: 13 }}>데이터가 부족합니다</p>; }
+
+const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
+const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", gap: 12 };
+const card: CSSProperties = { padding: "18px 20px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)" };
+const sh: CSSProperties = { margin: 0, fontSize: 16, fontWeight: 700, color: "var(--ink-secondary)" };
