@@ -100,7 +100,7 @@ export default function GroupEditPage() {
         maxMale: f.maxMale ? Number(f.maxMale) : null,
         maxFemale: f.maxFemale ? Number(f.maxFemale) : null,
       });
-      router.push(`/groups/${groupId}`);
+      router.replace(`/groups/${groupId}`);
     } catch (err) { setError(err instanceof Error ? err.message : "수정에 실패했습니다."); }
     finally { setSaving(false); }
   }

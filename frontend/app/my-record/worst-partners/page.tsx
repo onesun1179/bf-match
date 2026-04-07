@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { CSSProperties, useEffect, useState } from "react";
-import { displayName, fetchAllPartners, getAccessToken, refreshAccessToken, type PartnerStat } from "@/lib/auth";
+import { fetchAllPartners, getAccessToken, refreshAccessToken, type PartnerStat } from "@/lib/auth";
 import { BottomNavMain } from "@/components/bottom-nav-main";
+import { UserNameActions } from "@/components/user-name-actions";
 
 export default function WorstPartnersPage() {
   const [list, setList] = useState<PartnerStat[]>([]);
@@ -23,8 +24,11 @@ export default function WorstPartnersPage() {
   return (
     <main style={main}>
       <section style={sec}>
-        <Link href="/my-record" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 내 기록</Link>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>워스트 파트너</h1>
+        <div style={hero}>
+          <Link href="/my-record" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 내 기록</Link>
+          <p style={{ margin: "10px 0 0", color: "var(--danger)", fontSize: 12, fontWeight: 700 }}>CAUTION</p>
+          <h1 style={{ margin: "6px 0 0", fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em" }}>워스트 파트너</h1>
+        </div>
 
         {loading && <p style={{ color: "var(--muted)", textAlign: "center", padding: 40 }}>불러오는 중...</p>}
 
@@ -34,9 +38,12 @@ export default function WorstPartnersPage() {
           </div>
         )}
 
-        {list.map((p) => (
+        {list.map((p, idx) => (
           <div key={p.userId} style={{ ...card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: 14, fontWeight: 600 }}>{displayName(p.nickname, p.gender, p.nationalGrade)}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ width: 24, fontSize: 14, color: "var(--muted)", fontWeight: 800 }}>{idx + 1}</span>
+              <UserNameActions userId={p.userId} nickname={p.nickname} gender={p.gender} grade={p.nationalGrade} style={{ fontSize: 14, fontWeight: 600 }} />
+            </div>
             <span style={{ fontSize: 13, color: "var(--danger)" }}>{p.wins}승 {p.games}전 ({p.winRate.toFixed(0)}%)</span>
           </div>
         ))}
@@ -48,5 +55,18 @@ export default function WorstPartnersPage() {
 }
 
 const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
-const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", gap: 10 };
-const card: CSSProperties = { padding: "14px 18px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)" };
+const sec: CSSProperties = { maxWidth: 620, margin: "0 auto", display: "grid", gap: 12 };
+const hero: CSSProperties = {
+  padding: "18px 20px",
+  borderRadius: "var(--radius-lg)",
+  background: "linear-gradient(135deg, rgba(255,109,122,0.22), rgba(255,255,255,0.03) 60%, rgba(255,255,255,0.02)), var(--glass)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--shadow)",
+};
+const card: CSSProperties = {
+  padding: "14px 18px",
+  borderRadius: "var(--radius-lg)",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--shadow)",
+};

@@ -3,8 +3,10 @@ package com.bfmatch.api.user
 import com.bfmatch.api.group.GamePlayerRepository
 import com.bfmatch.api.group.GameStatus
 import com.bfmatch.api.group.GameType
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.web.server.ResponseStatusException
 
 @Service
 class MyRecordService(
@@ -42,6 +44,7 @@ class MyRecordService(
                 .map { PlayerInfo(it.user.id!!, it.user.nickname, it.user.gender, it.gradeAtTime) }
             RecentGameRecord(
                 gameId = game.id!!,
+                groupId = game.group.id!!,
                 groupName = game.group.name,
                 gameType = game.gameType,
                 isWin = isWin,
@@ -195,7 +198,7 @@ class MyRecordService(
             val game = gp.game
             val allPlayers = gamePlayerRepository.findAllByGameId(game.id!!)
             RecentGameRecord(
-                gameId = game.id!!, groupName = game.group.name, gameType = game.gameType,
+                gameId = game.id!!, groupId = game.group.id!!, groupName = game.group.name, gameType = game.gameType,
                 isWin = gp.team == game.winnerTeam,
                 teamAScore = game.teamAScore, teamBScore = game.teamBScore,
                 myTeam = gp.team, gradeAtTime = gp.gradeAtTime,
@@ -251,6 +254,88 @@ class MyRecordService(
                 MonthlyStatResponse(month, plays.size, wins, plays.size - wins)
             }
     }
+
+    @Transactional(readOnly = true)
+    fun getWithMeRecord(meUserId: Long, targetUserId: Long): WithMeRecordResponse {
+        if (meUserId == targetUserId) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "본인과의 전적은 조회할 수 없습니다.")
+        }
+
+        val targetUser = userRepository.findById(targetUserId).orElseThrow {
+            ResponseStatusException(HttpStatus.NOT_FOUND, "User not found.")
+        }
+        val targetSkill = playerSkillRepository.findByUserId(targetUserId)
+
+        val myFinishedPlays = gamePlayerRepository.findAllByUserId(meUserId)
+            .filter { it.game.status == GameStatus.FINISHED }
+
+        val partnerGames = mutableListOf<WithMeRecentGameRecord>()
+        val opponentGames = mutableListOf<WithMeRecentGameRecord>()
+
+        var partnerWins = 0
+        var opponentWins = 0
+
+        for (myPlay in myFinishedPlays) {
+            val game = myPlay.game
+            val targetPlay = gamePlayerRepository.findByGameIdAndUserId(game.id!!, targetUserId) ?: continue
+            if (targetPlay.game.status != GameStatus.FINISHED) continue
+
+            val isPartner = myPlay.team == targetPlay.team
+            val isWin = myPlay.team == game.winnerTeam
+            val record = WithMeRecentGameRecord(
+                gameId = game.id!!,
+                groupId = game.group.id!!,
+                groupName = game.group.name,
+                gameType = game.gameType,
+                isWin = isWin,
+                myTeam = myPlay.team,
+                teamAScore = game.teamAScore,
+                teamBScore = game.teamBScore,
+                finishedAt = game.finishedAt?.toString(),
+                teammates = gamePlayerRepository.findAllByGameId(game.id!!)
+                    .filter { it.team == myPlay.team && it.user.id != meUserId }
+                    .map { PlayerInfo(it.user.id!!, it.user.nickname, it.user.gender, it.gradeAtTime) },
+                opponents = gamePlayerRepository.findAllByGameId(game.id!!)
+                    .filter { it.team != myPlay.team }
+                    .map { PlayerInfo(it.user.id!!, it.user.nickname, it.user.gender, it.gradeAtTime) },
+            )
+
+            if (isPartner) {
+                partnerGames.add(record)
+                if (isWin) partnerWins += 1
+            } else {
+                opponentGames.add(record)
+                if (isWin) opponentWins += 1
+            }
+        }
+
+        val partnerSorted = partnerGames.sortedByDescending { it.finishedAt ?: "" }
+        val opponentSorted = opponentGames.sortedByDescending { it.finishedAt ?: "" }
+
+        val partnerTotal = partnerSorted.size
+        val opponentTotal = opponentSorted.size
+
+        return WithMeRecordResponse(
+            targetUserId = targetUser.id!!,
+            targetNickname = targetUser.nickname,
+            targetGender = targetUser.gender,
+            targetNationalGrade = targetSkill?.nationalGrade,
+            partner = WithMeBucketResponse(
+                games = partnerTotal,
+                wins = partnerWins,
+                losses = partnerTotal - partnerWins,
+                winRate = if (partnerTotal > 0) partnerWins.toDouble() / partnerTotal * 100 else 0.0,
+                recentGames = partnerSorted,
+            ),
+            opponent = WithMeBucketResponse(
+                games = opponentTotal,
+                wins = opponentWins,
+                losses = opponentTotal - opponentWins,
+                winRate = if (opponentTotal > 0) opponentWins.toDouble() / opponentTotal * 100 else 0.0,
+                recentGames = opponentSorted,
+            ),
+        )
+    }
 }
 
 data class MyRecordResponse(
@@ -283,6 +368,7 @@ data class PlayerInfo(val userId: Long, val nickname: String, val gender: Gender
 
 data class RecentGameRecord(
     val gameId: Long, val groupName: String, val gameType: GameType?,
+    val groupId: Long,
     val isWin: Boolean, val teamAScore: Int?, val teamBScore: Int?,
     val myTeam: String, val gradeAtTime: NationalGrade?, val finishedAt: String?,
     val teammates: List<PlayerInfo>, val opponents: List<PlayerInfo>,
@@ -294,3 +380,34 @@ data class PartnerStatResponse(
 )
 
 data class MonthlyStatResponse(val month: String, val games: Int, val wins: Int, val losses: Int)
+
+data class WithMeRecordResponse(
+    val targetUserId: Long,
+    val targetNickname: String,
+    val targetGender: Gender?,
+    val targetNationalGrade: NationalGrade?,
+    val partner: WithMeBucketResponse,
+    val opponent: WithMeBucketResponse,
+)
+
+data class WithMeBucketResponse(
+    val games: Int,
+    val wins: Int,
+    val losses: Int,
+    val winRate: Double,
+    val recentGames: List<WithMeRecentGameRecord>,
+)
+
+data class WithMeRecentGameRecord(
+    val gameId: Long,
+    val groupId: Long,
+    val groupName: String,
+    val gameType: GameType?,
+    val isWin: Boolean,
+    val myTeam: String,
+    val teamAScore: Int?,
+    val teamBScore: Int?,
+    val finishedAt: String?,
+    val teammates: List<PlayerInfo>,
+    val opponents: List<PlayerInfo>,
+)

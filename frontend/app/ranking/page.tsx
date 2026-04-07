@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CSSProperties, useEffect, useState } from "react";
 import { displayName, fetchRanking, fetchTeamRanking, getAccessToken, refreshAccessToken, type Grade, type GradeRankingEntry, type RankingByGrade, type TeamRankingEntry, type TeamRankingResponse } from "@/lib/auth";
 import { BottomNavMain } from "@/components/bottom-nav-main";
+import { UserNameActions } from "@/components/user-name-actions";
 
 const GRADES: Grade[] = ["S", "A", "B", "C", "D", "E", "F"];
 const TYPE_TABS = [
@@ -87,10 +88,12 @@ export default function RankingPage() {
   return (
     <main style={main}>
       <section style={sec}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>랭킹</h1>
-        <p style={{ margin: 0, color: "var(--muted)", fontSize: 13 }}>정렬: 승률 → 급수 → 남자 우선 → 닉네임 → 기본키</p>
+        <div style={hero}>
+          <p style={{ margin: 0, color: "var(--brand-light)", fontSize: 12, fontWeight: 700 }}>BF MATCH RANKING</p>
+          <h1 style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em" }}>랭킹</h1>
+        </div>
 
-        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)" }}>
+        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)", border: "1px solid var(--line)" }}>
           <button onClick={() => setMode("PERSONAL")} style={{
             flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)",
             background: mode === "PERSONAL" ? "var(--brand)" : "transparent",
@@ -190,9 +193,7 @@ export default function RankingPage() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <Link href={`/users/${r.userId}/record`} style={{ fontWeight: 700, fontSize: 15, color: "var(--ink)", textDecoration: "none" }}>
-                  {displayName(r.nickname, r.gender, r.grade)}
-                </Link>
+                <UserNameActions userId={r.userId} nickname={r.nickname} gender={r.gender} grade={r.grade} style={{ fontWeight: 700, fontSize: 15 }} />
                 {r.currentGrade !== r.grade && (
                   <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 6, background: "rgba(108,92,231,0.15)", color: "var(--brand-light)" }}>현재 {r.currentGrade}</span>
                 )}
@@ -222,9 +223,15 @@ export default function RankingPage() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "grid", gap: 7 }}>
                 {r.members.map((m) => (
-                  <Link key={m.userId} href={`/users/${m.userId}/record`} style={teamMemberLink}>
-                    <span style={teamMemberName}>{m.nickname} / {genderLabel(m.gender)} / {m.grade}</span>
-                  </Link>
+                  <div key={m.userId} style={teamMemberLink}>
+                    <UserNameActions
+                      userId={m.userId}
+                      nickname={m.nickname}
+                      gender={m.gender}
+                      grade={m.grade}
+                      style={teamMemberName}
+                    />
+                  </div>
                 ))}
               </div>
             </div>
@@ -251,15 +258,28 @@ export default function RankingPage() {
 }
 
 const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
-const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", gap: 10 };
-const card: CSSProperties = { padding: "14px 18px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)" };
+const sec: CSSProperties = { maxWidth: 620, margin: "0 auto", display: "grid", gap: 10 };
+const hero: CSSProperties = {
+  padding: "18px 20px",
+  borderRadius: "var(--radius-lg)",
+  background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(24,210,182,0.08) 60%, rgba(255,255,255,0.02)), var(--glass)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--shadow)",
+};
+const card: CSSProperties = {
+  padding: "15px 18px",
+  borderRadius: "var(--radius-lg)",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--shadow)",
+};
 const teamMemberLink: CSSProperties = {
   display: "block",
   padding: "7px 9px",
   borderRadius: 10,
   textDecoration: "none",
   color: "var(--ink)",
-  border: "1px solid var(--line-2)",
+  border: "1px solid var(--line)",
   background: "var(--surface-2)",
 };
 const teamMemberName: CSSProperties = {

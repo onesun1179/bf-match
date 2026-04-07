@@ -12,6 +12,7 @@ import {
   type GameResponse, type Grade, type GroupDetail, type InviteLinkInfo, type MeResponse, type MemberStat, type TeamStat,
 } from "@/lib/auth";
 import { BottomNavGroupDetail } from "@/components/bottom-nav-group-detail";
+import { UserNameActions } from "@/components/user-name-actions";
 
 type Tab = "info" | "manage" | "members" | "games" | "stats";
 type Dialog = { type: "none" } | { type: "invite"; token: string; info: InviteLinkInfo | null } | { type: "decline"; token: string; info: InviteLinkInfo | null };
@@ -122,7 +123,7 @@ export default function GroupDetailPage() {
 
   async function handleLeave() {
     if (!group || !window.confirm("정말 이 이벤트에서 탈퇴하시겠습니까?")) return;
-    try { await leaveGroup(group.id); router.push("/groups/list"); }
+    try { await leaveGroup(group.id); router.replace("/groups/list"); }
     catch (err) { setError(err instanceof Error ? err.message : "탈퇴 실패"); }
   }
 
@@ -489,9 +490,14 @@ export default function GroupDetailPage() {
               <div key={m.userId} style={{ ...item, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <Link href={`/users/${m.userId}/record`} style={userRecordLink}>
-                      {displayName(m.nickname, m.gender, m.nationalGrade)}
-                    </Link>
+                    <UserNameActions
+                      userId={m.userId}
+                      nickname={m.nickname}
+                      gender={m.gender}
+                      grade={m.nationalGrade}
+                      myUserId={me?.id}
+                      style={userRecordLink}
+                    />
                     {m.userId === me?.id && <span style={{ ...gBadge, background: "rgba(0,206,201,0.15)", color: "var(--accent)" }}>나</span>}
                   </div>
                   <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 13 }}>
@@ -694,9 +700,14 @@ export default function GroupDetailPage() {
                       )}
                       {sortedTeamA.map((p) => (
                         <p key={p.userId} style={{ margin: 0, fontSize: 13, lineHeight: 1.45 }}>
-                          <Link href={`/users/${p.userId}/record`} style={{ ...userRecordLink, fontSize: 13 }}>
-                            {displayName(p.nickname, p.gender, p.nationalGrade)}
-                          </Link>
+                          <UserNameActions
+                            userId={p.userId}
+                            nickname={p.nickname}
+                            gender={p.gender}
+                            grade={p.nationalGrade}
+                            myUserId={me?.id}
+                            style={{ ...userRecordLink, fontSize: 13 }}
+                          />
                         </p>
                       ))}
                       {teamARecordHref ? (
@@ -730,9 +741,14 @@ export default function GroupDetailPage() {
                       )}
                       {sortedTeamB.map((p) => (
                         <p key={p.userId} style={{ margin: 0, fontSize: 13, lineHeight: 1.45 }}>
-                          <Link href={`/users/${p.userId}/record`} style={{ ...userRecordLink, fontSize: 13 }}>
-                            {displayName(p.nickname, p.gender, p.nationalGrade)}
-                          </Link>
+                          <UserNameActions
+                            userId={p.userId}
+                            nickname={p.nickname}
+                            gender={p.gender}
+                            grade={p.nationalGrade}
+                            myUserId={me?.id}
+                            style={{ ...userRecordLink, fontSize: 13 }}
+                          />
                         </p>
                       ))}
                       {teamBRecordHref ? (
@@ -857,9 +873,14 @@ export default function GroupDetailPage() {
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{idx + 1}.</span>
-                        <Link href={`/users/${s.userId}/record`} style={{ ...userRecordLink, fontSize: 14 }}>
-                          {displayName(s.nickname, s.gender, s.nationalGrade)}
-                        </Link>
+                        <UserNameActions
+                          userId={s.userId}
+                          nickname={s.nickname}
+                          gender={s.gender}
+                          grade={s.nationalGrade}
+                          myUserId={me?.id}
+                          style={{ ...userRecordLink, fontSize: 14 }}
+                        />
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
@@ -974,35 +995,77 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
-const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 };
-const card: CSSProperties = { padding: "20px 22px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid" };
-const item: CSSProperties = { borderRadius: "var(--radius-md)", border: "1px solid var(--line)", padding: "12px 16px", background: "var(--surface-2)" };
+const main: CSSProperties = { minHeight: "100vh", padding: "26px 16px 88px" };
+const sec: CSSProperties = { maxWidth: 620, margin: "0 auto", display: "grid", gap: 14 };
+const card: CSSProperties = {
+  padding: "20px 22px",
+  borderRadius: "var(--radius-lg)",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00)), var(--glass)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--shadow)",
+  backdropFilter: "blur(10px)",
+  display: "grid",
+};
+const item: CSSProperties = {
+  borderRadius: "var(--radius-md)",
+  border: "1px solid var(--line)",
+  padding: "12px 16px",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00)), var(--surface-2)",
+};
 const sh: CSSProperties = { margin: 0, fontSize: 16, fontWeight: 700, color: "var(--ink-secondary)" };
 const infoGrid: CSSProperties = { display: "grid", gap: 0 };
-const btnP: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: 0, background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer" };
-const btnSec: CSSProperties = { minHeight: 44, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", background: "var(--surface-2)", color: "var(--ink)", fontWeight: 700, fontSize: 15, cursor: "pointer" };
-const btnDng: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: "1px solid rgba(255,107,107,0.3)", background: "var(--danger-bg)", color: "var(--danger)", fontWeight: 700, fontSize: 15, cursor: "pointer" };
+const btnP: CSSProperties = {
+  minHeight: 48,
+  borderRadius: "var(--radius-md)",
+  border: "1px solid rgba(155,184,255,0.32)",
+  background: "linear-gradient(180deg, #6a99ff 0%, #4d79e8 100%)",
+  color: "#f8fbff",
+  fontWeight: 800,
+  fontSize: 15,
+  cursor: "pointer",
+  boxShadow: "0 10px 22px rgba(63,105,206,0.32)",
+};
+const btnSec: CSSProperties = {
+  minHeight: 44,
+  borderRadius: "var(--radius-md)",
+  border: "1px solid var(--line-2)",
+  background: "var(--surface-2)",
+  color: "var(--ink)",
+  fontWeight: 700,
+  fontSize: 15,
+  cursor: "pointer",
+};
+const btnDng: CSSProperties = {
+  minHeight: 48,
+  borderRadius: "var(--radius-md)",
+  border: "1px solid rgba(255,109,122,0.36)",
+  background: "linear-gradient(180deg, rgba(255,109,122,0.26), rgba(255,109,122,0.12))",
+  color: "#ffd4d9",
+  fontWeight: 800,
+  fontSize: 15,
+  cursor: "pointer",
+};
 const btnKick: CSSProperties = { padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(255,107,107,0.3)", background: "var(--danger-bg)", color: "var(--danger)", fontSize: 12, fontWeight: 700, cursor: "pointer" };
 const gBadge: CSSProperties = { fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 8, background: "var(--surface-3)", color: "var(--ink-secondary)" };
 const gameCard: CSSProperties = {
   ...item,
   display: "grid",
-  gap: 10,
-  padding: "14px 14px 12px",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00)), var(--surface-2)",
-  boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
+  gap: 12,
+  padding: "16px",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.00)), var(--glass)",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--shadow)",
 };
 const gameTeamsGrid: CSSProperties = { display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "stretch" };
 const gameTeamPanelLeft: CSSProperties = {
-  border: "1px solid rgba(108,92,231,0.22)",
-  background: "rgba(108,92,231,0.08)",
+  border: "1px solid rgba(91,140,255,0.36)",
+  background: "rgba(91,140,255,0.10)",
   borderRadius: 12,
   padding: "10px 12px",
 };
 const gameTeamPanelRight: CSSProperties = {
-  border: "1px solid rgba(0,206,201,0.22)",
-  background: "rgba(0,206,201,0.08)",
+  border: "1px solid rgba(24,210,182,0.36)",
+  background: "rgba(24,210,182,0.10)",
   borderRadius: 12,
   padding: "10px 12px",
   textAlign: "right",
@@ -1010,8 +1073,8 @@ const gameTeamPanelRight: CSSProperties = {
 const gameScoreWrap: CSSProperties = {
   minWidth: 66,
   borderRadius: 12,
-  border: "1px solid var(--line-2)",
-  background: "var(--surface-3)",
+  border: "1px solid var(--line)",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--surface-3)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",

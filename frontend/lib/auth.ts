@@ -516,9 +516,37 @@ export async function registerFcmToken(token: string): Promise<void> {
 
 export type TypeStat = { games: number; wins: number; losses: number; winRate: number };
 export type PlayerInfo = { userId: number; nickname: string; gender: Gender | null; grade: Grade | null };
-export type RecentGame = { gameId: number; groupName: string; gameType: GameType | null; isWin: boolean; teamAScore: number | null; teamBScore: number | null; myTeam: string; gradeAtTime: Grade | null; finishedAt: string | null; teammates: PlayerInfo[]; opponents: PlayerInfo[] };
+export type RecentGame = { gameId: number; groupId: number; groupName: string; gameType: GameType | null; isWin: boolean; teamAScore: number | null; teamBScore: number | null; myTeam: string; gradeAtTime: Grade | null; finishedAt: string | null; teammates: PlayerInfo[]; opponents: PlayerInfo[] };
 export type PartnerStat = { userId: number; nickname: string; gender: Gender | null; nationalGrade: Grade | null; games: number; wins: number; winRate: number };
 export type MonthlyStat = { month: string; games: number; wins: number; losses: number };
+export type WithMeRecentGame = {
+  gameId: number;
+  groupId: number;
+  groupName: string;
+  gameType: GameType | null;
+  isWin: boolean;
+  myTeam: string;
+  teamAScore: number | null;
+  teamBScore: number | null;
+  finishedAt: string | null;
+  teammates: PlayerInfo[];
+  opponents: PlayerInfo[];
+};
+export type WithMeBucket = {
+  games: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  recentGames: WithMeRecentGame[];
+};
+export type WithMeRecord = {
+  targetUserId: number;
+  targetNickname: string;
+  targetGender: Gender | null;
+  targetNationalGrade: Grade | null;
+  partner: WithMeBucket;
+  opponent: WithMeBucket;
+};
 
 export type MyRecord = {
   nickname: string; gender: Gender | null; nationalGrade: Grade | null; lv: number; exp: number;
@@ -541,6 +569,12 @@ export async function fetchMyRecord(): Promise<MyRecord> {
 export async function fetchUserRecord(userId: number): Promise<MyRecord> {
   const r = await apiFetch(`/api/v1/users/${userId}/record`); if (!r.ok) throw new Error("사용자 기록을 불러오지 못했습니다.");
   return (await r.json()) as MyRecord;
+}
+
+export async function fetchWithMeRecord(userId: number): Promise<WithMeRecord> {
+  const r = await apiFetch(`/api/v1/users/${userId}/record/with-me`);
+  if (!r.ok) throw new Error("나와의 전적을 불러오지 못했습니다.");
+  return (await r.json()) as WithMeRecord;
 }
 
 export async function fetchAllRecentGames(): Promise<RecentGame[]> {

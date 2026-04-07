@@ -80,7 +80,7 @@ export default function GroupCreatePage() {
         maxMale: f.maxMale ? Number(f.maxMale) : null,
         maxFemale: f.maxFemale ? Number(f.maxFemale) : null,
       });
-      router.push(`/groups/${g.id}`);
+      router.replace(`/groups/${g.id}`);
     } catch (err) { setError(err instanceof Error ? err.message : "이벤트 생성에 실패했습니다."); }
     finally { setSubmitting(false); }
   }

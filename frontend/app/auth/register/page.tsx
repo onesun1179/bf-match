@@ -23,7 +23,7 @@ export default function RegisterPage() {
     setError(null); setSubmitting(true);
     try {
       await registerLocal(f.username.trim(), f.password, f.nickname.trim(), f.nationalGrade, f.gender);
-      router.push("/");
+      router.replace("/");
     } catch (err) { setError(err instanceof Error ? err.message : "회원가입에 실패했습니다."); }
     finally { setSubmitting(false); }
   }

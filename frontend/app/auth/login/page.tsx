@@ -18,7 +18,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await loginLocal(username.trim(), password);
-      router.push("/");
+      router.replace("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "로그인에 실패했습니다.");
     } finally {

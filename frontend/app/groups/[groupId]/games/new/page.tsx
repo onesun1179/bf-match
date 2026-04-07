@@ -140,7 +140,7 @@ export default function NewGamePage() {
     setError(null);
     try {
       await createGame(group.id, teamA, teamB, effectiveMode === "PROPOSE");
-      router.push(`/groups/${group.id}?view=games`);
+      router.replace(`/groups/${group.id}?view=games`);
     } catch (e) {
       setError(e instanceof Error ? e.message : effectiveMode === "CREATE" ? "게임 생성 실패" : "게임 제안 실패");
     } finally {
