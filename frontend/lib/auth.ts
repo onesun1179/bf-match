@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://mature-physiology-blessed-anti.trycloudflare.com";
 
 const ACCESS_TOKEN_KEY = "bf-match.access-token";
 

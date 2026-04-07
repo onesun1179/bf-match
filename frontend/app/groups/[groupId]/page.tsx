@@ -6,13 +6,14 @@ import { CSSProperties, useEffect, useState } from "react";
 import {
   acceptInvite, approveGameProposal, cancelGame, changeMemberRole, closeGroup, createInviteLink, declineInvite,
   confirmScore,
-  displayName, fetchGames, fetchGroupDetail, fetchInviteLinkInfo, fetchMe, fetchMemberStats, fetchTeamStats,
+  fetchGames, fetchGroupDetail, fetchInviteLinkInfo, fetchMe, fetchMemberStats,
   finishGame, getAccessToken, joinPublicGroup, kickGroupMember, leaveGroup, refreshAccessToken,
   rejectGameProposal, rejectScore, startGame, submitScore, updateGameCourtNumber,
-  type GameResponse, type Grade, type GroupDetail, type InviteLinkInfo, type MeResponse, type MemberStat, type TeamStat,
+  type GameResponse, type Grade, type GroupDetail, type InviteLinkInfo, type MeResponse, type MemberStat,
 } from "@/lib/auth";
 import { BottomNavGroupDetail } from "@/components/bottom-nav-group-detail";
 import { UserNameActions } from "@/components/user-name-actions";
+import { UserInfoChip } from "@/components/user-info-chip";
 
 type Tab = "info" | "manage" | "members" | "games" | "stats";
 type Dialog = { type: "none" } | { type: "invite"; token: string; info: InviteLinkInfo | null } | { type: "decline"; token: string; info: InviteLinkInfo | null };
@@ -37,7 +38,6 @@ export default function GroupDetailPage() {
   const [joinLoading, setJoinLoading] = useState(false);
   const [games, setGames] = useState<GameResponse[]>([]);
   const [memberStats, setMemberStats] = useState<MemberStat[]>([]);
-  const [teamStats, setTeamStats] = useState<TeamStat[]>([]);
   const [scoreDialog, setScoreDialog] = useState<{ gameId: number; autoConfirm: boolean } | null>(null);
   const [scoreA, setScoreA] = useState("");
   const [scoreB, setScoreB] = useState("");
@@ -130,13 +130,13 @@ export default function GroupDetailPage() {
   async function loadGames() {
     if (!group) return;
     try {
-      const [g, s, ts] = await Promise.all([fetchGames(group.id), fetchMemberStats(group.id), fetchTeamStats(group.id)]);
-      setGames(g); setMemberStats(s); setTeamStats(ts);
+      const [g, s] = await Promise.all([fetchGames(group.id), fetchMemberStats(group.id)]);
+      setGames(g); setMemberStats(s);
     } catch {}
   }
 
   useEffect(() => {
-    if (tab === "games" || tab === "stats") {
+    if (tab === "games" || tab === "stats" || tab === "members") {
       void loadGames();
     }
   }, [tab, group?.id]);
@@ -318,9 +318,8 @@ export default function GroupDetailPage() {
       .map((g, idx) => [g.id, idx + 1] as const),
   );
   const finishedScoredGames = games.filter((g) => g.status === "FINISHED" && g.teamAScore != null && g.teamBScore != null);
-  const teamStatsMap = new Map(teamStats.map((s) => [s.teamKey, s] as const));
+  const memberStatsMap = new Map(memberStats.map((s) => [s.userId, s] as const));
 
-  const pairStatsMap = new Map<string, { games: number; wins: number }>();
   const teamRankingMap = new Map<string, { players: GameResponse["teamA"]; games: number; wins: number }>();
   const gradePriority: Record<Grade, number> = { S: 0, A: 1, B: 2, C: 3, D: 4, E: 5, F: 6 };
   const compareTeamPlayer = (a: GameResponse["teamA"][number], b: GameResponse["teamA"][number]) => {
@@ -335,25 +334,9 @@ export default function GroupDetailPage() {
   };
   const sortTeamPlayers = (players: GameResponse["teamA"]): GameResponse["teamA"] =>
     players.slice().sort(compareTeamPlayer);
-  const getTeamGrade = (players: GameResponse["teamA"]): Grade | null => {
-    const grades = players.map((p) => p.nationalGrade).filter((g): g is Grade => g != null);
-    if (grades.length === 0) return null;
-    return grades.slice().sort((a, b) => gradePriority[a] - gradePriority[b])[0];
-  };
   finishedScoredGames.forEach((g) => {
     const teamAIds = g.teamA.map((p) => p.userId).sort((x, y) => x - y);
     const teamBIds = g.teamB.map((p) => p.userId).sort((x, y) => x - y);
-    if (teamAIds.length === 2) {
-      const keyA = `${teamAIds[0]}-${teamAIds[1]}`;
-      const prev = pairStatsMap.get(keyA) ?? { games: 0, wins: 0 };
-      pairStatsMap.set(keyA, { games: prev.games + 1, wins: prev.wins + (g.winnerTeam === "A" ? 1 : 0) });
-    }
-    if (teamBIds.length === 2) {
-      const keyB = `${teamBIds[0]}-${teamBIds[1]}`;
-      const prev = pairStatsMap.get(keyB) ?? { games: 0, wins: 0 };
-      pairStatsMap.set(keyB, { games: prev.games + 1, wins: prev.wins + (g.winnerTeam === "B" ? 1 : 0) });
-    }
-
     if (teamAIds.length === 2) {
       const keyA = `${teamAIds[0]}-${teamAIds[1]}`;
       const prev = teamRankingMap.get(keyA) ?? { players: g.teamA, games: 0, wins: 0 };
@@ -369,8 +352,7 @@ export default function GroupDetailPage() {
     .map(([teamKey, value]) => {
       const losses = Math.max(value.games - value.wins, 0);
       const winRate = value.games > 0 ? (value.wins / value.games) * 100 : 0;
-      const teamGrade = getTeamGrade(value.players);
-      return { teamKey, players: value.players, games: value.games, wins: value.wins, losses, winRate, teamGrade };
+      return { teamKey, players: value.players, games: value.games, wins: value.wins, losses, winRate };
     })
     .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins || b.games - a.games || a.teamKey.localeCompare(b.teamKey));
 
@@ -500,23 +482,47 @@ export default function GroupDetailPage() {
                     />
                     {m.userId === me?.id && <span style={{ ...gBadge, background: "rgba(0,206,201,0.15)", color: "var(--accent)" }}>나</span>}
                   </div>
-                  <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 13 }}>
-                    {m.role === "OWNER" ? "이벤트장" : m.role === "MANAGER" ? "관리자" : "멤버"}
-                  </p>
+                  {memberStatsMap.get(m.userId) && (
+                    <p style={{ margin: "2px 0 0", color: "var(--ink-secondary)", fontSize: 12 }}>
+                      총 전적 {memberStatsMap.get(m.userId)!.overallWinCount}승 / {memberStatsMap.get(m.userId)!.overallFinishedGameCount}전
+                      {" "}({memberStatsMap.get(m.userId)!.overallWinRate.toFixed(0)}%)
+                    </p>
+                  )}
                 </div>
-                {isOwner && m.role !== "OWNER" && (
-                  <div style={{ display: "flex", gap: 6 }}>
-                    <select
-                      value={m.role}
-                      onChange={(e) => { void handleRole(m.userId, e.target.value as "MANAGER" | "MEMBER"); }}
-                      style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid var(--line-2)", background: "var(--surface-3)", color: "var(--ink)", fontSize: 12, cursor: "pointer" }}
-                    >
-                      <option value="MANAGER">관리자</option>
-                      <option value="MEMBER">멤버</option>
-                    </select>
-                    <button onClick={() => { void handleKick(m.userId, m.nickname); }} style={btnKick}>강퇴</button>
-                  </div>
-                )}
+                <div style={{ display: "grid", justifyItems: "end", gap: 8 }}>
+                  <span
+                    style={{
+                      ...gBadge,
+                      background:
+                        m.role === "OWNER"
+                          ? "rgba(108,92,231,0.16)"
+                          : m.role === "MANAGER"
+                            ? "rgba(0,206,201,0.16)"
+                            : "var(--surface-3)",
+                      color:
+                        m.role === "OWNER"
+                          ? "var(--brand-light)"
+                          : m.role === "MANAGER"
+                            ? "var(--accent)"
+                            : "var(--ink-secondary)",
+                    }}
+                  >
+                    {m.role === "OWNER" ? "이벤트장" : m.role === "MANAGER" ? "관리자" : "멤버"}
+                  </span>
+                  {isOwner && m.role !== "OWNER" && (
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <select
+                        value={m.role}
+                        onChange={(e) => { void handleRole(m.userId, e.target.value as "MANAGER" | "MEMBER"); }}
+                        style={{ padding: "4px 8px", borderRadius: 8, border: "1px solid var(--line-2)", background: "var(--surface-3)", color: "var(--ink)", fontSize: 12, cursor: "pointer" }}
+                      >
+                        <option value="MANAGER">관리자</option>
+                        <option value="MEMBER">멤버</option>
+                      </select>
+                      <button onClick={() => { void handleKick(m.userId, m.nickname); }} style={btnKick}>강퇴</button>
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -525,21 +531,21 @@ export default function GroupDetailPage() {
         {/* ── Tab: Games ── */}
         {tab === "games" && (
           <div style={{ ...card, gap: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "grid", gap: 10 }}>
               <h2 style={sh}>게임</h2>
               {isMember && !group.closed && (
-                <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                   {isOwnerOrManager && (
                     <Link
                       href={`/groups/${group.id}/games/new?mode=create`}
-                      style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", border: 0, background: "var(--accent)", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "none" }}
+                      style={{ ...gameTopBtn, background: "var(--accent)" }}
                     >
                       + 게임 생성
                     </Link>
                   )}
                   <Link
                     href={`/groups/${group.id}/games/new?mode=propose`}
-                    style={{ padding: "6px 14px", borderRadius: "var(--radius-sm)", border: 0, background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", textDecoration: "none" }}
+                    style={{ ...gameTopBtn, background: "var(--brand)" }}
                   >
                     + 게임 제안
                   </Link>
@@ -602,14 +608,8 @@ export default function GroupDetailPage() {
               const teamBKey = teamBIds.length === 2 ? `${teamBIds[0]}-${teamBIds[1]}` : "";
               const teamARecordHref = teamAKey ? `/groups/${group.id}/teams/${teamAKey}` : undefined;
               const teamBRecordHref = teamBKey ? `/groups/${group.id}/teams/${teamBKey}` : undefined;
-              const teamARecord = pairStatsMap.get(teamAKey) ?? { games: 0, wins: 0 };
-              const teamBRecord = pairStatsMap.get(teamBKey) ?? { games: 0, wins: 0 };
-              const teamARecordRate = teamARecord.games > 0 ? (teamARecord.wins / teamARecord.games) * 100 : 0;
-              const teamBRecordRate = teamBRecord.games > 0 ? (teamBRecord.wins / teamBRecord.games) * 100 : 0;
               const sortedTeamA = sortTeamPlayers(g.teamA);
               const sortedTeamB = sortTeamPlayers(g.teamB);
-              const teamAOverall = teamStatsMap.get(teamAKey);
-              const teamBOverall = teamStatsMap.get(teamBKey);
               const pendingRequesterTeam = g.pendingRequestedByTeam;
               const canManagerForceConfirm = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore == null;
               const canManagerEditScoredGame = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore != null;
@@ -710,17 +710,6 @@ export default function GroupDetailPage() {
                           />
                         </p>
                       ))}
-                      {teamARecordHref ? (
-                        <Link href={teamARecordHref} style={{ ...teamRecordLink, marginTop: 6, color: "var(--ink-secondary)", fontSize: 11 }}>
-                          팀 전적 {teamARecord.wins}승 {Math.max(teamARecord.games - teamARecord.wins, 0)}패 / {teamARecord.games}전 · 승률 {teamARecordRate.toFixed(0)}%
-                          {teamAOverall && ` · 총 ${teamAOverall.overallWins}승 ${Math.max(teamAOverall.overallGames - teamAOverall.overallWins, 0)}패`}
-                        </Link>
-                      ) : (
-                        <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-secondary)" }}>
-                          팀 전적 {teamARecord.wins}승 {Math.max(teamARecord.games - teamARecord.wins, 0)}패 / {teamARecord.games}전 · 승률 {teamARecordRate.toFixed(0)}%
-                          {teamAOverall && ` · 총 ${teamAOverall.overallWins}승 ${Math.max(teamAOverall.overallGames - teamAOverall.overallWins, 0)}패`}
-                        </p>
-                      )}
                     </div>
                     <div style={gameScoreWrap}>
                       {g.teamAScore != null ? (
@@ -751,17 +740,6 @@ export default function GroupDetailPage() {
                           />
                         </p>
                       ))}
-                      {teamBRecordHref ? (
-                        <Link href={teamBRecordHref} style={{ ...teamRecordLink, marginTop: 6, color: "var(--ink-secondary)", fontSize: 11, textAlign: "right" }}>
-                          팀 전적 {teamBRecord.wins}승 {Math.max(teamBRecord.games - teamBRecord.wins, 0)}패 / {teamBRecord.games}전 · 승률 {teamBRecordRate.toFixed(0)}%
-                          {teamBOverall && ` · 총 ${teamBOverall.overallWins}승 ${Math.max(teamBOverall.overallGames - teamBOverall.overallWins, 0)}패`}
-                        </Link>
-                      ) : (
-                        <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--ink-secondary)" }}>
-                          팀 전적 {teamBRecord.wins}승 {Math.max(teamBRecord.games - teamBRecord.wins, 0)}패 / {teamBRecord.games}전 · 승률 {teamBRecordRate.toFixed(0)}%
-                          {teamBOverall && ` · 총 ${teamBOverall.overallWins}승 ${Math.max(teamBOverall.overallGames - teamBOverall.overallWins, 0)}패`}
-                        </p>
-                      )}
                     </div>
                   </div>
 
@@ -869,16 +847,16 @@ export default function GroupDetailPage() {
                 .sort((a, b) => b.winRate - a.winRate || b.winCount - a.winCount || b.finishedGameCount - a.finishedGameCount)
                 .slice(0, showAllRanking ? undefined : 5)
                 .map((s, idx) => (
-                  <div key={s.userId} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderTop: "1px solid var(--line)" }}>
+                  <Link key={s.userId} href={`/users/${s.userId}/record`} style={{ textDecoration: "none", color: "inherit" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderTop: "1px solid var(--line)" }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{idx + 1}.</span>
-                        <UserNameActions
-                          userId={s.userId}
+                        <UserInfoChip
                           nickname={s.nickname}
                           gender={s.gender}
-                          grade={s.nationalGrade}
-                          myUserId={me?.id}
+                          grade={s.nationalGrade ?? null}
+                          lv={s.lv}
                           style={{ ...userRecordLink, fontSize: 14 }}
                         />
                       </div>
@@ -886,10 +864,11 @@ export default function GroupDetailPage() {
                     <div style={{ textAlign: "right" }}>
                       <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "var(--accent)" }}>{s.winRate.toFixed(0)}%</p>
                       <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 12 }}>
-                        이벤트 {s.winCount}승 / {s.finishedGameCount}전 · 총 {s.overallWinCount}승 / {s.overallFinishedGameCount}전
+                        이벤트 {s.winCount}승 / {s.finishedGameCount}전
                       </p>
                     </div>
                   </div>
+                  </Link>
                 ))}
               {memberStats.length > 5 && (
                 <button
@@ -913,14 +892,32 @@ export default function GroupDetailPage() {
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{idx + 1}.</span>
-                          <span style={{ ...userRecordLink, fontSize: 14 }}>
-                            {displayName(sortedPlayers[0]?.nickname ?? "-", sortedPlayers[0]?.gender ?? null, sortedPlayers[0]?.nationalGrade ?? null)} / {displayName(sortedPlayers[1]?.nickname ?? "-", sortedPlayers[1]?.gender ?? null, sortedPlayers[1]?.nationalGrade ?? null)}
+                          <span style={{ ...userRecordLink, fontSize: 14, display: "inline-flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                            {sortedPlayers[0] && (
+                              <UserNameActions
+                                userId={sortedPlayers[0].userId}
+                                nickname={sortedPlayers[0].nickname}
+                                gender={sortedPlayers[0].gender}
+                                grade={sortedPlayers[0].nationalGrade}
+                                myUserId={me?.id}
+                                style={{ fontSize: 13 }}
+                              />
+                            )}
+                            <span style={{ color: "var(--muted)", fontWeight: 700 }}>/</span>
+                            {sortedPlayers[1] && (
+                              <UserNameActions
+                                userId={sortedPlayers[1].userId}
+                                nickname={sortedPlayers[1].nickname}
+                                gender={sortedPlayers[1].gender}
+                                grade={sortedPlayers[1].nationalGrade}
+                                myUserId={me?.id}
+                                style={{ fontSize: 13 }}
+                              />
+                            )}
                           </span>
-                          {t.teamGrade && <span style={{ ...gBadge, background: "var(--surface-3)", color: "var(--ink-secondary)", padding: "2px 8px" }}>팀 급수 {t.teamGrade}</span>}
                         </div>
                         <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 12 }}>
                           이벤트 {t.wins}승 {t.losses}패 / {t.games}전
-                          {teamStatsMap.get(t.teamKey) && ` · 총 ${teamStatsMap.get(t.teamKey)!.overallWins}승 ${Math.max(teamStatsMap.get(t.teamKey)!.overallGames - teamStatsMap.get(t.teamKey)!.overallWins, 0)}패 / ${teamStatsMap.get(t.teamKey)!.overallGames}전`}
                         </p>
                       </div>
                       <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "var(--accent)" }}>{t.winRate.toFixed(0)}%</p>
@@ -936,7 +933,6 @@ export default function GroupDetailPage() {
                   {showAllTeamRanking ? "접기" : "더보기"}
                 </button>
               )}
-              <p style={{ margin: 0, fontSize: 11, color: "var(--muted)" }}>기준: 점수가 확정된 종료 게임</p>
             </div>}
           </div>
         )}
@@ -1056,12 +1052,14 @@ const gameCard: CSSProperties = {
   border: "1px solid var(--glass-border)",
   boxShadow: "var(--shadow)",
 };
-const gameTeamsGrid: CSSProperties = { display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "stretch" };
+const gameTeamsGrid: CSSProperties = { display: "grid", gridTemplateColumns: "minmax(0,1fr) 56px minmax(0,1fr)", gap: 8, alignItems: "stretch" };
 const gameTeamPanelLeft: CSSProperties = {
   border: "1px solid rgba(91,140,255,0.36)",
   background: "rgba(91,140,255,0.10)",
   borderRadius: 12,
   padding: "10px 12px",
+  minWidth: 0,
+  overflow: "hidden",
 };
 const gameTeamPanelRight: CSSProperties = {
   border: "1px solid rgba(24,210,182,0.36)",
@@ -1069,9 +1067,11 @@ const gameTeamPanelRight: CSSProperties = {
   borderRadius: 12,
   padding: "10px 12px",
   textAlign: "right",
+  minWidth: 0,
+  overflow: "hidden",
 };
 const gameScoreWrap: CSSProperties = {
-  minWidth: 66,
+  minWidth: 56,
   borderRadius: 12,
   border: "1px solid var(--line)",
   background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--surface-3)",
@@ -1086,6 +1086,7 @@ const userRecordLink: CSSProperties = {
   fontSize: 15,
   color: "var(--ink)",
   textDecoration: "none",
+  maxWidth: "100%",
 };
 const teamRecordLink: CSSProperties = {
   display: "block",
@@ -1093,6 +1094,25 @@ const teamRecordLink: CSSProperties = {
   fontSize: 12,
   fontWeight: 800,
   textDecoration: "none",
+  maxWidth: "100%",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+const gameTopBtn: CSSProperties = {
+  minHeight: 34,
+  padding: "6px 14px",
+  borderRadius: "var(--radius-sm)",
+  border: 0,
+  color: "#fff",
+  fontWeight: 700,
+  fontSize: 13,
+  cursor: "pointer",
+  textDecoration: "none",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  whiteSpace: "nowrap",
 };
 const gameCloseBtn: CSSProperties = {
   width: 26,

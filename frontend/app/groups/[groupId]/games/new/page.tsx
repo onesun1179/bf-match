@@ -5,20 +5,18 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
 import {
   createGame,
-  displayName,
+  fetchGames,
   fetchGroupDetail,
   fetchMe,
-  fetchMemberStats,
-  fetchTeamStats,
   getAccessToken,
   recommendGame,
   refreshAccessToken,
+  type GameResponse,
   type GameType,
   type Grade,
   type GroupDetail,
-  type MemberStat,
-  type TeamStat,
 } from "@/lib/auth";
+import { UserNameActions } from "@/components/user-name-actions";
 
 export default function NewGamePage() {
   const params = useParams<{ groupId: string }>();
@@ -27,10 +25,10 @@ export default function NewGamePage() {
   const groupId = Number(params.groupId);
 
   const [group, setGroup] = useState<GroupDetail | null>(null);
-  const [memberStats, setMemberStats] = useState<MemberStat[]>([]);
-  const [teamStats, setTeamStats] = useState<TeamStat[]>([]);
+  const [games, setGames] = useState<GameResponse[]>([]);
   const [teamA, setTeamA] = useState<number[]>([]);
   const [teamB, setTeamB] = useState<number[]>([]);
+  const [meId, setMeId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,18 +47,17 @@ export default function NewGamePage() {
       try {
         if (!getAccessToken()) await refreshAccessToken();
         const me = await fetchMe();
+        setMeId(me.id);
         if (!me.onboardingCompleted) {
           router.replace("/onboarding");
           return;
         }
-        const [groupData, stats, teamStatData] = await Promise.all([
+        const [groupData, gameData] = await Promise.all([
           fetchGroupDetail(groupId),
-          fetchMemberStats(groupId),
-          fetchTeamStats(groupId),
+          fetchGames(groupId),
         ]);
         setGroup(groupData);
-        setMemberStats(stats);
-        setTeamStats(teamStatData);
+        setGames(gameData);
       } catch (e) {
         setError(e instanceof Error ? e.message : "게임 생성 화면을 불러오지 못했습니다.");
       } finally {
@@ -98,13 +95,69 @@ export default function NewGamePage() {
     () => teamB.map((id) => activeMembers.find((m) => m.userId === id)).filter((m): m is NonNullable<typeof m> => m != null),
     [teamB, activeMembers],
   );
-  const teamAKey = useMemo(() => (teamA.length === 2 ? teamA.slice().sort((a, b) => a - b).join("-") : null), [teamA]);
-  const teamBKey = useMemo(() => (teamB.length === 2 ? teamB.slice().sort((a, b) => a - b).join("-") : null), [teamB]);
-  const teamAStat = useMemo(() => teamStats.find((t) => t.teamKey === teamAKey) ?? null, [teamStats, teamAKey]);
-  const teamBStat = useMemo(() => teamStats.find((t) => t.teamKey === teamBKey) ?? null, [teamStats, teamBKey]);
-  const teamARecord = teamAStat ?? { teamKey: teamAKey ?? "", eventGames: 0, eventWins: 0, eventWinRate: 0, overallGames: 0, overallWins: 0, overallWinRate: 0 };
-  const teamBRecord = teamBStat ?? { teamKey: teamBKey ?? "", eventGames: 0, eventWins: 0, eventWinRate: 0, overallGames: 0, overallWins: 0, overallWinRate: 0 };
+  const gameFrequencyByUser = useMemo(() => {
+    const map = new Map<number, number>();
+    games
+      .filter((g) => g.status !== "CANCELLED")
+      .forEach((g) => {
+        [...g.teamA, ...g.teamB].forEach((p) => {
+          map.set(p.userId, (map.get(p.userId) ?? 0) + 1);
+        });
+      });
+    return map;
+  }, [games]);
 
+  const partnerPairCount = useMemo(() => {
+    const map = new Map<string, number>();
+    games
+      .filter((g) => g.status !== "CANCELLED")
+      .forEach((g) => {
+        const teams = [g.teamA, g.teamB];
+        teams.forEach((team) => {
+          const ids = team.map((p) => p.userId).sort((a, b) => a - b);
+          if (ids.length !== 2) return;
+          const key = `${ids[0]}-${ids[1]}`;
+          map.set(key, (map.get(key) ?? 0) + 1);
+        });
+      });
+    return map;
+  }, [games]);
+
+  const opponentPairCount = useMemo(() => {
+    const map = new Map<string, number>();
+    games
+      .filter((g) => g.status !== "CANCELLED")
+      .forEach((g) => {
+        const a = g.teamA.map((p) => p.userId);
+        const b = g.teamB.map((p) => p.userId);
+        a.forEach((aid) => {
+          b.forEach((bid) => {
+            const key = aid < bid ? `${aid}-${bid}` : `${bid}-${aid}`;
+            map.set(key, (map.get(key) ?? 0) + 1);
+          });
+        });
+      });
+    return map;
+  }, [games]);
+
+  function pairKey(a: number, b: number): string {
+    return a < b ? `${a}-${b}` : `${b}-${a}`;
+  }
+
+  function formatSelectionStats(
+    personal: number,
+    partner: { nickname: string; count: number } | null,
+    opponents: Array<{ nickname: string; count: number }>,
+  ): string {
+    const parts: string[] = [];
+    if (personal > 0) parts.push(`${personal}회`);
+    if (partner && partner.count > 0) parts.push(`파트너 ${partner.nickname} ${partner.count}`);
+    if (opponents.length > 0) {
+      parts.push(`상대 ${opponents.map((op) => `${op.nickname} ${op.count}`).join(", ")}`);
+    }
+    if (parts.length === 0) return "첫 매치";
+    return parts.join(" · ");
+  }
   function togglePlayer(userId: number, team: "A" | "B") {
     if (isClosed) return;
     const setter = team === "A" ? setTeamA : setTeamB;
@@ -195,20 +248,35 @@ export default function NewGamePage() {
             <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
               <div style={selectedTeamRow}>
                 <p style={{ ...teamLabel, color: "var(--brand-light)" }}>팀 A ({selectedTeamA.length}/2)</p>
-                {teamAKey && (
-                  <p style={{ margin: 0, fontSize: 12, color: "var(--ink-secondary)", fontWeight: 700 }}>
-                    팀 전적: 이벤트 {teamARecord.eventWins}승/{teamARecord.eventGames}전 · 총 {teamARecord.overallWins}승/{teamARecord.overallGames}전
-                  </p>
-                )}
                 {selectedTeamA.length === 0 ? (
                   <p style={teamMembersText}>-</p>
                 ) : (
                   selectedTeamA.map((m) => {
-                    const stat = memberStats.find((s) => s.userId === m.userId);
+                    const partnerMember = selectedTeamA.find((member) => member.userId !== m.userId) ?? null;
+                    const partnerInfo = partnerMember
+                      ? {
+                          nickname: partnerMember.nickname,
+                          count: partnerPairCount.get(pairKey(m.userId, partnerMember.userId)) ?? 0,
+                        }
+                      : null;
+                    const opponents = selectedTeamB
+                      .map((op) => ({
+                        nickname: op.nickname,
+                        count: opponentPairCount.get(pairKey(m.userId, op.userId)) ?? 0,
+                      }))
+                      .filter((op) => op.count > 0);
+                    const personalCount = gameFrequencyByUser.get(m.userId) ?? 0;
                     return (
                       <p key={m.userId} style={{ margin: 0, fontSize: 12, color: "var(--ink)" }}>
-                        {displayName(m.nickname, m.gender, m.nationalGrade)}
-                        {stat && ` · 이벤트 ${stat.winCount}승/${stat.finishedGameCount}전 · 총 ${stat.overallWinCount}승/${stat.overallFinishedGameCount}전`}
+                        <UserNameActions
+                          userId={m.userId}
+                          nickname={m.nickname}
+                          gender={m.gender}
+                          grade={m.nationalGrade}
+                          myUserId={meId}
+                          style={{ fontSize: 12 }}
+                        />
+                        {` · ${formatSelectionStats(personalCount, partnerInfo, opponents)}`}
                       </p>
                     );
                   })
@@ -216,20 +284,35 @@ export default function NewGamePage() {
               </div>
               <div style={selectedTeamRow}>
                 <p style={{ ...teamLabel, color: "var(--accent)" }}>팀 B ({selectedTeamB.length}/2)</p>
-                {teamBKey && (
-                  <p style={{ margin: 0, fontSize: 12, color: "var(--ink-secondary)", fontWeight: 700 }}>
-                    팀 전적: 이벤트 {teamBRecord.eventWins}승/{teamBRecord.eventGames}전 · 총 {teamBRecord.overallWins}승/{teamBRecord.overallGames}전
-                  </p>
-                )}
                 {selectedTeamB.length === 0 ? (
                   <p style={teamMembersText}>-</p>
                 ) : (
                   selectedTeamB.map((m) => {
-                    const stat = memberStats.find((s) => s.userId === m.userId);
+                    const partnerMember = selectedTeamB.find((member) => member.userId !== m.userId) ?? null;
+                    const partnerInfo = partnerMember
+                      ? {
+                          nickname: partnerMember.nickname,
+                          count: partnerPairCount.get(pairKey(m.userId, partnerMember.userId)) ?? 0,
+                        }
+                      : null;
+                    const opponents = selectedTeamA
+                      .map((op) => ({
+                        nickname: op.nickname,
+                        count: opponentPairCount.get(pairKey(m.userId, op.userId)) ?? 0,
+                      }))
+                      .filter((op) => op.count > 0);
+                    const personalCount = gameFrequencyByUser.get(m.userId) ?? 0;
                     return (
                       <p key={m.userId} style={{ margin: 0, fontSize: 12, color: "var(--ink)" }}>
-                        {displayName(m.nickname, m.gender, m.nationalGrade)}
-                        {stat && ` · 이벤트 ${stat.winCount}승/${stat.finishedGameCount}전 · 총 ${stat.overallWinCount}승/${stat.overallFinishedGameCount}전`}
+                        <UserNameActions
+                          userId={m.userId}
+                          nickname={m.nickname}
+                          gender={m.gender}
+                          grade={m.nationalGrade}
+                          myUserId={meId}
+                          style={{ fontSize: 12 }}
+                        />
+                        {` · ${formatSelectionStats(personalCount, partnerInfo, opponents)}`}
                       </p>
                     );
                   })
@@ -265,7 +348,6 @@ export default function NewGamePage() {
             {activeMembers.map((m) => {
               const inA = teamA.includes(m.userId);
               const inB = teamB.includes(m.userId);
-              const stat = memberStats.find((s) => s.userId === m.userId);
               return (
                 <div
                   key={m.userId}
@@ -279,14 +361,17 @@ export default function NewGamePage() {
                   }}
                 >
                   <div>
-                    <Link href={`/users/${m.userId}/record`} style={{ color: "var(--ink)", textDecoration: "none", fontSize: 14, fontWeight: 700 }}>
-                      {displayName(m.nickname, m.gender, m.nationalGrade)}
-                    </Link>
-                    {stat && (
-                      <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: 8 }}>
-                        이벤트 {stat.winCount}승/{stat.finishedGameCount}전 · 총 {stat.overallWinCount}승/{stat.overallFinishedGameCount}전
-                      </span>
-                    )}
+                    <UserNameActions
+                      userId={m.userId}
+                      nickname={m.nickname}
+                      gender={m.gender}
+                      grade={m.nationalGrade}
+                      myUserId={meId}
+                      style={{ fontSize: 14, fontWeight: 700 }}
+                    />
+                    <span style={{ fontSize: 11, color: "var(--muted)", marginLeft: 8 }}>
+                      {(gameFrequencyByUser.get(m.userId) ?? 0)}회
+                    </span>
                   </div>
                   <div style={{ display: "flex", gap: 4 }}>
                     <button

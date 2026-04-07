@@ -42,7 +42,7 @@ export default function RegisterPage() {
             <label style={lw}><span style={lb}>아이디</span><input value={f.username} onChange={set("username")} placeholder="2자 이상" required minLength={2} maxLength={60} style={inp} /></label>
             <label style={lw}><span style={lb}>비밀번호</span><input type="password" value={f.password} onChange={set("password")} placeholder="4자 이상" required minLength={4} style={inp} /></label>
             <label style={lw}><span style={lb}>비밀번호 확인</span><input type="password" value={f.passwordConfirm} onChange={set("passwordConfirm")} placeholder="비밀번호 다시 입력" required minLength={4} style={inp} /></label>
-            <label style={lw}><span style={lb}>닉네임</span><input value={f.nickname} onChange={set("nickname")} placeholder="이름" required minLength={2} maxLength={30} style={inp} /></label>
+            <label style={lw}><span style={lb}>닉네임</span><input value={f.nickname} onChange={set("nickname")} placeholder="이름" required minLength={2} maxLength={10} style={inp} /></label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <label style={lw}><span style={lb}>성별</span>
                 <select value={f.gender} onChange={set("gender")} style={inp}>

@@ -2,42 +2,73 @@
 
 import Link from "next/link";
 import { CSSProperties, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { Gender, Grade } from "@/lib/auth";
+import { UserInfoChip } from "@/components/user-info-chip";
 
 type Props = {
   userId: number;
   nickname: string;
   gender?: Gender | null;
   grade?: Grade | null;
+  lv?: number | null;
   myUserId?: number | null;
   style?: CSSProperties;
 };
 
-export function UserNameActions({ userId, nickname, gender = null, grade = null, myUserId = null, style }: Props) {
+export function UserNameActions({ userId, nickname, gender = null, grade = null, lv = null, myUserId = null, style }: Props) {
   const [open, setOpen] = useState(false);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const wrapRef = useRef<HTMLSpanElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
       const target = e.target as Node;
-      if (!wrapRef.current?.contains(target)) setOpen(false);
+      const clickedChip = wrapRef.current?.contains(target) ?? false;
+      const clickedMenu = menuRef.current?.contains(target) ?? false;
+      if (!clickedChip && !clickedMenu) setOpen(false);
     }
     if (open) document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
-  const showWithMe = myUserId == null || myUserId !== userId;
-  const genderLabel = gender === "MALE" ? "남" : gender === "FEMALE" ? "여" : null;
+  useEffect(() => {
+    if (!open) return;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevBodyTouchAction = document.body.style.touchAction;
+    const prevBodyOverscrollBehavior = document.body.style.overscrollBehavior;
 
-  return (
-    <div ref={wrapRef} style={{ position: "relative", display: "inline-block" }} onClick={(e) => e.stopPropagation()}>
-      <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((prev) => !prev); }} style={{ ...nameBtn, ...style }}>
-        <span style={tagPrimary}>{nickname}</span>
-        {genderLabel && <span style={tagSecondary}>{genderLabel}</span>}
-        {grade && <span style={tagSecondary}>{grade}</span>}
-      </button>
-      {open && (
-        <div style={menu} onClick={(e) => e.stopPropagation()}>
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.body.style.overscrollBehavior = "none";
+
+    return () => {
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.overflow = prevBodyOverflow;
+      document.body.style.touchAction = prevBodyTouchAction;
+      document.body.style.overscrollBehavior = prevBodyOverscrollBehavior;
+    };
+  }, [open]);
+
+  const showWithMe = myUserId == null || myUserId !== userId;
+  const chipText = `${levelLabel(lv, grade)} ${nickname}`;
+  const chipTone = gender === "MALE" ? maleTone : gender === "FEMALE" ? femaleTone : neutralTone;
+
+  const dialog = (
+    <>
+      <div style={backdrop} onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
+      <div style={menuWrap} onClick={(e) => e.stopPropagation()}>
+        <div ref={menuRef} style={menu}>
+          <div style={menuHeader}>
+            <UserInfoChip nickname={nickname} gender={gender} grade={grade} lv={lv} style={{ fontSize: 13 }} />
+          </div>
           <Link href={`/users/${userId}/record`} style={menuItem} onClick={(e) => { e.stopPropagation(); setOpen(false); }}>
             개인 기록 보기
           </Link>
@@ -47,8 +78,17 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
             </Link>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
+  );
+
+  return (
+    <span ref={wrapRef} style={{ position: "relative", display: "inline-block", maxWidth: "100%", verticalAlign: "top" }} onClick={(e) => e.stopPropagation()}>
+      <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((prev) => !prev); }} style={{ ...nameBtn, ...style }}>
+        <span style={{ ...tagUnified, ...chipTone }}>{chipText}</span>
+      </button>
+      {open && mounted ? createPortal(dialog, document.body) : null}
+    </span>
   );
 }
 
@@ -63,45 +103,77 @@ const nameBtn: CSSProperties = {
   fontWeight: "inherit",
   display: "inline-flex",
   alignItems: "center",
-  gap: 4,
   lineHeight: 1.25,
+  maxWidth: "100%",
+  minWidth: 0,
 };
 
-const tagPrimary: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  padding: "3px 8px",
+const tagUnified: CSSProperties = {
+  display: "inline-block",
+  padding: "4px 10px",
   borderRadius: 999,
-  border: "1px solid rgba(142,178,255,0.42)",
-  background: "linear-gradient(180deg, rgba(91,140,255,0.22), rgba(91,140,255,0.10))",
   color: "var(--ink)",
   fontWeight: 700,
   fontSize: "inherit",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  maxWidth: "100%",
 };
 
-const tagSecondary: CSSProperties = {
-  display: "inline-flex",
-  alignItems: "center",
-  padding: "3px 7px",
-  borderRadius: 999,
-  border: "1px solid var(--line-2)",
-  background: "rgba(255,255,255,0.06)",
-  color: "var(--ink-secondary)",
-  fontWeight: 700,
-  fontSize: "inherit",
+const neutralTone: CSSProperties = {
+  border: "1px solid rgba(173,193,230,0.36)",
+  background: "linear-gradient(180deg, rgba(173,193,230,0.14), rgba(173,193,230,0.06))",
+};
+
+const maleTone: CSSProperties = {
+  border: "1px solid rgba(91,140,255,0.45)",
+  background: "linear-gradient(180deg, rgba(91,140,255,0.24), rgba(91,140,255,0.10))",
+};
+
+const femaleTone: CSSProperties = {
+  border: "1px solid rgba(255,109,179,0.42)",
+  background: "linear-gradient(180deg, rgba(255,109,179,0.22), rgba(255,109,179,0.10))",
+};
+
+const menuWrap: CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  zIndex: 2000,
+  display: "grid",
+  placeItems: "center",
+  padding: 16,
 };
 
 const menu: CSSProperties = {
-  position: "absolute",
-  left: 0,
-  top: "calc(100% + 6px)",
-  minWidth: 180,
-  zIndex: 50,
+  position: "relative",
+  width: "min(320px, calc(100vw - 16px))",
+  maxHeight: "min(70vh, 420px)",
   background: "var(--surface)",
   border: "1px solid var(--line-2)",
-  borderRadius: 10,
+  borderRadius: 14,
+  overflow: "auto",
+  WebkitOverflowScrolling: "touch",
+  boxShadow: "var(--shadow-lg)",
+};
+
+const backdrop: CSSProperties = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(3, 8, 18, 0.34)",
+  zIndex: 1999,
+};
+
+const menuHeader: CSSProperties = {
+  padding: "10px 12px",
+  borderBottom: "1px solid var(--line)",
+  fontSize: 13,
+  fontWeight: 800,
+  color: "var(--ink-secondary)",
+  background: "var(--surface-2)",
+  whiteSpace: "nowrap",
   overflow: "hidden",
-  boxShadow: "0 10px 24px rgba(0,0,0,0.25)",
+  textOverflow: "ellipsis",
 };
 
 const menuItem: CSSProperties = {
@@ -112,3 +184,18 @@ const menuItem: CSSProperties = {
   fontSize: 13,
   fontWeight: 700,
 };
+
+function levelLabel(lv: number | null, grade: Grade | null): string {
+  if (lv != null && Number.isFinite(lv)) return `Lv ${Math.max(1, Math.floor(lv))}`;
+  const initialLvByGrade: Record<Grade, number> = {
+    F: 1,
+    E: 2,
+    D: 3,
+    C: 4,
+    B: 5,
+    A: 6,
+    S: 7,
+  };
+  if (grade) return `Lv ${initialLvByGrade[grade]}`;
+  return "Lv -";
+}

@@ -92,7 +92,7 @@
 - `KAKAO_CLIENT_ID`/`KAKAO_CLIENT_SECRET`/`KAKAO_REDIRECT_URI` 정확히 설정
 - JWT 키는 반드시 32바이트 이상 (`WeakKeyException` 방지)
 - 카카오 스코프는 현재 `profile_nickname`, `profile_image` 사용
-- 프론트 API URL: `NEXT_PUBLIC_API_BASE_URL=http://localhost:8080`
+- 프론트 API URL: `NEXT_PUBLIC_API_BASE_URL=https://mature-physiology-blessed-anti.trycloudflare.com`
 
 ### Backend 실행
 
@@ -112,7 +112,7 @@ npm run dev
 브라우저:
 
 - Frontend: `http://localhost:3000`
-- Backend: `http://localhost:8080`
+- Backend: `https://mature-physiology-blessed-anti.trycloudflare.com`
 
 ### 빌드 검증
 

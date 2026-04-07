@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
-import { displayName, fetchRanking, fetchTeamRanking, getAccessToken, refreshAccessToken, type Grade, type GradeRankingEntry, type RankingByGrade, type TeamRankingEntry, type TeamRankingResponse } from "@/lib/auth";
+import { fetchRanking, fetchTeamRanking, getAccessToken, refreshAccessToken, type Grade, type GradeRankingEntry, type RankingByGrade, type TeamRankingResponse } from "@/lib/auth";
 import { BottomNavMain } from "@/components/bottom-nav-main";
 import { UserNameActions } from "@/components/user-name-actions";
 
@@ -16,6 +16,7 @@ const TYPE_TABS = [
 ];
 
 export default function RankingPage() {
+  const router = useRouter();
   const [data, setData] = useState<RankingByGrade | null>(null);
   const [teamData, setTeamData] = useState<TeamRankingResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,12 +78,6 @@ export default function RankingPage() {
   function gradeHasData(g: Grade): boolean {
     const byType = data?.grades[g];
     return !!byType && Object.values(byType).some((arr) => arr.length > 0);
-  }
-
-  function genderLabel(gender: "MALE" | "FEMALE" | null): string {
-    if (gender === "MALE") return "남";
-    if (gender === "FEMALE") return "여";
-    return "-";
   }
 
   return (
@@ -187,13 +182,25 @@ export default function RankingPage() {
         )}
 
         {mode === "PERSONAL" && visiblePersonalEntries.map((r, idx) => (
-          <div key={`${r.userId}`} style={{ ...card, display: "flex", alignItems: "center", gap: 14 }}>
+          <div
+            key={`${r.userId}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => router.push(`/users/${r.userId}/record`)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                router.push(`/users/${r.userId}/record`);
+              }
+            }}
+            style={{ ...card, display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}
+          >
             <div style={{ width: 36, textAlign: "center", fontSize: idx < 3 ? 24 : 16, fontWeight: 800, color: idx < 3 ? "var(--accent)" : "var(--muted)", flexShrink: 0 }}>
               {medal(idx)}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <UserNameActions userId={r.userId} nickname={r.nickname} gender={r.gender} grade={r.grade} style={{ fontWeight: 700, fontSize: 15 }} />
+                <UserNameActions userId={r.userId} nickname={r.nickname} gender={r.gender} grade={r.grade} lv={r.lv} style={{ fontWeight: 700, fontSize: 15 }} />
                 {r.currentGrade !== r.grade && (
                   <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 6, background: "rgba(108,92,231,0.15)", color: "var(--brand-light)" }}>현재 {r.currentGrade}</span>
                 )}
@@ -216,14 +223,26 @@ export default function RankingPage() {
         )}
 
         {mode === "TEAM" && visibleTeamEntries.map((r, idx) => (
-          <div key={r.teamKey} style={{ ...card, display: "flex", alignItems: "center", gap: 14 }}>
+          <div
+            key={r.teamKey}
+            role="button"
+            tabIndex={0}
+            onClick={() => router.push(`/teams/${encodeURIComponent(r.teamKey)}/record`)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                router.push(`/teams/${encodeURIComponent(r.teamKey)}/record`);
+              }
+            }}
+            style={{ ...card, display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}
+          >
             <div style={{ width: 36, textAlign: "center", fontSize: idx < 3 ? 24 : 16, fontWeight: 800, color: idx < 3 ? "var(--accent)" : "var(--muted)", flexShrink: 0 }}>
               {medal(idx)}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "grid", gap: 7 }}>
+              <div style={{ display: "grid", gap: 6 }}>
                 {r.members.map((m) => (
-                  <div key={m.userId} style={teamMemberLink}>
+                  <div key={m.userId} style={teamMemberRow}>
                     <UserNameActions
                       userId={m.userId}
                       nickname={m.nickname}
@@ -273,17 +292,13 @@ const card: CSSProperties = {
   border: "1px solid var(--glass-border)",
   boxShadow: "var(--shadow)",
 };
-const teamMemberLink: CSSProperties = {
+const teamMemberRow: CSSProperties = {
   display: "block",
-  padding: "7px 9px",
-  borderRadius: 10,
-  textDecoration: "none",
-  color: "var(--ink)",
-  border: "1px solid var(--line)",
-  background: "var(--surface-2)",
+  padding: "1px 0",
+  minWidth: 0,
 };
 const teamMemberName: CSSProperties = {
-  fontSize: 13,
+  fontSize: 15,
   fontWeight: 700,
   lineHeight: 1.3,
   overflow: "hidden",

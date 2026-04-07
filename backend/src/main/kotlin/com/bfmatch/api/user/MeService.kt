@@ -66,7 +66,7 @@ class MeService(
         } ?: PlayerSkill(
             user = user,
             nationalGrade = request.nationalGrade,
-            lv = 1,
+            lv = initialLvByGrade(request.nationalGrade),
             exp = 0.0,
         )
 
@@ -111,4 +111,14 @@ class MeService(
         userRepository.findById(userId).orElseThrow {
             ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found.")
         }
+
+    private fun initialLvByGrade(grade: NationalGrade): Int = when (grade) {
+        NationalGrade.F -> 1
+        NationalGrade.E -> 2
+        NationalGrade.D -> 3
+        NationalGrade.C -> 4
+        NationalGrade.B -> 5
+        NationalGrade.A -> 6
+        NationalGrade.S -> 7
+    }
 }

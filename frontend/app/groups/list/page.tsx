@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
-import { displayName, fetchMe, fetchMyGroups, fetchPublicGroups, getAccessToken, refreshAccessToken, type GroupSummary } from "@/lib/auth";
+import { fetchMe, fetchMyGroups, fetchPublicGroups, getAccessToken, refreshAccessToken, type GroupSummary } from "@/lib/auth";
 import { BottomNavMain } from "@/components/bottom-nav-main";
+import { UserInfoChip } from "@/components/user-info-chip";
 
 type Tab = "public" | "my";
 type Status = "all" | "active" | "ended";
@@ -112,7 +113,10 @@ export default function GroupListPage() {
                   )}
                 </div>
                 {g.description && <p style={{ margin: "6px 0 0", color: "var(--muted)", fontSize: 14, lineHeight: 1.4 }}>{g.description}</p>}
-                <p style={{ margin: "6px 0 0", color: "var(--muted)", fontSize: 13 }}>이벤트장: {displayName(g.ownerNickname, g.ownerGender, g.ownerGrade)}</p>
+                <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: "var(--muted)", fontSize: 13 }}>이벤트장:</span>
+                  <UserInfoChip nickname={g.ownerNickname} gender={g.ownerGender} grade={g.ownerGrade} style={{ fontSize: 13 }} />
+                </div>
                 {g.startAt && (
                   <p style={{ margin: "4px 0 0", color: "var(--ink-secondary)", fontSize: 13 }}>
                     {new Date(g.startAt).toLocaleString("ko-KR", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}

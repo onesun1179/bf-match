@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CSSProperties, useEffect, useMemo, useState } from "react";
-import { displayName, fetchGames, fetchTeamStats, getAccessToken, refreshAccessToken, type GameResponse, type Grade, type TeamStat } from "@/lib/auth";
+import { fetchGames, fetchTeamStats, getAccessToken, refreshAccessToken, type GameResponse, type Grade, type TeamStat, type GameType } from "@/lib/auth";
+import { UserNameActions } from "@/components/user-name-actions";
 
 export default function TeamRecordPage() {
   const params = useParams<{ groupId: string; teamKey: string }>();
@@ -59,6 +60,55 @@ export default function TeamRecordPage() {
   const losses = Math.max(finished.length - wins, 0);
   const winRate = finished.length > 0 ? (wins / finished.length) * 100 : 0;
   const overall = teamStats.find((s) => s.teamKey === teamKey);
+  const recentFinished = finished.slice(0, 10);
+  const recentWins = recentFinished.filter(({ game, side }) => game.winnerTeam === side).length;
+  const recentRate = recentFinished.length > 0 ? (recentWins / recentFinished.length) * 100 : 0;
+  const avgScoreDiff = finished.length > 0
+    ? finished.reduce((sum, { game, side }) => {
+      const myScore = side === "A" ? game.teamAScore ?? 0 : game.teamBScore ?? 0;
+      const oppScore = side === "A" ? game.teamBScore ?? 0 : game.teamAScore ?? 0;
+      return sum + (myScore - oppScore);
+    }, 0) / finished.length
+    : 0;
+
+  const byType = useMemo(() => {
+    const typeMap = new Map<GameType | "UNKNOWN", { games: number; wins: number }>();
+    finished.forEach(({ game, side }) => {
+      const key = (game.gameType ?? "UNKNOWN") as GameType | "UNKNOWN";
+      const prev = typeMap.get(key) ?? { games: 0, wins: 0 };
+      prev.games += 1;
+      if (game.winnerTeam === side) prev.wins += 1;
+      typeMap.set(key, prev);
+    });
+    return Array.from(typeMap.entries())
+      .map(([type, stat]) => ({
+        type,
+        label: typeLabel(type),
+        games: stat.games,
+        wins: stat.wins,
+        losses: Math.max(stat.games - stat.wins, 0),
+        winRate: stat.games > 0 ? (stat.wins / stat.games) * 100 : 0,
+      }))
+      .sort((a, b) => b.games - a.games || b.winRate - a.winRate || a.label.localeCompare(b.label, "ko"));
+  }, [finished]);
+
+  const opponentSummary = useMemo(() => {
+    const map = new Map<string, { label: string; games: number; wins: number }>();
+    finished.forEach(({ game, side }) => {
+      const opponents = (side === "A" ? game.teamB : game.teamA).slice().sort((a, b) => a.userId - b.userId);
+      if (opponents.length !== 2) return;
+      const key = `${opponents[0].userId}-${opponents[1].userId}`;
+      const label = `${opponents[0].nickname} / ${opponents[1].nickname}`;
+      const prev = map.get(key) ?? { label, games: 0, wins: 0 };
+      prev.games += 1;
+      if (game.winnerTeam === side) prev.wins += 1;
+      map.set(key, prev);
+    });
+    return Array.from(map.values())
+      .map((x) => ({ ...x, winRate: x.games > 0 ? (x.wins / x.games) * 100 : 0 }))
+      .sort((a, b) => b.games - a.games || b.winRate - a.winRate || a.label.localeCompare(b.label, "ko"));
+  }, [finished]);
+  const topOpponent = opponentSummary[0] ?? null;
 
   const teamMembers = useMemo(() => {
     const first = teamGames[0];
@@ -77,13 +127,6 @@ export default function TeamRecordPage() {
     });
     return players;
   }, [teamGames]);
-  const teamGrade = useMemo(() => {
-    const gradePriority: Record<Grade, number> = { S: 0, A: 1, B: 2, C: 3, D: 4, E: 5, F: 6 };
-    const grades = teamMembers.map((m) => m.nationalGrade).filter((g): g is Grade => g != null);
-    if (grades.length === 0) return null;
-    return grades.slice().sort((a, b) => gradePriority[a] - gradePriority[b])[0];
-  }, [teamMembers]);
-
   if (loading) return <main style={main}><p style={muted}>불러오는 중...</p></main>;
   if (error) return <main style={main}><p style={{ ...muted, color: "var(--danger)" }}>{error}</p></main>;
 
@@ -96,9 +139,22 @@ export default function TeamRecordPage() {
         <div style={card}>
           {teamMembers.length > 0 ? (
             <>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>{displayName(teamMembers[0].nickname, teamMembers[0].gender, teamMembers[0].nationalGrade)}</p>
-              <p style={{ margin: "2px 0 0", fontWeight: 700, fontSize: 16 }}>{displayName(teamMembers[1].nickname, teamMembers[1].gender, teamMembers[1].nationalGrade)}</p>
-              {teamGrade && <p style={{ margin: "6px 0 0", fontSize: 12, color: "var(--ink-secondary)", fontWeight: 700 }}>팀 급수: {teamGrade}</p>}
+              <UserNameActions
+                userId={teamMembers[0].userId}
+                nickname={teamMembers[0].nickname}
+                gender={teamMembers[0].gender}
+                grade={teamMembers[0].nationalGrade}
+                style={{ margin: 0, fontWeight: 700, fontSize: 16 }}
+              />
+              <div style={{ marginTop: 2 }}>
+                <UserNameActions
+                  userId={teamMembers[1].userId}
+                  nickname={teamMembers[1].nickname}
+                  gender={teamMembers[1].gender}
+                  grade={teamMembers[1].nationalGrade}
+                  style={{ margin: 0, fontWeight: 700, fontSize: 16 }}
+                />
+              </div>
             </>
           ) : (
             <p style={{ margin: 0, fontSize: 14, color: "var(--muted)" }}>팀 구성 정보를 찾을 수 없습니다.</p>
@@ -119,6 +175,34 @@ export default function TeamRecordPage() {
             </p>
           )}
           <p style={{ margin: "10px 0 0", fontSize: 11, color: "var(--muted)" }}>점수가 확정된 종료 경기 기준</p>
+        </div>
+
+        <div style={card}>
+          <h2 style={sh}>핵심 지표</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
+            <Stat title="최근 10경기" value={recentFinished.length > 0 ? `${recentRate.toFixed(0)}%` : "-"} />
+            <Stat title="평균 득실" value={finished.length > 0 ? `${avgScoreDiff >= 0 ? "+" : ""}${avgScoreDiff.toFixed(1)}` : "-"} />
+            <Stat title="최다 매치업" value={topOpponent ? `${topOpponent.games}전` : "-"} />
+          </div>
+          {topOpponent && (
+            <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink-secondary)" }}>
+              {topOpponent.label} · {topOpponent.wins}승 {Math.max(topOpponent.games - topOpponent.wins, 0)}패
+            </p>
+          )}
+        </div>
+
+        <div style={card}>
+          <h2 style={sh}>타입별 전적</h2>
+          {byType.length === 0 && <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--muted)" }}>기록이 없습니다.</p>}
+          {byType.map((row) => (
+            <div key={row.type} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", borderTop: "1px solid var(--line)" }}>
+              <div>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>{row.label}</p>
+                <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--muted)" }}>{row.wins}승 {row.losses}패 / {row.games}전</p>
+              </div>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand-light)" }}>{row.winRate.toFixed(0)}%</p>
+            </div>
+          ))}
         </div>
 
         <div style={card}>
@@ -156,6 +240,14 @@ function Stat({ title, value }: { title: string; value: string }) {
       <p style={{ margin: "4px 0 0", fontSize: 18, fontWeight: 800 }}>{value}</p>
     </div>
   );
+}
+
+function typeLabel(type: GameType | "UNKNOWN"): string {
+  if (type === "MALE_DOUBLES") return "남복";
+  if (type === "FEMALE_DOUBLES") return "여복";
+  if (type === "MIXED_DOUBLES") return "혼복";
+  if (type === "FREE") return "자유";
+  return "기타";
 }
 
 const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 40px" };

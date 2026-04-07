@@ -383,6 +383,9 @@ class GameService(
             }
         }
 
+        // 이미 확정된 점수가 있었으면 먼저 해당 경기의 반영 EXP를 롤백한다.
+        rollbackExpIfScored(game)
+
         game.teamAScore = pendingA
         game.teamBScore = pendingB
         game.winnerTeam = when {
@@ -395,10 +398,9 @@ class GameService(
 
         val players = gamePlayerRepository.findAllByGameId(gameId)
         if (game.winnerTeam != null) {
-            players.forEach { player ->
-                val expAmount = if (player.team == game.winnerTeam) 5.0 else 2.0
-                addExp(player.user.id!!, expAmount)
-            }
+            applyWinnerExp(players, game.winnerTeam!!, game.gameType)
+        } else {
+            players.forEach { it.appliedExp = 0.0 }
         }
 
         val requesterUserId = game.pendingRequestedByUserId
@@ -481,8 +483,11 @@ class GameService(
         if (game.winnerTeam == null) return
         val players = gamePlayerRepository.findAllByGameId(game.id!!)
         players.forEach { player ->
-            val expAmount = if (player.team == game.winnerTeam) 5.0 else 2.0
-            removeExp(player.user.id!!, expAmount)
+            val applied = player.appliedExp ?: 0.0
+            if (applied > 0.0) {
+                removeExp(player.user.id!!, applied)
+            }
+            player.appliedExp = 0.0
         }
     }
 
@@ -731,6 +736,90 @@ class GameService(
             skill.lv += 1
         }
         playerSkillRepository.save(skill)
+    }
+
+    /**
+     * 승리 EXP 계산 기준:
+     * - 동일 LV 기준 승리 500회로 LV 1업(= 1승 기본 0.2 EXP)
+     * - 상대 평균 LV, 파트너 LV를 반영해 가중
+     * - 승자에게만 EXP 지급
+     */
+    private fun applyWinnerExp(players: List<GamePlayer>, winnerTeam: String, gameType: GameType?) {
+        // 자유게임은 경험치를 지급하지 않는다.
+        if (gameType == GameType.FREE) {
+            players.forEach { it.appliedExp = 0.0 }
+            return
+        }
+
+        val winnerPlayers = players.filter { it.team == winnerTeam }
+        val loserPlayers = players.filter { it.team != winnerTeam }
+
+        if (winnerPlayers.isEmpty()) return
+
+        val lvByUserId = players.associate { player ->
+            val userId = player.user.id!!
+            userId to resolvePlayerLv(userId, player.gradeAtTime)
+        }
+
+        val avgOpponentLv = if (loserPlayers.isNotEmpty()) {
+            loserPlayers.map { lvByUserId[it.user.id!!] ?: 1 }.average()
+        } else {
+            winnerPlayers.map { lvByUserId[it.user.id!!] ?: 1 }.average()
+        }
+
+        winnerPlayers.forEach { winner ->
+            val myLv = lvByUserId[winner.user.id!!] ?: 1
+            val partnerLv = winnerPlayers
+                .firstOrNull { it.user.id != winner.user.id }
+                ?.let { lvByUserId[it.user.id!!] ?: myLv }
+                ?: myLv
+
+            val expAmount = calculateWinExp(myLv = myLv, partnerLv = partnerLv, avgOpponentLv = avgOpponentLv)
+            addExp(winner.user.id!!, expAmount)
+            winner.appliedExp = expAmount
+        }
+
+        loserPlayers.forEach { it.appliedExp = 0.0 }
+    }
+
+    private fun calculateWinExp(myLv: Int, partnerLv: Int, avgOpponentLv: Double): Double {
+        val baseExpPerWin = 100.0 / 500.0 // 동일 LV 기준 500승 = LV +1
+        val opponentGap = (avgOpponentLv - myLv).coerceIn(-40.0, 40.0)
+        val partnerGap = (avgOpponentLv - partnerLv).coerceIn(-40.0, 40.0)
+
+        // 상위 상대 승리 보상은 크게, 하위 상대 승리는 완만하게 감소하는 비대칭 가중치
+        val opponentMultiplier = if (opponentGap >= 0) {
+            1.0 + (opponentGap * 0.12)
+        } else {
+            1.0 + (opponentGap * 0.04)
+        }.coerceIn(0.35, 3.20)
+
+        // 파트너가 약한 조합으로 상위 상대를 이긴 경우 추가 보정
+        val partnerMultiplier = if (partnerGap >= 0) {
+            1.0 + (partnerGap * 0.04)
+        } else {
+            1.0 + (partnerGap * 0.02)
+        }.coerceIn(0.60, 2.20)
+
+        val weighted = baseExpPerWin * opponentMultiplier * partnerMultiplier
+        return weighted.coerceIn(0.03, 1.50)
+    }
+
+    private fun resolvePlayerLv(userId: Long, gradeAtTime: NationalGrade?): Int {
+        val skill = playerSkillRepository.findByUserId(userId)
+        if (skill != null) return skill.lv
+        return initialLvByGrade(gradeAtTime)
+    }
+
+    private fun initialLvByGrade(grade: NationalGrade?): Int = when (grade) {
+        NationalGrade.F -> 1
+        NationalGrade.E -> 2
+        NationalGrade.D -> 3
+        NationalGrade.C -> 4
+        NationalGrade.B -> 5
+        NationalGrade.A -> 6
+        NationalGrade.S -> 7
+        null -> 1
     }
 
     private fun requireOwnerOrManager(groupId: Long, userId: Long) {

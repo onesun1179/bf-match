@@ -60,7 +60,7 @@ export default function OnboardingPage() {
           {loading ? <p style={{ margin: 0, color: "var(--muted)", textAlign: "center" }}>불러오는 중...</p> : (
             <form onSubmit={(e) => { void handleSubmit(e); }} style={{ display: "grid", gap: 14 }}>
               <label style={lw}><span style={lb}>닉네임</span>
-                <input value={form.nickname} onChange={(e) => setForm((p) => ({ ...p, nickname: e.target.value }))} placeholder="이름" required minLength={2} maxLength={30} style={inp} />
+                <input value={form.nickname} onChange={(e) => setForm((p) => ({ ...p, nickname: e.target.value }))} placeholder="이름" required minLength={2} maxLength={10} style={inp} />
               </label>
               <label style={lw}><span style={lb}>성별</span>
                 <select value={form.gender} onChange={(e) => setForm((p) => ({ ...p, gender: e.target.value }))} style={inp}>

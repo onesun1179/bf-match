@@ -17,4 +17,6 @@ class GamePlayer(
     var team: String,
     @Enumerated(EnumType.STRING) @Column(length = 2)
     var gradeAtTime: NationalGrade? = null,
+    @Column
+    var appliedExp: Double? = null,
 )

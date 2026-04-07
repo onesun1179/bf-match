@@ -8,6 +8,8 @@ import com.bfmatch.api.user.PlayerSkillRepository
 import com.bfmatch.api.user.User
 import com.bfmatch.api.user.UserRepository
 import jakarta.servlet.http.HttpServletResponse
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Size
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -49,7 +51,7 @@ class LocalAuthService(
             PlayerSkill(
                 user = user,
                 nationalGrade = request.nationalGrade,
-                lv = 1,
+                lv = initialLvByGrade(request.nationalGrade),
                 exp = 0.0,
             ),
         )
@@ -87,11 +89,27 @@ class LocalAuthService(
             nickname = user.nickname,
         )
     }
+
+    private fun initialLvByGrade(grade: NationalGrade): Int = when (grade) {
+        NationalGrade.F -> 1
+        NationalGrade.E -> 2
+        NationalGrade.D -> 3
+        NationalGrade.C -> 4
+        NationalGrade.B -> 5
+        NationalGrade.A -> 6
+        NationalGrade.S -> 7
+    }
 }
 
 data class RegisterRequest(
+    @field:NotBlank
+    @field:Size(min = 2, max = 60)
     val username: String,
+    @field:NotBlank
+    @field:Size(min = 4, max = 255)
     val password: String,
+    @field:NotBlank
+    @field:Size(min = 2, max = 10)
     val nickname: String,
     val nationalGrade: NationalGrade,
     val gender: Gender,
