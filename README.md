@@ -5,7 +5,7 @@
 
 ## 기술 스택
 
-- Frontend: Next.js 15.3.1, React 19, TypeScript
+- Frontend: Next.js 15.5.14, React 19, TypeScript
 - Backend: Spring Boot 3.5.0, Kotlin 2.1, Spring Security/JPA/OAuth2
 - DB: MariaDB
 - Auth: Kakao OAuth + JWT(Access/Refresh)
@@ -137,18 +137,47 @@ cd frontend && npm run build
 - `verify` 단계에서 backend/frontend 빌드 실행
 - `main`에서 `deploy_home_windows` 수동 실행 시 윈도우 러너 배포
 
-필수 변수:
+### 1) GitLab Runner 준비 (로컬 윈도우 서버)
+
+- GitLab Runner 설치 후 `shell` executor로 등록
+- 러너 태그를 `home-windows`로 설정
+- 러너 머신에 아래 툴 설치:
+  - `git`
+  - `JDK 21`
+  - `Node.js 20+`
+  - `npm`
+
+### 2) GitLab CI/CD 변수
 
 - `DEPLOY_DIR` (예: `C:\bf-match`)
 
-선택 변수:
+선택 변수(서비스 재시작 자동화):
 
 - `BACKEND_RESTART_CMD`
 - `FRONTEND_RESTART_CMD`
 
-윈도우 러너 요구사항:
+예시(`powershell`):
+
+- `BACKEND_RESTART_CMD`: `Restart-Service bfmatch-backend`
+- `FRONTEND_RESTART_CMD`: `Restart-Service bfmatch-frontend`
+
+파이프라인은 매 배포 시 아래 순서로 동작:
+
+- `main` 최신 코드로 verify 빌드 통과
+- 러너에서 `DEPLOY_DIR`로 코드 동기화
+- backend `bootJar` 빌드
+- frontend `npm ci && npm run build`
+- 재시작 명령이 설정되어 있으면 서비스 재시작
+
+### 3) 배포 실행
+
+- GitLab `CI/CD > Pipelines`에서 `main` 파이프라인 선택
+- `deploy_home_windows`를 수동 실행(Play)
+
+윈도우 러너 요구사항(요약):
 
 - 태그 `home-windows`
+- `shell` executor
 - `git`, `JDK 21`, `Node.js 20+`, `npm`
 
 ## 참고 문서
