@@ -28,6 +28,7 @@ data class GameResponse(
     val winnerTeam: String?,
     val pendingTeamAScore: Int?,
     val pendingTeamBScore: Int?,
+    val pendingWinnerTeam: String?,
     val pendingRequestedByTeam: String?,
     val pendingRequestedByUserId: Long?,
     val pendingRequestedAt: String?,
@@ -43,8 +44,7 @@ data class CreateGameRequest(
 )
 
 data class FinishGameRequest(
-    val teamAScore: Int,
-    val teamBScore: Int,
+    val winnerTeam: String,
 )
 
 data class UpdateGameCourtNumberRequest(

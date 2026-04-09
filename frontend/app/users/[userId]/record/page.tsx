@@ -90,18 +90,6 @@ export default function UserRecordPage() {
   const recentTenRate = recentTenGames.length > 0 ? (recentTenWins / recentTenGames.length) * 100 : 0;
   const mainType = getMainType(data);
   const activeEventCount = new Set(data.recentGames.map((g) => g.groupId)).size;
-  const recentAvgScoreGap =
-    recentTenGames.filter((g) => g.teamAScore != null && g.teamBScore != null).length > 0
-      ? recentTenGames
-          .filter((g) => g.teamAScore != null && g.teamBScore != null)
-          .reduce((sum, g) => {
-            const a = g.teamAScore ?? 0;
-            const b = g.teamBScore ?? 0;
-            const diff = g.myTeam === "A" ? a - b : b - a;
-            return sum + diff;
-          }, 0) /
-        recentTenGames.filter((g) => g.teamAScore != null && g.teamBScore != null).length
-      : 0;
   const recentSeq = recentResultSequence(data.recentGames, 10);
 
   return (
@@ -158,7 +146,7 @@ export default function UserRecordPage() {
             </div>
           </div>
           <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink-secondary)" }}>
-            최근 흐름 {recentSeq} · 평균 득실 {recentAvgScoreGap >= 0 ? "+" : ""}{recentAvgScoreGap.toFixed(1)}
+            최근 흐름 {recentSeq}
           </p>
         </div>
 

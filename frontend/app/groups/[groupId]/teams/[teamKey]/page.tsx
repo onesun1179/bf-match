@@ -55,7 +55,7 @@ export default function TeamRecordPage() {
       .sort((x, y) => new Date(y.game.createdAt).getTime() - new Date(x.game.createdAt).getTime());
   }, [games, teamIds]);
 
-  const finished = teamGames.filter(({ game }) => game.status === "FINISHED" && game.teamAScore != null && game.teamBScore != null);
+  const finished = teamGames.filter(({ game }) => game.status === "FINISHED" && game.winnerTeam != null);
   const wins = finished.filter(({ game, side }) => game.winnerTeam === side).length;
   const losses = Math.max(finished.length - wins, 0);
   const winRate = finished.length > 0 ? (wins / finished.length) * 100 : 0;
@@ -63,13 +63,6 @@ export default function TeamRecordPage() {
   const recentFinished = finished.slice(0, 10);
   const recentWins = recentFinished.filter(({ game, side }) => game.winnerTeam === side).length;
   const recentRate = recentFinished.length > 0 ? (recentWins / recentFinished.length) * 100 : 0;
-  const avgScoreDiff = finished.length > 0
-    ? finished.reduce((sum, { game, side }) => {
-      const myScore = side === "A" ? game.teamAScore ?? 0 : game.teamBScore ?? 0;
-      const oppScore = side === "A" ? game.teamBScore ?? 0 : game.teamAScore ?? 0;
-      return sum + (myScore - oppScore);
-    }, 0) / finished.length
-    : 0;
 
   const byType = useMemo(() => {
     const typeMap = new Map<GameType | "UNKNOWN", { games: number; wins: number }>();
@@ -174,14 +167,14 @@ export default function TeamRecordPage() {
               이벤트 {wins}승 {losses}패 / {finished.length}전 · 총 {overall.overallWins}승 {Math.max(overall.overallGames - overall.overallWins, 0)}패 / {overall.overallGames}전
             </p>
           )}
-          <p style={{ margin: "10px 0 0", fontSize: 11, color: "var(--muted)" }}>점수가 확정된 종료 경기 기준</p>
+          <p style={{ margin: "10px 0 0", fontSize: 11, color: "var(--muted)" }}>결과가 확정된 종료 경기 기준</p>
         </div>
 
         <div style={card}>
           <h2 style={sh}>핵심 지표</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
             <Stat title="최근 10경기" value={recentFinished.length > 0 ? `${recentRate.toFixed(0)}%` : "-"} />
-            <Stat title="평균 득실" value={finished.length > 0 ? `${avgScoreDiff >= 0 ? "+" : ""}${avgScoreDiff.toFixed(1)}` : "-"} />
+            <Stat title="총 경기" value={`${finished.length}`} />
             <Stat title="최다 매치업" value={topOpponent ? `${topOpponent.games}전` : "-"} />
           </div>
           {topOpponent && (
@@ -209,7 +202,7 @@ export default function TeamRecordPage() {
           <h2 style={sh}>경기 기록</h2>
           {teamGames.length === 0 && <p style={{ margin: "8px 0 0", fontSize: 13, color: "var(--muted)" }}>기록이 없습니다.</p>}
           {teamGames.map(({ game, side }) => {
-            const isFinished = game.status === "FINISHED" && game.teamAScore != null && game.teamBScore != null;
+            const isFinished = game.status === "FINISHED" && game.winnerTeam != null;
             const isWin = isFinished && game.winnerTeam === side;
             return (
               <div key={game.id} style={{ padding: "10px 0", borderTop: "1px solid var(--line)" }}>
@@ -222,7 +215,7 @@ export default function TeamRecordPage() {
                   </p>
                 </div>
                 <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--ink-secondary)" }}>
-                  {isFinished ? `${game.teamAScore} : ${game.teamBScore}` : "점수 미확정"}
+                  {isFinished ? `팀 ${game.winnerTeam} 승` : "결과 미확정"}
                 </p>
               </div>
             );

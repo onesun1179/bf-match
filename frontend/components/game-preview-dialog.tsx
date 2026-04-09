@@ -11,6 +11,8 @@ export type PreviewGame = {
   groupName: string;
   teamAScore: number | null;
   teamBScore: number | null;
+  winnerTeam?: "A" | "B" | null;
+  isWin?: boolean;
   myTeam: string;
   finishedAt: string | null;
   teammates: PlayerInfo[];
@@ -35,9 +37,10 @@ export function GamePreviewDialog({ open, game, meUserId, meNickname = "나", me
 
   const teamAPlayers = game.myTeam === "A" ? myTeamPlayers : oppositePlayers;
   const teamBPlayers = game.myTeam === "B" ? myTeamPlayers : oppositePlayers;
-  const winnerTeam = game.teamAScore != null && game.teamBScore != null
-    ? game.teamAScore > game.teamBScore ? "A" : "B"
-    : null;
+  const winnerTeam = game.winnerTeam
+    ?? (typeof game.isWin === "boolean"
+      ? (game.isWin ? (game.myTeam === "A" ? "A" : "B") : (game.myTeam === "A" ? "B" : "A"))
+      : null);
 
   const teamAKey = teamAPlayers.map((p) => p.userId).filter((id) => id > 0).sort((a, b) => a - b).join("-");
   const teamBKey = teamBPlayers.map((p) => p.userId).filter((id) => id > 0).sort((a, b) => a - b).join("-");
@@ -84,8 +87,8 @@ export function GamePreviewDialog({ open, game, meUserId, meNickname = "나", me
             ))}
           </div>
           <div style={scoreWrap}>
-            <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>
-              {game.teamAScore ?? "-"} : {game.teamBScore ?? "-"}
+            <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}>
+              {winnerTeam ? `팀 ${winnerTeam} 승` : "결과 미확정"}
             </span>
           </div>
           <div style={teamPanelRight}>

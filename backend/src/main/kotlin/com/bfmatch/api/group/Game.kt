@@ -37,6 +37,7 @@ class Game(
     @Column(length = 1) var winnerTeam: String? = null,
     @Column var pendingTeamAScore: Int? = null,
     @Column var pendingTeamBScore: Int? = null,
+    @Column(length = 1) var pendingWinnerTeam: String? = null,
     @Column(length = 1) var pendingRequestedByTeam: String? = null,
     @Column var pendingRequestedByUserId: Long? = null,
     @Column var pendingRequestedAt: Instant? = null,

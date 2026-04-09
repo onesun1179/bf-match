@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://mature-physiology-blessed-anti.trycloudflare.com";
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
 
 const ACCESS_TOKEN_KEY = "bf-match.access-token";
 
@@ -295,6 +295,7 @@ export type GameResponse = {
   winnerTeam: string | null;
   pendingTeamAScore: number | null;
   pendingTeamBScore: number | null;
+  pendingWinnerTeam: "A" | "B" | null;
   pendingRequestedByTeam: "A" | "B" | null;
   pendingRequestedByUserId: number | null;
   pendingRequestedAt: string | null;
@@ -336,9 +337,9 @@ export async function finishGame(groupId: number, gameId: number): Promise<GameR
   return (await r.json()) as GameResponse;
 }
 
-export async function submitScore(groupId: number, gameId: number, teamAScore: number, teamBScore: number): Promise<GameResponse> {
-  const r = await apiFetch(`/api/v1/groups/${groupId}/games/${gameId}/score`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ teamAScore, teamBScore }) });
-  if (!r.ok) { const b = await r.json().catch(() => null) as { message?: string } | null; throw new Error(b?.message ?? "점수 입력에 실패했습니다."); }
+export async function submitScore(groupId: number, gameId: number, winnerTeam: "A" | "B"): Promise<GameResponse> {
+  const r = await apiFetch(`/api/v1/groups/${groupId}/games/${gameId}/score`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ winnerTeam }) });
+  if (!r.ok) { const b = await r.json().catch(() => null) as { message?: string } | null; throw new Error(b?.message ?? "결과 입력에 실패했습니다."); }
   return (await r.json()) as GameResponse;
 }
 

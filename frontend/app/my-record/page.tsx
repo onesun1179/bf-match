@@ -58,7 +58,6 @@ function GameRow({ g, me, onOpen }: { g: RecentGame; me: MeResponse | null; onOp
           )}
         </div>
         <div style={{ textAlign: "right", flexShrink: 0 }}>
-          {g.teamAScore != null && <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{g.teamAScore} : {g.teamBScore}</p>}
           {g.finishedAt && <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)" }}>{new Date(g.finishedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}</p>}
         </div>
       </div>
@@ -152,18 +151,6 @@ export default function MyRecordPage() {
   const latestPlayedAt = data.recentGames
     .map((g) => (g.finishedAt ? new Date(g.finishedAt).getTime() : 0))
     .reduce((max, v) => (v > max ? v : max), 0);
-  const recentAvgScoreGap =
-    recentTenGames.filter((g) => g.teamAScore != null && g.teamBScore != null).length > 0
-      ? recentTenGames
-          .filter((g) => g.teamAScore != null && g.teamBScore != null)
-          .reduce((sum, g) => {
-            const a = g.teamAScore ?? 0;
-            const b = g.teamBScore ?? 0;
-            const diff = g.myTeam === "A" ? a - b : b - a;
-            return sum + diff;
-          }, 0) /
-        recentTenGames.filter((g) => g.teamAScore != null && g.teamBScore != null).length
-      : 0;
   const recentSeq = recentResultSequence(data.recentGames, 10);
 
   return (
@@ -238,7 +225,7 @@ export default function MyRecordPage() {
             </div>
           </div>
           <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink-secondary)" }}>
-            최근 흐름 {recentSeq} · 평균 득실 {recentAvgScoreGap >= 0 ? "+" : ""}{recentAvgScoreGap.toFixed(1)}
+            최근 흐름 {recentSeq}
           </p>
         </div>
 

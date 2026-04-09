@@ -79,18 +79,18 @@ const notificationItems: { key: NotificationPreferenceKey; title: string; descri
   },
   {
     key: "gameScoreRequested",
-    title: "점수 확인 요청",
-    description: "상대 팀이 점수 확인을 요청했을 때 알림",
+    title: "결과 확인 요청",
+    description: "상대 팀이 결과 확인을 요청했을 때 알림",
   },
   {
     key: "gameScoreConfirmed",
-    title: "점수 확정",
-    description: "내가 요청한 점수가 상대 팀 확인으로 확정되었을 때 알림",
+    title: "결과 확정",
+    description: "내가 요청한 결과가 상대 팀 확인으로 확정되었을 때 알림",
   },
   {
     key: "gameScoreRejected",
-    title: "점수 반려",
-    description: "내가 요청한 점수가 반려되어 재입력이 필요할 때 알림",
+    title: "결과 반려",
+    description: "내가 요청한 결과가 반려되어 재입력이 필요할 때 알림",
   },
 ];
 

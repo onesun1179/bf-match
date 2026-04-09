@@ -13,7 +13,6 @@ import {
 } from "@/lib/auth";
 import { BottomNavGroupDetail } from "@/components/bottom-nav-group-detail";
 import { UserNameActions } from "@/components/user-name-actions";
-import { UserInfoChip } from "@/components/user-info-chip";
 
 type Tab = "info" | "manage" | "members" | "games" | "stats";
 type Dialog = { type: "none" } | { type: "invite"; token: string; info: InviteLinkInfo | null } | { type: "decline"; token: string; info: InviteLinkInfo | null };
@@ -39,8 +38,7 @@ export default function GroupDetailPage() {
   const [games, setGames] = useState<GameResponse[]>([]);
   const [memberStats, setMemberStats] = useState<MemberStat[]>([]);
   const [scoreDialog, setScoreDialog] = useState<{ gameId: number; autoConfirm: boolean } | null>(null);
-  const [scoreA, setScoreA] = useState("");
-  const [scoreB, setScoreB] = useState("");
+  const [pendingWinnerTeam, setPendingWinnerTeam] = useState<"A" | "B" | null>(null);
   const [courtInputs, setCourtInputs] = useState<Record<number, string>>({});
   const [gameSubTab, setGameSubTab] = useState<"PROPOSAL" | "IN_PROGRESS" | "PENDING" | "SCORE_PENDING" | "FINISHED" | "CANCELLED">("IN_PROGRESS");
   const [showAllRanking, setShowAllRanking] = useState(false);
@@ -162,18 +160,16 @@ export default function GroupDetailPage() {
   }
 
   async function handleSubmitScore() {
-    if (!group || !scoreDialog) return;
+    if (!group || !scoreDialog || pendingWinnerTeam == null) return;
     const { gameId, autoConfirm } = scoreDialog;
-    const a = Number(scoreA); const b = Number(scoreB);
-    if (isNaN(a) || isNaN(b) || a === b) { setError("올바른 점수를 입력하세요. (동점 불가)"); return; }
     try {
-      let g = await submitScore(group.id, gameId, a, b);
+      let g = await submitScore(group.id, gameId, pendingWinnerTeam);
       if (autoConfirm) {
         g = await confirmScore(group.id, gameId);
       }
       setGames((prev) => prev.map((x) => x.id === gameId ? g : x));
-      setScoreDialog(null); setScoreA(""); setScoreB("");
-    } catch (err) { setError(err instanceof Error ? err.message : "점수 요청 실패"); }
+      setScoreDialog(null); setPendingWinnerTeam(null);
+    } catch (err) { setError(err instanceof Error ? err.message : "결과 요청 실패"); }
   }
 
   async function handleConfirmScore(gameId: number) {
@@ -181,7 +177,7 @@ export default function GroupDetailPage() {
     try {
       const g = await confirmScore(group.id, gameId);
       setGames((prev) => prev.map((x) => x.id === gameId ? g : x));
-    } catch (err) { setError(err instanceof Error ? err.message : "점수 확정 실패"); }
+    } catch (err) { setError(err instanceof Error ? err.message : "결과 확정 실패"); }
   }
 
   async function handleRejectScore(gameId: number) {
@@ -189,7 +185,7 @@ export default function GroupDetailPage() {
     try {
       const g = await rejectScore(group.id, gameId);
       setGames((prev) => prev.map((x) => x.id === gameId ? g : x));
-    } catch (err) { setError(err instanceof Error ? err.message : "점수 반려 실패"); }
+    } catch (err) { setError(err instanceof Error ? err.message : "결과 반려 실패"); }
   }
 
   async function handleSaveCourtNumber(gameId: number, currentCourtNumber: number | null) {
@@ -317,7 +313,7 @@ export default function GroupDetailPage() {
       })
       .map((g, idx) => [g.id, idx + 1] as const),
   );
-  const finishedScoredGames = games.filter((g) => g.status === "FINISHED" && g.teamAScore != null && g.teamBScore != null);
+  const finishedScoredGames = games.filter((g) => g.status === "FINISHED" && g.winnerTeam != null);
   const memberStatsMap = new Map(memberStats.map((s) => [s.userId, s] as const));
 
   const teamRankingMap = new Map<string, { players: GameResponse["teamA"]; games: number; wins: number }>();
@@ -568,7 +564,7 @@ export default function GroupDetailPage() {
             </div>
             {group.closed && (
               <p style={{ margin: 0, color: "var(--warning)", fontSize: 12, fontWeight: 700 }}>
-                종료된 이벤트에서는 점수 확정, 점수 수정, 게임 취소만 가능합니다.
+                종료된 이벤트에서는 결과 확정, 결과 수정, 게임 취소만 가능합니다.
               </p>
             )}
 
@@ -578,8 +574,8 @@ export default function GroupDetailPage() {
                 if (gameSubTab === "PROPOSAL") return g.status === "PENDING" && g.proposalStatus === "PENDING";
                 if (gameSubTab === "PENDING") return g.status === "PENDING" && g.proposalStatus !== "PENDING";
                 if (gameSubTab === "IN_PROGRESS") return g.status === "IN_PROGRESS";
-                if (gameSubTab === "SCORE_PENDING") return g.status === "FINISHED" && g.teamAScore == null;
-                if (gameSubTab === "FINISHED") return g.status === "FINISHED" && g.teamAScore != null;
+                if (gameSubTab === "SCORE_PENDING") return g.status === "FINISHED" && g.winnerTeam == null;
+                if (gameSubTab === "FINISHED") return g.status === "FINISHED" && g.winnerTeam != null;
                 return g.status === "CANCELLED";
               });
               if (filtered.length === 0) {
@@ -611,33 +607,33 @@ export default function GroupDetailPage() {
               const sortedTeamA = sortTeamPlayers(g.teamA);
               const sortedTeamB = sortTeamPlayers(g.teamB);
               const pendingRequesterTeam = g.pendingRequestedByTeam;
-              const canManagerForceConfirm = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore == null;
-              const canManagerEditScoredGame = g.status === "FINISHED" && isOwnerOrManager && g.teamAScore != null;
-              const hasPendingScore = g.pendingTeamAScore != null && g.pendingTeamBScore != null;
+              const canManagerForceConfirm = g.status === "FINISHED" && isOwnerOrManager && g.winnerTeam == null;
+              const canManagerEditScoredGame = g.status === "FINISHED" && isOwnerOrManager && g.winnerTeam != null;
+              const hasPendingScore = g.pendingWinnerTeam != null;
               const canPlayerRejectScore =
                 g.status === "FINISHED" &&
                 !group.closed &&
                 !isOwnerOrManager &&
                 isPlayer &&
-                g.teamAScore == null &&
+                g.winnerTeam == null &&
                 pendingRequesterTeam != null &&
                 myTeam != null &&
                 myTeam !== pendingRequesterTeam;
-              const pendingMessage = g.pendingTeamAScore != null && g.pendingTeamBScore != null && pendingRequesterTeam
-                ? `점수 확인 대기: 팀 ${pendingRequesterTeam}가 ${g.pendingTeamAScore} : ${g.pendingTeamBScore} 요청`
+              const pendingMessage = g.pendingWinnerTeam != null && pendingRequesterTeam
+                ? `결과 확인 대기: 팀 ${pendingRequesterTeam}가 팀 ${g.pendingWinnerTeam} 승리로 요청`
                 : null;
               const statusLabel = g.status === "PENDING"
                 ? "대기"
                 : g.status === "IN_PROGRESS"
                   ? "진행중"
-                  : g.status === "FINISHED" && g.teamAScore == null
+                  : g.status === "FINISHED" && g.winnerTeam == null
                     ? "입력대기"
                     : g.status === "FINISHED"
                       ? "종료"
                       : "취소";
               const statusTone = g.status === "IN_PROGRESS"
                 ? { background: "rgba(0,206,201,0.14)", color: "var(--accent)", borderColor: "rgba(0,206,201,0.35)" }
-                : g.status === "FINISHED" && g.teamAScore == null
+                : g.status === "FINISHED" && g.winnerTeam == null
                   ? { background: "rgba(255,193,7,0.12)", color: "var(--warning)", borderColor: "rgba(255,193,7,0.35)" }
                 : g.status === "FINISHED"
                   ? { background: "var(--success-bg)", color: "var(--success)", borderColor: "rgba(16,185,129,0.35)" }
@@ -712,8 +708,10 @@ export default function GroupDetailPage() {
                       ))}
                     </div>
                     <div style={gameScoreWrap}>
-                      {g.teamAScore != null ? (
-                        <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>{g.teamAScore} : {g.teamBScore}</span>
+                      {g.winnerTeam != null ? (
+                        <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: "-0.01em", textAlign: "center" }}>
+                          팀 {g.winnerTeam} 승
+                        </span>
                       ) : (
                         <span style={{ fontSize: 14, color: "var(--muted)", fontWeight: 700 }}>VS</span>
                       )}
@@ -786,7 +784,7 @@ export default function GroupDetailPage() {
                     )}
                     {g.status === "PENDING" && isMember && isProposalApproved && !group.closed && <button onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
                     {g.status === "IN_PROGRESS" && isMember && !group.closed && <button onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>게임 완료</button>}
-                    {g.status === "FINISHED" && isPlayer && !group.closed && g.teamAScore == null && g.pendingTeamAScore == null && <button onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setScoreA(""); setScoreB(""); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>점수 입력</button>}
+                    {g.status === "FINISHED" && isPlayer && !group.closed && g.winnerTeam == null && g.pendingWinnerTeam == null && <button onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setPendingWinnerTeam(null); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>결과 입력</button>}
                     {canManagerForceConfirm && (
                       <button
                         onClick={() => {
@@ -794,30 +792,28 @@ export default function GroupDetailPage() {
                             void handleConfirmScore(g.id);
                           } else {
                             setScoreDialog({ gameId: g.id, autoConfirm: true });
-                            setScoreA("");
-                            setScoreB("");
+                            setPendingWinnerTeam(null);
                           }
                         }}
                         style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}
                       >
-                        {hasPendingScore ? "관리자 점수 확정" : "점수 확정"}
+                        {hasPendingScore ? "관리자 결과 확정" : "결과 확정"}
                       </button>
                     )}
                     {canManagerEditScoredGame && (
                       <button
                         onClick={() => {
                           setScoreDialog({ gameId: g.id, autoConfirm: true });
-                          setScoreA(g.teamAScore != null ? String(g.teamAScore) : "");
-                          setScoreB(g.teamBScore != null ? String(g.teamBScore) : "");
+                          setPendingWinnerTeam((g.winnerTeam === "A" || g.winnerTeam === "B") ? g.winnerTeam : null);
                         }}
                         style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}
                       >
-                        점수 수정
+                        결과 수정
                       </button>
                     )}
                     {canPlayerRejectScore && (
                       <button onClick={() => { void handleRejectScore(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>
-                        점수 거절
+                        결과 거절
                       </button>
                     )}
                   </div>
@@ -852,11 +848,13 @@ export default function GroupDetailPage() {
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                         <span style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{idx + 1}.</span>
-                        <UserInfoChip
+                        <UserNameActions
+                          userId={s.userId}
                           nickname={s.nickname}
                           gender={s.gender}
                           grade={s.nationalGrade ?? null}
                           lv={s.lv}
+                          myUserId={me?.id}
                           style={{ ...userRecordLink, fontSize: 14 }}
                         />
                       </div>
@@ -937,7 +935,7 @@ export default function GroupDetailPage() {
           </div>
         )}
 
-        {/* Score Dialog */}
+        {/* Result Dialog */}
         {scoreDialog && (
           <div style={overlay}><div style={dlg}>
             <button
@@ -947,22 +945,31 @@ export default function GroupDetailPage() {
             >
               ×
             </button>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, textAlign: "center" }}>점수 입력</h2>
-            <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 14, textAlign: "center" }}>세트 승수를 입력하세요</p>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16 }}>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: "var(--brand-light)" }}>팀 A</p>
-                <input type="number" value={scoreA} onChange={(e) => setScoreA(e.target.value)} min={0} style={scoreInput} />
-              </div>
-              <span style={{ fontSize: 28, fontWeight: 800, color: "var(--muted)", paddingTop: 24 }}>:</span>
-              <div style={{ textAlign: "center" }}>
-                <p style={{ margin: "0 0 8px", fontSize: 13, fontWeight: 700, color: "var(--accent)" }}>팀 B</p>
-                <input type="number" value={scoreB} onChange={(e) => setScoreB(e.target.value)} min={0} style={scoreInput} />
-              </div>
+            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, textAlign: "center" }}>승패 입력</h2>
+            <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 14, textAlign: "center" }}>승리 팀을 선택하세요</p>
+            <div style={{ display: "grid", gap: 10 }}>
+              <button
+                onClick={() => setPendingWinnerTeam("A")}
+                style={{ ...btnSec, minHeight: 42, borderColor: pendingWinnerTeam === "A" ? "rgba(91,140,255,0.75)" : "var(--line-2)", background: pendingWinnerTeam === "A" ? "rgba(91,140,255,0.16)" : "var(--surface-2)", color: pendingWinnerTeam === "A" ? "var(--brand-light)" : "var(--ink)" }}
+              >
+                팀 A 승리
+              </button>
+              <button
+                onClick={() => setPendingWinnerTeam("B")}
+                style={{ ...btnSec, minHeight: 42, borderColor: pendingWinnerTeam === "B" ? "rgba(24,210,182,0.75)" : "var(--line-2)", background: pendingWinnerTeam === "B" ? "rgba(24,210,182,0.16)" : "var(--surface-2)", color: pendingWinnerTeam === "B" ? "var(--accent)" : "var(--ink)" }}
+              >
+                팀 B 승리
+              </button>
             </div>
             {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{error}</p>}
             <div style={{ display: "grid", gap: 10 }}>
-              <button onClick={() => { void handleSubmitScore(); }} style={{ ...btnP, width: "100%" }}>확인</button>
+              <button
+                disabled={pendingWinnerTeam == null}
+                onClick={() => { void handleSubmitScore(); }}
+                style={{ ...btnP, width: "100%", opacity: pendingWinnerTeam == null ? 0.45 : 1, cursor: pendingWinnerTeam == null ? "not-allowed" : "pointer" }}
+              >
+                확인
+              </button>
             </div>
           </div></div>
         )}
@@ -1129,7 +1136,6 @@ const gameCloseBtn: CSSProperties = {
   justifyContent: "center",
   padding: 0,
 };
-const scoreInput: CSSProperties = { width: 80, height: 64, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", background: "var(--surface-2)", color: "var(--ink)", fontSize: 28, fontWeight: 800, textAlign: "center", outline: "none" };
 const ta: CSSProperties = { borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: 14, fontSize: 15, resize: "vertical", minHeight: 80, background: "var(--surface-2)", color: "var(--ink)", fontFamily: "inherit" };
 const overlay: CSSProperties = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 };
 const dlg: CSSProperties = { position: "relative", background: "var(--surface)", border: "1px solid var(--line-2)", borderRadius: "var(--radius-xl)", padding: "32px 24px", maxWidth: 400, width: "100%", display: "grid", gap: 16, boxShadow: "var(--shadow-lg)" };

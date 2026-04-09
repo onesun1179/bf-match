@@ -45,7 +45,7 @@ app:
     kakao:
       client-id: ${KAKAO_CLIENT_ID:local-dev-kakao-client-id}
       client-secret: ${KAKAO_CLIENT_SECRET:local-dev-kakao-client-secret}
-      redirect-uri: ${KAKAO_REDIRECT_URI:https://mature-physiology-blessed-anti.trycloudflare.com/login/oauth2/code/kakao}
+      redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/login/oauth2/code/kakao}
   jwt:
     secret: ${JWT_SECRET:bf-match-dev-jwt-secret-change-this-please-1234567890}
     access-token-expiration-seconds: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS:604800}

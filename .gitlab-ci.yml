@@ -49,6 +49,20 @@ frontend_build:
   rules:
     - if: $CI_COMMIT_BRANCH
 
+frontend_test:
+  stage: verify
+  image: node:20
+  cache:
+    key: npm-cache
+    paths:
+      - frontend/node_modules/
+  script:
+    - cd frontend
+    - npm ci
+    - npm run test:run
+  rules:
+    - if: $CI_COMMIT_BRANCH
+
 deploy_home_windows:
   stage: deploy
   tags:
@@ -56,6 +70,7 @@ deploy_home_windows:
   needs:
     - job: backend_build
     - job: frontend_build
+    - job: frontend_test
   rules:
     - if: $CI_COMMIT_BRANCH == "main"
       when: manual

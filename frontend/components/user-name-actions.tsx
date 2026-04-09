@@ -61,6 +61,14 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
   const chipText = `${levelLabel(lv, grade)} ${nickname}`;
   const chipTone = gender === "MALE" ? maleTone : gender === "FEMALE" ? femaleTone : neutralTone;
 
+  function handleChipPointer(e: { preventDefault: () => void; stopPropagation: () => void }) {
+    // This component is often rendered inside a parent Link card.
+    // Prevent the parent navigation and keep the action menu interaction local.
+    e.preventDefault();
+    e.stopPropagation();
+    setOpen((prev) => !prev);
+  }
+
   const dialog = (
     <>
       <div style={backdrop} onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
@@ -83,8 +91,32 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
   );
 
   return (
-    <span ref={wrapRef} style={{ position: "relative", display: "inline-block", maxWidth: "100%", verticalAlign: "top" }} onClick={(e) => e.stopPropagation()}>
-      <button type="button" onClick={(e) => { e.stopPropagation(); setOpen((prev) => !prev); }} style={{ ...nameBtn, ...style }}>
+    <span
+      ref={wrapRef}
+      style={{ position: "relative", display: "inline-block", maxWidth: "100%", verticalAlign: "top" }}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
+      <button
+        type="button"
+        onClick={handleChipPointer}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            handleChipPointer(e);
+          }
+        }}
+        style={{ ...nameBtn, ...style }}
+      >
         <span style={{ ...tagUnified, ...chipTone }}>{chipText}</span>
       </button>
       {open && mounted ? createPortal(dialog, document.body) : null}

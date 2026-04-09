@@ -92,27 +92,59 @@
 - `KAKAO_CLIENT_ID`/`KAKAO_CLIENT_SECRET`/`KAKAO_REDIRECT_URI` 정확히 설정
 - JWT 키는 반드시 32바이트 이상 (`WeakKeyException` 방지)
 - 카카오 스코프는 현재 `profile_nickname`, `profile_image` 사용
-- 프론트 API URL: `NEXT_PUBLIC_API_BASE_URL=https://mature-physiology-blessed-anti.trycloudflare.com`
+- 로컬 API URL: `NEXT_PUBLIC_API_BASE_URL=http://localhost:8080`
+- 운영 API URL: `NEXT_PUBLIC_API_BASE_URL=https://api.bf-match.shop`
+
+Backend 설정 파일:
+
+- [application.yml](/Users/dongwon/project/bf-match/backend/src/main/resources/application.yml): 단일 설정 파일
 
 ### Backend 실행
 
+로컬:
+
 ```bash
-cd backend
-./gradlew bootRun
+cd /Users/dongwon/project/bf-match/backend
+./run-local.sh
+```
+
+운영:
+
+```bash
+cd /Users/dongwon/project/bf-match/backend
+./run-prod.sh
 ```
 
 ### Frontend 실행
 
+Next.js 기본 env 로딩 규칙 사용:
+
+- 로컬 개발: `.env.local`
+- 운영 빌드/실행: `.env.production`
+
+로컬:
+
 ```bash
-cd frontend
-npm install
-npm run dev
+cd /Users/dongwon/project/bf-match/frontend
+./run-local.sh
+```
+
+운영:
+
+```bash
+cd /Users/dongwon/project/bf-match/frontend
+./run-prod.sh
 ```
 
 브라우저:
 
 - Frontend: `http://localhost:3000`
-- Backend: `https://mature-physiology-blessed-anti.trycloudflare.com`
+- Backend: `http://localhost:8080`
+
+운영 URL:
+
+- Frontend: `https://app.bf-match.shop`
+- Backend: `https://api.bf-match.shop`
 
 ### 빌드 검증
 

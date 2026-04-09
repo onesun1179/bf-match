@@ -95,10 +95,10 @@ function BucketSection({
               {(() => {
                 const myTeamKey = g.teammates.length === 1 && me?.id ? [g.teammates[0].userId, me.id].sort((a, b) => a - b).join("-") : null;
                 const opponentTeamKey = g.opponents.length === 2 ? g.opponents.map((p) => p.userId).sort((a, b) => a - b).join("-") : null;
-                return (
-                  <>
+              return (
+                <>
               <p style={{ margin: 0, fontSize: 13, fontWeight: 700 }}>
-                {g.isWin ? "승" : "패"} · {g.teamAScore ?? "-"} : {g.teamBScore ?? "-"}
+                {g.isWin ? "승" : "패"}
               </p>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
                 <Link href={`/groups/${g.groupId}`} onClick={(e) => e.stopPropagation()} style={{ color: "var(--brand-light)", fontWeight: 700, textDecoration: "none" }}>{g.groupName}</Link>

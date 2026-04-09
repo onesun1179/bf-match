@@ -67,7 +67,6 @@ export default function RecentGamesPage() {
                 {g.opponents.length > 0 && <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>상대: {opponentTeamKey && <Link href={`/groups/${g.groupId}/teams/${opponentTeamKey}`} onClick={(e) => e.stopPropagation()} style={{ color: "var(--muted)", fontWeight: 700, marginRight: 4 }}>팀 기록</Link>}{g.opponents.map((t, idx) => <span key={t.userId}>{idx > 0 ? ", " : ""}<UserNameActions userId={t.userId} nickname={t.nickname} gender={t.gender} grade={t.grade} myUserId={me?.id} style={{ fontSize: 12 }} /></span>)}</p>}
               </div>
               <div style={{ textAlign: "right", flexShrink: 0 }}>
-                {g.teamAScore != null && <p style={{ margin: 0, fontSize: 15, fontWeight: 700 }}>{g.teamAScore} : {g.teamBScore}</p>}
                 {g.finishedAt && <p style={{ margin: "2px 0 0", fontSize: 11, color: "var(--muted)" }}>{new Date(g.finishedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}</p>}
               </div>
             </div>
