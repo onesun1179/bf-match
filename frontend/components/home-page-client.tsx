@@ -6,8 +6,7 @@ import {
   fetchMe,
   fetchUnreadCount,
   getAccessToken,
-  isAppsInTossEnvironment,
-  loginWithTossApp,
+  getKakaoLoginUrl,
   logout,
   refreshAccessToken,
   registerFcmToken,
@@ -24,13 +23,10 @@ export function HomePageClient() {
   const [v, setV] = useState<ViewState>({ loading: true, me: null, error: null });
   const [unread, setUnread] = useState(0);
   const [showExpGuide, setShowExpGuide] = useState(false);
-  const [isTossEnv, setIsTossEnv] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const tossEnv = await isAppsInTossEnvironment();
-        setIsTossEnv(tossEnv);
         if (!getAccessToken()) {
           await refreshAccessToken();
         }
@@ -136,30 +132,9 @@ export function HomePageClient() {
             <p style={{ margin: 0, color: "var(--ink)", fontSize: 15, textAlign: "center", fontWeight: 600 }}>
               로그인이 필요합니다
             </p>
-            {isTossEnv && (
-              <button
-                type="button"
-                style={btnPrimary}
-                onClick={() => {
-                  setV({ loading: true, me: null, error: null });
-                  void (async () => {
-                    try {
-                      await loginWithTossApp();
-                      const me = await fetchMe();
-                      if (!me.onboardingCompleted) {
-                        router.replace("/onboarding");
-                        return;
-                      }
-                      setV({ loading: false, me, error: null });
-                    } catch {
-                      setV({ loading: false, me: null, error: "자동 로그인에 실패했습니다. 다시 시도해주세요." });
-                    }
-                  })();
-                }}
-              >
-                토스로 로그인
-              </button>
-            )}
+            <a href={getKakaoLoginUrl()} style={btnPrimary}>
+              카카오로 로그인
+            </a>
             <button
               type="button"
               style={btnSecondary}

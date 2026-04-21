@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(
     private val tokenRefreshService: TokenRefreshService,
-    private val tossAuthService: TossAuthService,
     private val localAuthService: LocalAuthService,
 ) {
     @PostMapping("/register")
@@ -26,18 +25,6 @@ class AuthController(
         @RequestBody @Valid request: LoginRequest,
         response: HttpServletResponse,
     ): TokenRefreshResponse = localAuthService.login(request, response)
-
-    @PostMapping("/toss/login")
-    fun tossLogin(
-        @RequestBody @Valid request: TossLoginRequest,
-        response: HttpServletResponse,
-    ): TokenRefreshResponse = tossAuthService.login(request, response)
-
-    @PostMapping("/toss/anonymous-login")
-    fun tossAnonymousLogin(
-        @RequestBody @Valid request: TossAnonymousLoginRequest,
-        response: HttpServletResponse,
-    ): TokenRefreshResponse = tossAuthService.loginWithAnonymousKey(request, response)
 
     @PostMapping("/refresh")
     fun refresh(

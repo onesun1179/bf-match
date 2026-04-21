@@ -35,8 +35,6 @@ class SecurityConfig(
             .authorizeHttpRequests {
                 it.requestMatchers(
                     "/api/v1/health",
-                    "/api/v1/auth/toss/login",
-                    "/api/v1/auth/toss/anonymous-login",
                     "/api/v1/auth/kakao/login",
                     "/api/v1/auth/register",
                     "/api/v1/auth/login",

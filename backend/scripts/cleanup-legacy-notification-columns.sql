@@ -1,0 +1,16 @@
+ALTER TABLE notification_preferences
+    DROP COLUMN IF EXISTS web_invite_accepted,
+    DROP COLUMN IF EXISTS web_invite_declined,
+    DROP COLUMN IF EXISTS web_member_joined,
+    DROP COLUMN IF EXISTS web_member_kicked,
+    DROP COLUMN IF EXISTS web_group_updated,
+    DROP COLUMN IF EXISTS web_grade_upgraded,
+    DROP COLUMN IF EXISTS web_game_created,
+    DROP COLUMN IF EXISTS web_game_started,
+    DROP COLUMN IF EXISTS web_game_finished,
+    DROP COLUMN IF EXISTS web_game_proposal_received,
+    DROP COLUMN IF EXISTS web_game_proposal_approved,
+    DROP COLUMN IF EXISTS web_game_proposal_rejected,
+    DROP COLUMN IF EXISTS web_game_score_requested,
+    DROP COLUMN IF EXISTS web_game_score_confirmed,
+    DROP COLUMN IF EXISTS web_game_score_rejected;

@@ -49,11 +49,6 @@ app:
       client-id: ${KAKAO_CLIENT_ID:local-dev-kakao-client-id}
       client-secret: ${KAKAO_CLIENT_SECRET:local-dev-kakao-client-secret}
       redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:8080/login/oauth2/code/kakao}
-    toss:
-      base-url: ${APP_TOSS_BASE_URL:https://apps-in-toss-api.toss.im}
-      mtls:
-        pkcs12-path: ${APP_TOSS_MTLS_PKCS12_PATH:}
-        pkcs12-password: ${APP_TOSS_MTLS_PKCS12_PASSWORD:}
   jwt:
     secret: ${JWT_SECRET:bf-match-dev-jwt-secret-change-this-please-1234567890}
     access-token-expiration-seconds: ${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS:604800}
