@@ -2,6 +2,8 @@ package com.bfmatch.api.auth
 
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import com.bfmatch.api.notification.FcmTokenRepository
+import com.bfmatch.api.user.UserRepository
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.web.server.ResponseStatusException
@@ -11,6 +13,8 @@ class TokenRefreshService(
     private val jwtTokenProvider: JwtTokenProvider,
     private val refreshTokenService: RefreshTokenService,
     private val refreshTokenCookieManager: RefreshTokenCookieManager,
+    private val userRepository: UserRepository,
+    private val fcmTokenRepository: FcmTokenRepository,
 ) {
     fun refresh(
         request: HttpServletRequest,
@@ -22,6 +26,9 @@ class TokenRefreshService(
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid or expired.")
 
         val user = refreshToken.user
+        if (user.currentSessionId.isNullOrBlank()) {
+            throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "Session is invalid.")
+        }
         val accessToken = jwtTokenProvider.createAccessToken(
             AuthenticatedUser(
                 userId = user.id ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found."),
@@ -29,6 +36,7 @@ class TokenRefreshService(
                 providerUserId = user.providerUserId,
                 email = user.email,
                 nickname = user.nickname,
+                sessionId = user.currentSessionId,
             ),
         )
 
@@ -39,7 +47,19 @@ class TokenRefreshService(
     }
 
     fun logout(request: HttpServletRequest, response: HttpServletResponse) {
-        refreshTokenCookieManager.resolveRefreshToken(request)?.let(refreshTokenService::revoke)
+        val cookieToken = refreshTokenCookieManager.resolveRefreshToken(request)
+        if (!cookieToken.isNullOrBlank()) {
+            val refreshToken = refreshTokenService.findValidToken(cookieToken)
+            refreshTokenService.revoke(cookieToken)
+            val userId = refreshToken?.user?.id
+            if (userId != null) {
+                userRepository.findById(userId).ifPresent { user ->
+                    user.currentSessionId = null
+                    userRepository.save(user)
+                }
+                fcmTokenRepository.deleteAllByUserId(userId)
+            }
+        }
         refreshTokenCookieManager.expireRefreshTokenCookie(response)
     }
 }

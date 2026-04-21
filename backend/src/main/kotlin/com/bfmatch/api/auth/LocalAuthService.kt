@@ -7,6 +7,7 @@ import com.bfmatch.api.user.PlayerSkill
 import com.bfmatch.api.user.PlayerSkillRepository
 import com.bfmatch.api.user.User
 import com.bfmatch.api.user.UserRepository
+import com.bfmatch.api.notification.FcmTokenRepository
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import java.util.UUID
 
 @Service
 class LocalAuthService(
@@ -24,6 +26,7 @@ class LocalAuthService(
     private val jwtTokenProvider: JwtTokenProvider,
     private val refreshTokenService: RefreshTokenService,
     private val refreshTokenCookieManager: RefreshTokenCookieManager,
+    private val fcmTokenRepository: FcmTokenRepository,
 ) {
     @Transactional
     fun register(request: RegisterRequest, response: HttpServletResponse): TokenRefreshResponse {
@@ -72,12 +75,18 @@ class LocalAuthService(
     }
 
     private fun issueTokens(user: User, response: HttpServletResponse): TokenRefreshResponse {
+        val sessionId = UUID.randomUUID().toString()
+        user.currentSessionId = sessionId
+        userRepository.save(user)
+        fcmTokenRepository.deleteAllByUserId(user.id!!)
+
         val authenticatedUser = AuthenticatedUser(
             userId = user.id!!,
             provider = user.authProvider.name,
             providerUserId = user.providerUserId,
             email = user.email,
             nickname = user.nickname,
+            sessionId = sessionId,
         )
 
         val accessToken = jwtTokenProvider.createAccessToken(authenticatedUser)

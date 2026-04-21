@@ -16,6 +16,12 @@ out/
 .gradle/
 build/
 
+# Secrets / local certs
+backend/mTLS/
+*.p12
+*.key
+*.crt
+
 # Local tool folders
 .claude/
 .codex/

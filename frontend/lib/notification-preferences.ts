@@ -15,9 +15,14 @@ export type NotificationPreferenceKey =
   | "gameScoreConfirmed"
   | "gameScoreRejected";
 
-export type NotificationPreferences = Record<NotificationPreferenceKey, boolean>;
+export type NotificationChannelPreferences = Record<NotificationPreferenceKey, boolean>;
 
-export const defaultNotificationPreferences: NotificationPreferences = {
+export type NotificationPreferences = {
+  toss: NotificationChannelPreferences;
+  web: NotificationChannelPreferences;
+};
+
+export const defaultNotificationChannelPreferences: NotificationChannelPreferences = {
   inviteAccepted: true,
   inviteDeclined: true,
   memberJoined: true,
@@ -33,4 +38,9 @@ export const defaultNotificationPreferences: NotificationPreferences = {
   gameScoreRequested: true,
   gameScoreConfirmed: true,
   gameScoreRejected: true,
+};
+
+export const defaultNotificationPreferences: NotificationPreferences = {
+  toss: { ...defaultNotificationChannelPreferences },
+  web: { ...defaultNotificationChannelPreferences },
 };

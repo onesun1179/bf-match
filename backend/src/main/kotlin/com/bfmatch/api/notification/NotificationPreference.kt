@@ -56,9 +56,54 @@ class NotificationPreference(
 
     @Column(nullable = false)
     var gameScoreRejected: Boolean = true,
+
+    @Column(nullable = false)
+    var webInviteAccepted: Boolean = true,
+
+    @Column(nullable = false)
+    var webInviteDeclined: Boolean = true,
+
+    @Column(nullable = false)
+    var webMemberJoined: Boolean = true,
+
+    @Column(nullable = false)
+    var webMemberKicked: Boolean = true,
+
+    @Column(nullable = false)
+    var webGroupUpdated: Boolean = true,
+
+    @Column(nullable = false)
+    var webGradeUpgraded: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameCreated: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameStarted: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameFinished: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameProposalReceived: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameProposalApproved: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameProposalRejected: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameScoreRequested: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameScoreConfirmed: Boolean = true,
+
+    @Column(nullable = false)
+    var webGameScoreRejected: Boolean = true,
 )
 
-data class NotificationPreferencesResponse(
+data class NotificationChannelPreferencesResponse(
     val inviteAccepted: Boolean,
     val inviteDeclined: Boolean,
     val memberJoined: Boolean,
@@ -76,7 +121,12 @@ data class NotificationPreferencesResponse(
     val gameScoreRejected: Boolean,
 )
 
-data class UpdateNotificationPreferencesRequest(
+data class NotificationPreferencesResponse(
+    val toss: NotificationChannelPreferencesResponse,
+    val web: NotificationChannelPreferencesResponse,
+)
+
+data class UpdateNotificationChannelPreferencesRequest(
     val inviteAccepted: Boolean? = null,
     val inviteDeclined: Boolean? = null,
     val memberJoined: Boolean? = null,
@@ -92,4 +142,9 @@ data class UpdateNotificationPreferencesRequest(
     val gameScoreRequested: Boolean? = null,
     val gameScoreConfirmed: Boolean? = null,
     val gameScoreRejected: Boolean? = null,
+)
+
+data class UpdateNotificationPreferencesRequest(
+    val toss: UpdateNotificationChannelPreferencesRequest? = null,
+    val web: UpdateNotificationChannelPreferencesRequest? = null,
 )

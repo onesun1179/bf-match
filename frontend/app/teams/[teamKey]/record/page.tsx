@@ -1,10 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { CSSProperties, useEffect, useMemo, useState } from "react";
-import { fetchMe, fetchTeamRanking, getAccessToken, refreshAccessToken, type Grade, type TeamRankingEntry, type TeamRankingResponse } from "@/lib/auth";
-import { UserNameActions } from "@/components/user-name-actions";
+import {useParams} from "next/navigation";
+import {CSSProperties, useEffect, useMemo, useState} from "react";
+import {
+    fetchMe,
+    fetchTeamRanking,
+    getAccessToken,
+    type Grade,
+    refreshAccessToken,
+    type TeamRankingEntry,
+    type TeamRankingResponse
+} from "@/lib/auth";
+import {UserNameActions} from "@/components/user-name-actions";
 
 const GRADES: Grade[] = ["S", "A", "B", "C", "D", "E", "F"];
 const TYPE_TABS = [

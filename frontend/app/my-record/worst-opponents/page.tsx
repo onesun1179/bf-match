@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties, useEffect, useState } from "react";
-import { fetchAllPartners, getAccessToken, refreshAccessToken, type PartnerStat } from "@/lib/auth";
-import { BottomNavMain } from "@/components/bottom-nav-main";
-import { UserNameActions } from "@/components/user-name-actions";
+import {CSSProperties, useEffect, useState} from "react";
+import {fetchAllPartners, getAccessToken, type PartnerStat, refreshAccessToken} from "@/lib/auth";
+import {BottomNavMain} from "@/components/bottom-nav-main";
+import {UserNameActions} from "@/components/user-name-actions";
 
 export default function WorstOpponentsPage() {
   const [list, setList] = useState<PartnerStat[]>([]);

@@ -1,7 +1,7 @@
 "use client";
 
-import { CSSProperties } from "react";
-import type { Gender, Grade } from "@/lib/auth";
+import {CSSProperties} from "react";
+import type {Gender, Grade} from "@/lib/auth";
 
 type Props = {
   nickname: string;

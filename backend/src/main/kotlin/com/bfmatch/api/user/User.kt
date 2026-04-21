@@ -44,4 +44,7 @@ class User(
 
     @Column(nullable = false)
     var notificationEnabled: Boolean = true,
+
+    @Column(length = 100)
+    var currentSessionId: String? = null,
 )

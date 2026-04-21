@@ -1,17 +1,19 @@
-import { initializeApp, getApps } from "firebase/app";
-import { getMessaging, getToken, onMessage, type Messaging } from "firebase/messaging";
+import {getApps, initializeApp} from "firebase/app";
+import {getMessaging, getToken, type Messaging, onMessage} from "firebase/messaging";
+
+const env = import.meta.env as Record<string, string | undefined>;
 
 // TODO: Firebase 프로젝트 생성 후 여기에 실제 값을 입력하세요
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
+  apiKey: env.VITE_FIREBASE_API_KEY ?? env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
+  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN ?? env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
+  projectId: env.VITE_FIREBASE_PROJECT_ID ?? env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
+  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET ?? env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
+  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
+  appId: env.VITE_FIREBASE_APP_ID ?? env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
 };
 
-const VAPID_KEY = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? "";
+const VAPID_KEY = env.VITE_FIREBASE_VAPID_KEY ?? env.NEXT_PUBLIC_FIREBASE_VAPID_KEY ?? "";
 
 function getFirebaseApp() {
   return getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];

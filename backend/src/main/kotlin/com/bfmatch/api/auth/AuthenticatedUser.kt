@@ -6,4 +6,5 @@ data class AuthenticatedUser(
     val providerUserId: String,
     val email: String?,
     val nickname: String,
+    val sessionId: String? = null,
 )

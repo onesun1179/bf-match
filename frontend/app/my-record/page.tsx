@@ -1,12 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties, useEffect, useState } from "react";
-import { fetchMe, fetchMyRecord, getAccessToken, refreshAccessToken, type MeResponse, type MyRecord, type PartnerStat, type RecentGame, type TypeStat } from "@/lib/auth";
-import { BottomNavMain } from "@/components/bottom-nav-main";
-import { UserNameActions } from "@/components/user-name-actions";
-import { UserInfoChip } from "@/components/user-info-chip";
-import { GamePreviewDialog, type PreviewGame } from "@/components/game-preview-dialog";
+import {CSSProperties, useEffect, useState} from "react";
+import {
+    fetchMe,
+    fetchMyRecord,
+    getAccessToken,
+    type MeResponse,
+    type MyRecord,
+    type PartnerStat,
+    type RecentGame,
+    refreshAccessToken,
+    type TypeStat
+} from "@/lib/auth";
+import {BottomNavMain} from "@/components/bottom-nav-main";
+import {UserNameActions} from "@/components/user-name-actions";
+import {UserInfoChip} from "@/components/user-info-chip";
+import {GamePreviewDialog, type PreviewGame} from "@/components/game-preview-dialog";
 
 function gameTypeLabel(t: string | null) {
   switch (t) { case "MALE_DOUBLES": return "남복"; case "FEMALE_DOUBLES": return "여복"; case "MIXED_DOUBLES": return "혼복"; case "FREE": return "자유"; default: return "-"; }

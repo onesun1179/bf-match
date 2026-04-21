@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties } from "react";
-import { displayName, type Grade, type PlayerInfo } from "@/lib/auth";
-import { UserNameActions } from "@/components/user-name-actions";
+import {CSSProperties} from "react";
+import {type Grade, type PlayerInfo} from "@/lib/auth";
+import {UserNameActions} from "@/components/user-name-actions";
 
 export type PreviewGame = {
   gameId: number;

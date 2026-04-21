@@ -1,19 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties, useEffect, useState } from "react";
+import {CSSProperties, useEffect, useState} from "react";
 import {
-  fetchMe,
-  fetchNotificationPreferences,
-  getAccessToken,
-  refreshAccessToken,
-  updateNotificationPreferences,
-  updateNotificationSetting,
+    fetchMe,
+    fetchNotificationPreferences,
+    getAccessToken,
+    refreshAccessToken,
+    updateNotificationPreferences,
+    updateNotificationSetting,
 } from "@/lib/auth";
 import {
-  defaultNotificationPreferences,
-  type NotificationPreferenceKey,
-  type NotificationPreferences,
+    defaultNotificationPreferences,
+    type NotificationChannelPreferences,
+    type NotificationPreferenceKey,
+    type NotificationPreferences,
 } from "@/lib/notification-preferences";
 
 const notificationItems: { key: NotificationPreferenceKey; title: string; description: string }[] = [
@@ -125,18 +126,23 @@ export default function NotificationSettingsPage() {
     }
   }
 
-  async function toggleItem(key: NotificationPreferenceKey) {
-    const nextValue = !preferences[key];
+  async function toggleChannel(channel: "toss" | "web", key: NotificationPreferenceKey) {
+    const nextValue = !preferences[channel][key];
     const prev = preferences;
-    const next = { ...preferences, [key]: nextValue };
+    const next = {
+      ...preferences,
+      [channel]: { ...preferences[channel], [key]: nextValue },
+    };
     setPreferences(next);
     try {
-      const saved = await updateNotificationPreferences({ [key]: nextValue });
+      const saved = await updateNotificationPreferences({
+        [channel]: { [key]: nextValue } as Partial<NotificationChannelPreferences>,
+      });
       setPreferences(saved);
       setError(null);
     } catch (e) {
       setPreferences(prev);
-      setError(e instanceof Error ? e.message : "항목 알림 설정 변경 실패");
+      setError(e instanceof Error ? e.message : "채널 알림 설정 변경 실패");
     }
   }
 
@@ -178,6 +184,7 @@ export default function NotificationSettingsPage() {
           <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--muted)" }}>
             항목별 설정은 서버 DB에 저장됩니다.
           </p>
+          <h3 style={{ margin: "10px 0 0", fontSize: 15, color: "var(--ink-secondary)" }}>토스 알림</h3>
           {!loading &&
             notificationItems.map((item) => (
               <div key={item.key} style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: "10px 0", borderTop: "1px solid var(--line)" }}>
@@ -188,11 +195,30 @@ export default function NotificationSettingsPage() {
                 <button
                   type="button"
                   onClick={() => {
-                    void toggleItem(item.key);
+                    void toggleChannel("toss", item.key);
                   }}
-                  style={{ ...toggleBtn, background: preferences[item.key] ? "var(--brand)" : "var(--surface-3)" }}
+                  style={{ ...toggleBtn, background: preferences.toss[item.key] ? "var(--brand)" : "var(--surface-3)" }}
                 >
-                  <span style={{ ...toggleDot, transform: preferences[item.key] ? "translateX(20px)" : "translateX(0)" }} />
+                  <span style={{ ...toggleDot, transform: preferences.toss[item.key] ? "translateX(20px)" : "translateX(0)" }} />
+                </button>
+              </div>
+            ))}
+          <h3 style={{ margin: "6px 0 0", fontSize: 15, color: "var(--ink-secondary)" }}>웹 알림</h3>
+          {!loading &&
+            notificationItems.map((item) => (
+              <div key={`web-${item.key}`} style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: "10px 0", borderTop: "1px solid var(--line)" }}>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{item.title}</p>
+                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--muted)" }}>{item.description}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void toggleChannel("web", item.key);
+                  }}
+                  style={{ ...toggleBtn, background: preferences.web[item.key] ? "var(--brand)" : "var(--surface-3)" }}
+                >
+                  <span style={{ ...toggleDot, transform: preferences.web[item.key] ? "translateX(20px)" : "translateX(0)" }} />
                 </button>
               </div>
             ))}

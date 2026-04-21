@@ -1,8 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
-import { fetchInviteLinkInfo, getAccessToken, getKakaoLoginUrl, refreshAccessToken } from "@/lib/auth";
+import {useParams, useRouter} from "next/navigation";
+import {CSSProperties, useEffect, useState} from "react";
+import {fetchInviteLinkInfo, getAccessToken, getKakaoLoginUrl, refreshAccessToken} from "@/lib/auth";
 
 type S = { status: "loading" } | { status: "login_required" } | { status: "error"; message: string };
 

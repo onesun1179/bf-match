@@ -1,11 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { CSSProperties, useEffect, useMemo, useState } from "react";
-import { fetchMe, fetchMyGroups, fetchPublicGroups, getAccessToken, refreshAccessToken, type GroupSummary } from "@/lib/auth";
-import { BottomNavMain } from "@/components/bottom-nav-main";
-import { UserInfoChip } from "@/components/user-info-chip";
+import {useRouter} from "next/navigation";
+import {CSSProperties, useEffect, useMemo, useState} from "react";
+import {
+    fetchMe,
+    fetchMyGroups,
+    fetchPublicGroups,
+    getAccessToken,
+    type GroupSummary,
+    refreshAccessToken
+} from "@/lib/auth";
+import {BottomNavMain} from "@/components/bottom-nav-main";
+import {UserInfoChip} from "@/components/user-info-chip";
 
 type Tab = "public" | "my";
 type Status = "all" | "active" | "ended";

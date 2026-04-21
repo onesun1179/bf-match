@@ -35,6 +35,8 @@ class SecurityConfig(
             .authorizeHttpRequests {
                 it.requestMatchers(
                     "/api/v1/health",
+                    "/api/v1/auth/toss/login",
+                    "/api/v1/auth/toss/anonymous-login",
                     "/api/v1/auth/kakao/login",
                     "/api/v1/auth/register",
                     "/api/v1/auth/login",
@@ -64,7 +66,11 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
-            allowedOrigins = listOf(frontendBaseUrl)
+            allowedOrigins = listOf(
+                frontendBaseUrl,
+                "http://localhost:5173",
+                "http://[::1]:5173",
+            ).distinct()
             allowedMethods = listOf("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
             exposedHeaders = listOf("Authorization")

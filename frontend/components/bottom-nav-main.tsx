@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties } from "react";
+import {CSSProperties} from "react";
 
 type MainTab = "home" | "event" | "ranking" | "notifications" | "my";
 

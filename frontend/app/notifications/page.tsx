@@ -1,13 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
+import {useRouter} from "next/navigation";
+import {CSSProperties, useEffect, useState} from "react";
 import {
-  fetchNotifications, getAccessToken, markAllNotificationsRead,
-  markNotificationRead, refreshAccessToken, type AppNotification,
+    type AppNotification,
+    fetchNotifications,
+    getAccessToken,
+    markAllNotificationsRead,
+    markNotificationRead,
+    refreshAccessToken,
 } from "@/lib/auth";
-import { BottomNavMain } from "@/components/bottom-nav-main";
+import {BottomNavMain} from "@/components/bottom-nav-main";
 
 export default function NotificationsPage() {
   const router = useRouter();

@@ -1,18 +1,42 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useSearchParams, useRouter } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
+import {useParams, useRouter, useSearchParams} from "next/navigation";
+import {CSSProperties, useEffect, useState} from "react";
 import {
-  acceptInvite, approveGameProposal, cancelGame, changeMemberRole, closeGroup, createInviteLink, declineInvite,
-  confirmScore,
-  fetchGames, fetchGroupDetail, fetchInviteLinkInfo, fetchMe, fetchMemberStats,
-  finishGame, getAccessToken, joinPublicGroup, kickGroupMember, leaveGroup, refreshAccessToken,
-  rejectGameProposal, rejectScore, startGame, submitScore, updateGameCourtNumber,
-  type GameResponse, type Grade, type GroupDetail, type InviteLinkInfo, type MeResponse, type MemberStat,
+    acceptInvite,
+    approveGameProposal,
+    cancelGame,
+    changeMemberRole,
+    closeGroup,
+    confirmScore,
+    createInviteLink,
+    declineInvite,
+    fetchGames,
+    fetchGroupDetail,
+    fetchInviteLinkInfo,
+    fetchMe,
+    fetchMemberStats,
+    finishGame,
+    type GameResponse,
+    getAccessToken,
+    type Grade,
+    type GroupDetail,
+    type InviteLinkInfo,
+    joinPublicGroup,
+    kickGroupMember,
+    leaveGroup,
+    type MemberStat,
+    type MeResponse,
+    refreshAccessToken,
+    rejectGameProposal,
+    rejectScore,
+    startGame,
+    submitScore,
+    updateGameCourtNumber,
 } from "@/lib/auth";
-import { BottomNavGroupDetail } from "@/components/bottom-nav-group-detail";
-import { UserNameActions } from "@/components/user-name-actions";
+import {BottomNavGroupDetail} from "@/components/bottom-nav-group-detail";
+import {UserNameActions} from "@/components/user-name-actions";
 
 type Tab = "info" | "manage" | "members" | "games" | "stats";
 type Dialog = { type: "none" } | { type: "invite"; token: string; info: InviteLinkInfo | null } | { type: "decline"; token: string; info: InviteLinkInfo | null };

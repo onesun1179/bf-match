@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { submitScore } from "@/lib/auth";
+import {afterEach, describe, expect, it, vi} from "vitest";
+import {submitScore} from "@/lib/auth";
 
 describe("submitScore", () => {
   afterEach(() => {

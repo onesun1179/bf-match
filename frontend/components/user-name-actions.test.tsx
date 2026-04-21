@@ -1,8 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import type { MouseEvent } from "react";
+import {fireEvent, render, screen} from "@testing-library/react";
+import type {MouseEvent} from "react";
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
-import { UserNameActions } from "@/components/user-name-actions";
+import {describe, expect, it, vi} from "vitest";
+import {UserNameActions} from "@/components/user-name-actions";
 
 describe("UserNameActions", () => {
   it("opens action menu without triggering parent click navigation", async () => {

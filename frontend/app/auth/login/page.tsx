@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { CSSProperties, FormEvent, useState } from "react";
-import { getKakaoLoginUrl, loginLocal } from "@/lib/auth";
+import {useRouter} from "next/navigation";
+import {CSSProperties, FormEvent, useEffect, useState} from "react";
+import {isAppsInTossEnvironment, loginLocal, loginWithTossApp} from "@/lib/auth";
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [isTossEnv, setIsTossEnv] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    void isAppsInTossEnvironment().then(setIsTossEnv).catch(() => setIsTossEnv(false));
+  }, []);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -43,9 +48,31 @@ export default function LoginPage() {
 
           {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{error}</p>}
 
-          <div style={divider}><span style={dividerText}>또는</span></div>
-
-          <a href={getKakaoLoginUrl()} style={btnKakao}>카카오로 로그인</a>
+          {isTossEnv && (
+            <>
+              <div style={divider}><span style={dividerText}>또는</span></div>
+              <button
+                type="button"
+                style={btnKakao}
+                onClick={() => {
+                  setSubmitting(true);
+                  setError(null);
+                  void (async () => {
+                    try {
+                      await loginWithTossApp();
+                      router.replace("/");
+                    } catch (err) {
+                      setError(err instanceof Error ? err.message : "토스 로그인에 실패했습니다.");
+                    } finally {
+                      setSubmitting(false);
+                    }
+                  })();
+                }}
+              >
+                토스로 로그인
+              </button>
+            </>
+          )}
         </div>
 
         <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center" }}>

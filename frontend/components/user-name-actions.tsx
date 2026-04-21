@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties, useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import type { Gender, Grade } from "@/lib/auth";
-import { UserInfoChip } from "@/components/user-info-chip";
+import {CSSProperties, useEffect, useRef, useState} from "react";
+import {createPortal} from "react-dom";
+import type {Gender, Grade} from "@/lib/auth";
+import {UserInfoChip} from "@/components/user-info-chip";
 
 type Props = {
   userId: number;

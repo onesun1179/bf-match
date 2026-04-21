@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties, useEffect, useState } from "react";
-import { fetchAllMonthly, getAccessToken, refreshAccessToken, type MonthlyStat } from "@/lib/auth";
-import { BottomNavMain } from "@/components/bottom-nav-main";
+import {CSSProperties, useEffect, useState} from "react";
+import {fetchAllMonthly, getAccessToken, type MonthlyStat, refreshAccessToken} from "@/lib/auth";
+import {BottomNavMain} from "@/components/bottom-nav-main";
 
 export default function MonthlyPage() {
   const [list, setList] = useState<MonthlyStat[]>([]);

@@ -1,1 +1,6 @@
 .env.local
+.granite
+.next
+node_modules
+dist
+*.ait

@@ -26,6 +26,7 @@ class JwtTokenProvider(
             .claim("providerUserId", user.providerUserId)
             .claim("email", user.email)
             .claim("nickname", user.nickname)
+            .claim("sessionId", user.sessionId)
             .issuedAt(Date.from(now))
             .expiration(Date.from(expiresAt))
             .signWith(signingKey)
@@ -45,6 +46,7 @@ class JwtTokenProvider(
             providerUserId = claims["providerUserId"] as String,
             email = claims["email"] as String?,
             nickname = claims["nickname"] as String,
+            sessionId = claims["sessionId"] as String?,
         )
     }
 }

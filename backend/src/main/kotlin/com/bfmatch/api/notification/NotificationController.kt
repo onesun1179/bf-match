@@ -2,6 +2,7 @@ package com.bfmatch.api.notification
 
 import com.bfmatch.api.auth.AuthenticatedUser
 import com.bfmatch.api.user.UserRepository
+import jakarta.validation.constraints.NotBlank
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -12,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ResponseStatusException
+import org.springframework.validation.annotation.Validated
 
 @RestController
 @RequestMapping("/api/v1/notifications")
+@Validated
 class NotificationController(
     private val notificationService: NotificationService,
     private val userRepository: UserRepository,
@@ -59,4 +62,26 @@ class NotificationController(
         @RequestBody request: UpdateNotificationPreferencesRequest,
     ): NotificationPreferencesResponse =
         notificationService.updatePreferences(principal.userId, request)
+
+    @PostMapping("/test")
+    fun sendTestNotification(
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+        @RequestBody request: SendTestNotificationRequest,
+    ): Map<String, String> {
+        notificationService.send(
+            userId = principal.userId,
+            type = request.type ?: NotificationType.GAME_CREATED,
+            title = request.title.trim(),
+            body = request.body.trim(),
+        )
+        return mapOf("message" to "Test notification sent.")
+    }
 }
+
+data class SendTestNotificationRequest(
+    val type: NotificationType? = null,
+    @field:NotBlank
+    val title: String,
+    @field:NotBlank
+    val body: String,
+)

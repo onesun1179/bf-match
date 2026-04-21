@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { CSSProperties, FormEvent, useState } from "react";
-import { registerLocal } from "@/lib/auth";
+import {useRouter} from "next/navigation";
+import {CSSProperties, FormEvent, useState} from "react";
+import {registerLocal} from "@/lib/auth";
 
 const gradeOptions = [
   { value: "F", label: "F (왕초심)" }, { value: "E", label: "E (초심)" },

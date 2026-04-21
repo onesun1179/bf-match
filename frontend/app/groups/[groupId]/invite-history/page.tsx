@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
-import { fetchInviteHistory, getAccessToken, refreshAccessToken, type InviteHistory } from "@/lib/auth";
+import {useParams} from "next/navigation";
+import {CSSProperties, useEffect, useState} from "react";
+import {fetchInviteHistory, getAccessToken, type InviteHistory, refreshAccessToken} from "@/lib/auth";
 
 export default function InviteHistoryPage() {
   const params = useParams<{ groupId: string }>();

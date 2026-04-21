@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { CSSProperties, FormEvent, useEffect, useState } from "react";
-import { fetchMe, getAccessToken, refreshAccessToken, updateMyProfile, updateMySkill } from "@/lib/auth";
+import {useRouter} from "next/navigation";
+import {CSSProperties, FormEvent, useEffect, useState} from "react";
+import {fetchMe, getAccessToken, refreshAccessToken, updateMyProfile, updateMySkill} from "@/lib/auth";
 
 const gradeOptions = [
   { value: "F", label: "F (왕초심)" }, { value: "E", label: "E (초심)" },

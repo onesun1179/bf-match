@@ -1,22 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { CSSProperties, useEffect, useMemo, useState } from "react";
+import {useParams, useRouter, useSearchParams} from "next/navigation";
+import {CSSProperties, useEffect, useMemo, useState} from "react";
 import {
-  createGame,
-  fetchGames,
-  fetchGroupDetail,
-  fetchMe,
-  getAccessToken,
-  recommendGame,
-  refreshAccessToken,
-  type GameResponse,
-  type GameType,
-  type Grade,
-  type GroupDetail,
+    createGame,
+    fetchGames,
+    fetchGroupDetail,
+    fetchMe,
+    type GameResponse,
+    type GameType,
+    getAccessToken,
+    type Grade,
+    type GroupDetail,
+    recommendGame,
+    refreshAccessToken,
 } from "@/lib/auth";
-import { UserNameActions } from "@/components/user-name-actions";
+import {UserNameActions} from "@/components/user-name-actions";
 
 export default function NewGamePage() {
   const params = useParams<{ groupId: string }>();

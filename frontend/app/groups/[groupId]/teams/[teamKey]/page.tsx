@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { CSSProperties, useEffect, useMemo, useState } from "react";
-import { fetchGames, fetchTeamStats, getAccessToken, refreshAccessToken, type GameResponse, type Grade, type TeamStat, type GameType } from "@/lib/auth";
-import { UserNameActions } from "@/components/user-name-actions";
+import {useParams} from "next/navigation";
+import {CSSProperties, useEffect, useMemo, useState} from "react";
+import {
+    fetchGames,
+    fetchTeamStats,
+    type GameResponse,
+    type GameType,
+    getAccessToken,
+    type Grade,
+    refreshAccessToken,
+    type TeamStat
+} from "@/lib/auth";
+import {UserNameActions} from "@/components/user-name-actions";
 
 export default function TeamRecordPage() {
   const params = useParams<{ groupId: string; teamKey: string }>();

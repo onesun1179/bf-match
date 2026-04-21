@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { CSSProperties, FormEvent, useState } from "react";
-import { createGroup, type GroupVisibility, type Grade } from "@/lib/auth";
+import {useRouter} from "next/navigation";
+import {CSSProperties, FormEvent, useState} from "react";
+import {createGroup, type Grade, type GroupVisibility} from "@/lib/auth";
 
 const gradeOpts: { value: Grade; label: string }[] = [
   { value: "F", label: "F" }, { value: "E", label: "E" }, { value: "D", label: "D" },

@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import {
   fetchMe,
   fetchUnreadCount,
   getAccessToken,
+  isAppsInTossEnvironment,
+  loginWithTossApp,
   logout,
   refreshAccessToken,
   registerFcmToken,
@@ -23,18 +24,25 @@ export function HomePageClient() {
   const [v, setV] = useState<ViewState>({ loading: true, me: null, error: null });
   const [unread, setUnread] = useState(0);
   const [showExpGuide, setShowExpGuide] = useState(false);
+  const [isTossEnv, setIsTossEnv] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        if (!getAccessToken()) await refreshAccessToken();
+        const tossEnv = await isAppsInTossEnvironment();
+        setIsTossEnv(tossEnv);
+        if (!getAccessToken()) {
+          await refreshAccessToken();
+        }
         const me = await fetchMe();
         if (!me.onboardingCompleted) { router.replace("/onboarding"); return; }
         setV({ loading: false, me, error: null });
         setUnread(await fetchUnreadCount());
         // FCM 토큰 등록
         requestFcmToken().then((token) => { if (token) void registerFcmToken(token); }).catch(() => {});
-      } catch { setV({ loading: false, me: null, error: null }); }
+      } catch {
+        setV({ loading: false, me: null, error: null });
+      }
     })();
   }, []);
 
@@ -54,12 +62,12 @@ export function HomePageClient() {
             <div style={brandBadge}>BF MATCH</div>
             <span style={heroGhostTag}>MATCH HUB</span>
           </div>
-          <h1 style={{ margin: "14px 0 0", fontSize: 34, fontWeight: 900, lineHeight: 1.08, letterSpacing: "-0.04em" }}>
+          <h1 style={{ margin: "14px 0 0", fontSize: 34, fontWeight: 900, lineHeight: 1.08, letterSpacing: "-0.04em", color: "#EEF3FF", textShadow: "0 2px 14px rgba(0,0,0,0.35)" }}>
             오늘 칠 사람,
             <br />
             실력 맞게 바로 찾기
           </h1>
-          <p style={{ margin: "12px 0 0", color: "var(--ink-secondary)", fontSize: 14, lineHeight: 1.6, maxWidth: 320 }}>
+          <p style={{ margin: "12px 0 0", color: "#D6E0F6", fontSize: 14, lineHeight: 1.6, maxWidth: 320 }}>
             급수 + 경험치를 함께 반영해서
             이벤트, 팀, 게임 제안까지 한 흐름으로 연결합니다.
           </p>
@@ -125,9 +133,40 @@ export function HomePageClient() {
 
         {!v.loading && !v.me && (
           <div style={{ ...cardMain, gap: 12 }}>
-            <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 15, textAlign: "center" }}>시작하려면 로그인하세요</p>
-            <Link href="/auth/login" style={btnPrimary}>로그인</Link>
-            <Link href="/auth/register" style={btnSecondary}>회원가입</Link>
+            <p style={{ margin: 0, color: "var(--ink)", fontSize: 15, textAlign: "center", fontWeight: 600 }}>
+              로그인이 필요합니다
+            </p>
+            {isTossEnv && (
+              <button
+                type="button"
+                style={btnPrimary}
+                onClick={() => {
+                  setV({ loading: true, me: null, error: null });
+                  void (async () => {
+                    try {
+                      await loginWithTossApp();
+                      const me = await fetchMe();
+                      if (!me.onboardingCompleted) {
+                        router.replace("/onboarding");
+                        return;
+                      }
+                      setV({ loading: false, me, error: null });
+                    } catch {
+                      setV({ loading: false, me: null, error: "자동 로그인에 실패했습니다. 다시 시도해주세요." });
+                    }
+                  })();
+                }}
+              >
+                토스로 로그인
+              </button>
+            )}
+            <button
+              type="button"
+              style={btnSecondary}
+              onClick={() => router.push("/auth/login")}
+            >
+              ID / 비밀번호 로그인
+            </button>
           </div>
         )}
 

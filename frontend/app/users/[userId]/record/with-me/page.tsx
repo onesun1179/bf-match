@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { CSSProperties, useEffect, useMemo, useState } from "react";
+import {useParams} from "next/navigation";
+import {CSSProperties, useEffect, useMemo, useState} from "react";
 import {
-  fetchMe,
-  fetchWithMeRecord,
-  getAccessToken,
-  refreshAccessToken,
-  type MeResponse,
-  type WithMeBucket,
-  type WithMeRecord,
+    fetchMe,
+    fetchWithMeRecord,
+    getAccessToken,
+    type MeResponse,
+    refreshAccessToken,
+    type WithMeBucket,
+    type WithMeRecord,
 } from "@/lib/auth";
-import { UserNameActions } from "@/components/user-name-actions";
-import { GamePreviewDialog, type PreviewGame } from "@/components/game-preview-dialog";
+import {UserNameActions} from "@/components/user-name-actions";
+import {GamePreviewDialog, type PreviewGame} from "@/components/game-preview-dialog";
 
 type MatchEventSummary = {
   groupId: number;

@@ -3,7 +3,6 @@ package com.bfmatch.api.auth
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,14 +12,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/auth")
 class AuthController(
     private val tokenRefreshService: TokenRefreshService,
+    private val tossAuthService: TossAuthService,
     private val localAuthService: LocalAuthService,
 ) {
-    @GetMapping("/kakao/login")
-    fun kakaoLogin(): Map<String, String> = mapOf(
-        "provider" to "kakao",
-        "loginUrl" to "/oauth2/authorization/kakao"
-    )
-
     @PostMapping("/register")
     fun register(
         @RequestBody @Valid request: RegisterRequest,
@@ -32,6 +26,18 @@ class AuthController(
         @RequestBody @Valid request: LoginRequest,
         response: HttpServletResponse,
     ): TokenRefreshResponse = localAuthService.login(request, response)
+
+    @PostMapping("/toss/login")
+    fun tossLogin(
+        @RequestBody @Valid request: TossLoginRequest,
+        response: HttpServletResponse,
+    ): TokenRefreshResponse = tossAuthService.login(request, response)
+
+    @PostMapping("/toss/anonymous-login")
+    fun tossAnonymousLogin(
+        @RequestBody @Valid request: TossAnonymousLoginRequest,
+        response: HttpServletResponse,
+    ): TokenRefreshResponse = tossAuthService.loginWithAnonymousKey(request, response)
 
     @PostMapping("/refresh")
     fun refresh(

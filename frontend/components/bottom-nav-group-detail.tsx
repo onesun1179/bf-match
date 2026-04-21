@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties } from "react";
+import {CSSProperties} from "react";
 
 export type GroupDetailTab = "info" | "manage" | "members" | "games" | "stats";
 

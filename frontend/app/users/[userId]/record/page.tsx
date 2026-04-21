@@ -1,10 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
-import { fetchUserRecord, getAccessToken, refreshAccessToken, type MyRecord, type RecentGame, type TypeStat } from "@/lib/auth";
-import { UserNameActions } from "@/components/user-name-actions";
+import {useParams} from "next/navigation";
+import {CSSProperties, useEffect, useState} from "react";
+import {
+    fetchUserRecord,
+    getAccessToken,
+    type MyRecord,
+    type RecentGame,
+    refreshAccessToken,
+    type TypeStat
+} from "@/lib/auth";
+import {UserNameActions} from "@/components/user-name-actions";
 
 type EventSummary = {
   groupId: number;

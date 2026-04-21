@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type {NextConfig} from "next";
 
 const allowedDevOrigins = (
   process.env.NEXT_ALLOWED_DEV_ORIGINS ??

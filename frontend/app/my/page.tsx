@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CSSProperties, useEffect, useState } from "react";
-import { fetchUnreadCount, getAccessToken, refreshAccessToken } from "@/lib/auth";
-import { BottomNavMain } from "@/components/bottom-nav-main";
+import {CSSProperties, useEffect, useState} from "react";
+import {fetchUnreadCount, getAccessToken, refreshAccessToken} from "@/lib/auth";
+import {BottomNavMain} from "@/components/bottom-nav-main";
 
 export default function MyPage() {
   const [unread, setUnread] = useState(0);

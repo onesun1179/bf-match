@@ -1,5 +1,4 @@
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8080";
 
 const ACCESS_TOKEN_KEY = "bf-match.access-token";
 
@@ -143,6 +142,47 @@ export async function loginLocal(username: string, password: string): Promise<vo
 }
 
 export function getKakaoLoginUrl(): string { return `${API_BASE_URL}/oauth2/authorization/kakao`; }
+
+// ── Toss App Login ──
+
+export async function loginWithTossApp(): Promise<void> {
+  const bridge = await import("@apps-in-toss/web-framework");
+  try {
+    const { authorizationCode, referrer } = await bridge.appLogin();
+    const r = await fetch(`${API_BASE_URL}/api/v1/auth/toss/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ authorizationCode, referrer }),
+    });
+    if (!r.ok) throw new Error("토스 로그인 교환 실패");
+    setAccessToken(((await r.json()) as RefreshResponse).accessToken);
+    return;
+  } catch (appLoginError) {
+    const anonymous = await bridge.getAnonymousKey();
+    if (!anonymous || anonymous === "ERROR") {
+      throw appLoginError;
+    }
+    const r = await fetch(`${API_BASE_URL}/api/v1/auth/toss/anonymous-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ userKeyHash: anonymous.hash }),
+    });
+    if (!r.ok) throw new Error("토스 익명 로그인 교환 실패");
+    setAccessToken(((await r.json()) as RefreshResponse).accessToken);
+  }
+}
+
+export async function isAppsInTossEnvironment(): Promise<boolean> {
+  try {
+    const bridge = await import("@apps-in-toss/web-framework");
+    await bridge.getPlatformOS();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // ── Me ──
 
@@ -453,6 +493,11 @@ export type AppNotification = {
 };
 
 export type NotificationPreferences = {
+  toss: NotificationChannelPreferences;
+  web: NotificationChannelPreferences;
+};
+
+export type NotificationChannelPreferences = {
   inviteAccepted: boolean;
   inviteDeclined: boolean;
   memberJoined: boolean;
@@ -499,7 +544,10 @@ export async function fetchNotificationPreferences(): Promise<NotificationPrefer
   return (await r.json()) as NotificationPreferences;
 }
 
-export async function updateNotificationPreferences(request: Partial<NotificationPreferences>): Promise<NotificationPreferences> {
+export async function updateNotificationPreferences(request: {
+  toss?: Partial<NotificationChannelPreferences>;
+  web?: Partial<NotificationChannelPreferences>;
+}): Promise<NotificationPreferences> {
   const r = await apiFetch("/api/v1/notifications/preferences", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },

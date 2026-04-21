@@ -1,11 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { CSSProperties, FormEvent, useEffect, useState } from "react";
+import {useParams, useRouter} from "next/navigation";
+import {CSSProperties, FormEvent, useEffect, useState} from "react";
 import {
-  fetchGroupDetail, fetchMe, getAccessToken, refreshAccessToken, updateGroup,
-  type Grade, type GroupVisibility,
+    fetchGroupDetail,
+    fetchMe,
+    getAccessToken,
+    type Grade,
+    type GroupVisibility,
+    refreshAccessToken,
+    updateGroup,
 } from "@/lib/auth";
 
 const gradeOpts: { value: Grade; label: string }[] = [
