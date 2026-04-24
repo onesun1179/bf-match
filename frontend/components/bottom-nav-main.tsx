@@ -46,10 +46,13 @@ const bottomBar: CSSProperties = {
   display: "flex",
   justifyContent: "center",
   gap: 0,
-  background: "var(--surface)",
-  borderTop: "1px solid var(--line)",
-  padding: "6px 0",
+  background: "rgba(15, 18, 26, 0.85)",
+  backdropFilter: "blur(20px)",
+  WebkitBackdropFilter: "blur(20px)",
+  borderTop: "1px solid rgba(173, 193, 230, 0.15)",
+  padding: "6px 0 calc(6px + env(safe-area-inset-bottom))",
   zIndex: 100,
+  boxShadow: "0 -4px 24px rgba(0, 0, 0, 0.2)",
 };
 
 const unreadBadge: CSSProperties = {

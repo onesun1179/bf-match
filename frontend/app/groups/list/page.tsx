@@ -61,17 +61,17 @@ export default function GroupListPage() {
 
   return (
     <main style={main}>
-      <section style={sec}>
+      <section className="animate-fade-in-up" style={sec}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>이벤트</h1>
-          <Link href="/groups/create" style={btnCreate}>+ 새 이벤트</Link>
+          <Link href="/groups/create" className="btn-hover" style={btnCreate}>+ 새 이벤트</Link>
         </div>
 
         {/* Tab */}
         <div style={tabBar}>
-          <button onClick={() => setTab("public")} style={tabStyle(tab === "public")}>공개 이벤트</button>
-          <button onClick={() => setTab("my")} style={tabStyle(tab === "my")}>내 이벤트</button>
+          <button className="btn-hover" onClick={() => setTab("public")} style={tabStyle(tab === "public")}>공개 이벤트</button>
+          <button className="btn-hover" onClick={() => setTab("my")} style={tabStyle(tab === "my")}>내 이벤트</button>
         </div>
 
         {/* Search + Filter */}
@@ -106,7 +106,7 @@ export default function GroupListPage() {
           const isMember = g.myRole != null && g.myStatus === "ACTIVE";
           const ended = isEnded(g);
           return (
-            <Link key={g.id} href={`/groups/${g.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+            <Link key={g.id} href={`/groups/${g.id}`} className="btn-hover glass-card" style={{ textDecoration: "none", color: "inherit", display: "block", borderRadius: "var(--radius-lg)" }}>
               <div style={{ ...groupCard, opacity: ended ? 0.5 : 1 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -151,15 +151,15 @@ export default function GroupListPage() {
 const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
 const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 };
 const card: CSSProperties = { padding: "20px 22px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid" };
-const groupCard: CSSProperties = { padding: "18px 20px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)", transition: "opacity .15s" };
+const groupCard: CSSProperties = { padding: "18px 20px", borderRadius: "var(--radius-lg)", transition: "opacity .15s" };
 const btnCreate: CSSProperties = { padding: "8px 16px", borderRadius: "var(--radius-sm)", background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 14, textDecoration: "none" };
 const badge: CSSProperties = { fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999 };
 const meta: CSSProperties = { fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 8, background: "var(--surface-3)", color: "var(--muted)" };
-const searchInput: CSSProperties = { minHeight: 44, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: "0 14px", fontSize: 15, background: "var(--surface-2)", color: "var(--ink)", outline: "none" };
+const searchInput: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: "1px solid rgba(173, 193, 230, 0.2)", padding: "0 16px", fontSize: 15, background: "rgba(22, 27, 37, 0.6)", color: "var(--ink)", outline: "none", backdropFilter: "blur(8px)", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)", transition: "all 0.2s" };
 function filterChip(active: boolean): CSSProperties {
-  return { padding: "6px 14px", borderRadius: 999, border: 0, fontSize: 13, fontWeight: 700, cursor: "pointer", background: active ? "var(--brand)" : "var(--surface-3)", color: active ? "#fff" : "var(--muted)", transition: "all .15s" };
+  return { padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(173, 193, 230, 0.15)", fontSize: 13, fontWeight: 700, cursor: "pointer", background: active ? "var(--brand)" : "rgba(22, 27, 37, 0.6)", color: active ? "#fff" : "var(--muted)", transition: "all .15s" };
 }
-const tabBar: CSSProperties = { display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)" };
+const tabBar: CSSProperties = { display: "flex", gap: 4, padding: 6, borderRadius: "var(--radius-md)", background: "rgba(22, 27, 37, 0.6)", backdropFilter: "blur(12px)", border: "1px solid rgba(173, 193, 230, 0.1)" };
 function tabStyle(active: boolean): CSSProperties {
-  return { flex: 1, padding: "10px 0", border: 0, borderRadius: "var(--radius-sm)", background: active ? "var(--brand)" : "transparent", color: active ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 14, cursor: "pointer", transition: "all .15s" };
+  return { flex: 1, padding: "12px 0", border: 0, borderRadius: "var(--radius-sm)", background: active ? "var(--brand)" : "transparent", color: active ? "#fff" : "var(--muted)", fontWeight: 800, fontSize: 14, cursor: "pointer", transition: "all .2s ease" };
 }

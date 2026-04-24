@@ -105,6 +105,7 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
     >
       <button
         type="button"
+        className="btn-hover"
         onClick={handleChipPointer}
         onMouseDown={(e) => {
           e.preventDefault();
@@ -117,7 +118,7 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
         }}
         style={{ ...nameBtn, ...style }}
       >
-        <span style={{ ...tagUnified, ...chipTone }}>{chipText}</span>
+        <span style={{ ...tagUnified, ...chipTone, boxShadow: "0 2px 8px rgba(0,0,0,0.2)", transition: "all 0.2s ease" }}>{chipText}</span>
       </button>
       {open && mounted ? createPortal(dialog, document.body) : null}
     </span>
@@ -181,12 +182,15 @@ const menu: CSSProperties = {
   position: "relative",
   width: "min(320px, calc(100vw - 16px))",
   maxHeight: "min(70vh, 420px)",
-  background: "var(--surface)",
-  border: "1px solid var(--line-2)",
-  borderRadius: 14,
+  background: "rgba(15, 18, 26, 0.8)",
+  backdropFilter: "blur(24px)",
+  WebkitBackdropFilter: "blur(24px)",
+  border: "1px solid rgba(173, 193, 230, 0.15)",
+  borderRadius: 16,
   overflow: "auto",
   WebkitOverflowScrolling: "touch",
-  boxShadow: "var(--shadow-lg)",
+  boxShadow: "0 16px 40px rgba(0, 0, 0, 0.5)",
+  animation: "fade-in-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
 };
 
 const backdrop: CSSProperties = {

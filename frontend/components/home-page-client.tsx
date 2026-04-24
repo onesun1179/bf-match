@@ -51,19 +51,19 @@ export function HomePageClient() {
     <main style={main}>
       <section style={section}>
         {/* Hero */}
-        <div style={hero}>
-          <div style={heroGlowA} />
+        <div style={{...hero, animation: "float 6s ease-in-out infinite"}}>
+          <div style={{...heroGlowA, animation: "pulse-glow 3s infinite"}} />
           <div style={heroGlowB} />
           <div style={heroTop}>
             <div style={brandBadge}>BF MATCH</div>
             <span style={heroGhostTag}>MATCH HUB</span>
           </div>
-          <h1 style={{ margin: "14px 0 0", fontSize: 34, fontWeight: 900, lineHeight: 1.08, letterSpacing: "-0.04em", color: "#EEF3FF", textShadow: "0 2px 14px rgba(0,0,0,0.35)" }}>
+          <h1 style={{ margin: "14px 0 0", fontSize: 36, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.04em", color: "#FFFFFF", textShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>
             오늘 칠 사람,
             <br />
-            실력 맞게 바로 찾기
+            실력 맞게 <span style={{ color: "var(--brand-light)" }}>바로 찾기</span>
           </h1>
-          <p style={{ margin: "12px 0 0", color: "#D6E0F6", fontSize: 14, lineHeight: 1.6, maxWidth: 320 }}>
+          <p style={{ margin: "12px 0 0", color: "#D6E0F6", fontSize: 15, lineHeight: 1.6, maxWidth: 320, opacity: 0.9 }}>
             급수 + 경험치를 함께 반영해서
             이벤트, 팀, 게임 제안까지 한 흐름으로 연결합니다.
           </p>
@@ -88,11 +88,11 @@ export function HomePageClient() {
                   grade={v.me.skill?.nationalGrade ?? null}
                   lv={v.me.skill?.lv ?? null}
                   myUserId={v.me.id}
-                  style={{ margin: 0, fontWeight: 700, fontSize: 18 }}
+                  style={{ margin: 0, fontWeight: 800, fontSize: 20 }}
                 />
                 {v.me.email && <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>{v.me.email}</p>}
               </div>
-              <button type="button" onClick={() => { void handleLogout(); }} style={btnGhost}>로그아웃</button>
+              <button type="button" onClick={() => { void handleLogout(); }} className="btn-hover" style={btnGhost}>로그아웃</button>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8, marginTop: 12 }}>
               <QuickMetric title="읽지 않음" value={`${unread}`} />
@@ -128,15 +128,16 @@ export function HomePageClient() {
         )}
 
         {!v.loading && !v.me && (
-          <div style={{ ...cardMain, gap: 12 }}>
-            <p style={{ margin: 0, color: "var(--ink)", fontSize: 15, textAlign: "center", fontWeight: 600 }}>
+          <div className="glass-card animate-fade-in-up" style={{ ...cardMain, gap: 16 }}>
+            <p style={{ margin: 0, color: "var(--ink)", fontSize: 16, textAlign: "center", fontWeight: 700 }}>
               로그인이 필요합니다
             </p>
-            <a href={getKakaoLoginUrl()} style={btnPrimary}>
+            <a href={getKakaoLoginUrl()} className="btn-hover" style={{...btnPrimary, background: "var(--kakao)", color: "#3C1E1E"}}>
               카카오로 로그인
             </a>
             <button
               type="button"
+              className="btn-hover"
               style={btnSecondary}
               onClick={() => router.push("/auth/login")}
             >
@@ -249,13 +250,16 @@ const heroGlowB: CSSProperties = {
 };
 const heroStatsRow: CSSProperties = { position: "relative", zIndex: 2, marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" };
 const cardMain: CSSProperties = {
-  padding: "18px 18px 16px",
+  padding: "20px 20px 18px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
-  border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01)), rgba(22, 27, 37, 0.7)",
+  backdropFilter: "blur(16px)",
+  WebkitBackdropFilter: "blur(16px)",
+  border: "1px solid rgba(173, 193, 230, 0.15)",
+  boxShadow: "0 12px 32px rgba(0, 0, 0, 0.4)",
   display: "grid",
-  gap: 10,
+  gap: 12,
+  transition: "all 0.3s ease",
 };
 const btnPrimary: CSSProperties = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: 48, borderRadius: "var(--radius-md)", background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 15, border: 0, cursor: "pointer", textDecoration: "none", transition: "opacity .15s" };
 const btnSecondary: CSSProperties = { ...btnPrimary, background: "var(--surface-3)", color: "var(--ink)" };

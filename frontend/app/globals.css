@@ -46,10 +46,65 @@ body {
 body {
   min-height: 100vh;
   background:
-    radial-gradient(ellipse 66% 56% at 45% -16%, rgba(91, 140, 255, 0.24), transparent 70%),
-    radial-gradient(ellipse 58% 44% at 92% 106%, rgba(24, 210, 182, 0.12), transparent 72%),
-    radial-gradient(ellipse 42% 28% at 8% 100%, rgba(255, 109, 122, 0.08), transparent 74%),
+    radial-gradient(ellipse 70% 60% at 50% -10%, rgba(91, 140, 255, 0.3), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 90% 110%, rgba(24, 210, 182, 0.15), transparent 70%),
+    radial-gradient(ellipse 40% 30% at 10% 100%, rgba(255, 109, 122, 0.1), transparent 70%),
     var(--bg);
+  background-attachment: fixed;
+  animation: bgGlow 15s ease-in-out infinite alternate;
+}
+
+@keyframes bgGlow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(91, 140, 255, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(91, 140, 255, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(91, 140, 255, 0); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.glass-card {
+  background: rgba(22, 27, 37, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(173, 193, 230, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s ease;
+}
+
+.glass-card:hover {
+  border-color: rgba(173, 193, 230, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+}
+
+.btn-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-hover:active {
+  transform: scale(0.96);
+}
+
+.btn-hover:hover {
+  filter: brightness(1.1);
 }
 
 a {

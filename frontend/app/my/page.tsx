@@ -21,8 +21,8 @@ export default function MyPage() {
 
   return (
     <main style={main}>
-      <section style={sec}>
-        <div style={hero}>
+      <section className="animate-fade-in-up" style={sec}>
+        <div className="glass-card" style={hero}>
           <p style={{ margin: 0, color: "var(--brand-light)", fontWeight: 700 }}>마이</p>
           <h1 style={{ margin: "8px 0 6px", fontSize: 30, fontWeight: 800 }}>내 메뉴</h1>
           <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 15 }}>
@@ -30,7 +30,7 @@ export default function MyPage() {
           </p>
         </div>
 
-        <Link href="/my-record" style={itemLink}>
+        <Link href="/my-record" className="glass-card btn-hover" style={itemLink}>
           <div style={itemIcon}>{"\u{1F4CB}"}</div>
           <div style={{ display: "grid", gap: 4 }}>
             <p style={itemTitle}>기록</p>
@@ -39,7 +39,7 @@ export default function MyPage() {
           <div style={arrow}>&rsaquo;</div>
         </Link>
 
-        <Link href="/settings" style={itemLink}>
+        <Link href="/settings" className="glass-card btn-hover" style={itemLink}>
           <div style={itemIcon}>{"\u2699\uFE0F"}</div>
           <div style={{ display: "grid", gap: 4 }}>
             <p style={itemTitle}>설정</p>
@@ -57,16 +57,15 @@ export default function MyPage() {
 const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
 const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", gap: 12 };
 const hero: CSSProperties = {
-  padding: "22px 24px",
+  padding: "24px 24px",
   borderRadius: "var(--radius-lg)",
-  background: "var(--surface)",
-  border: "1px solid var(--line)",
+  background: "linear-gradient(135deg, rgba(91, 140, 255, 0.1), rgba(24, 210, 182, 0.05))",
+  border: "1px solid rgba(173, 193, 230, 0.2)",
+  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
 };
 const itemLink: CSSProperties = {
   padding: "18px 20px",
   borderRadius: "var(--radius-lg)",
-  background: "var(--surface)",
-  border: "1px solid var(--line)",
   textDecoration: "none",
   color: "inherit",
   display: "grid",
