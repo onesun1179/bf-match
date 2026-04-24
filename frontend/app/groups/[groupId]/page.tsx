@@ -468,17 +468,17 @@ export default function GroupDetailPage() {
 
         {/* ── Tab: Manage ── */}
         {tab === "manage" && isOwnerOrManager && (
-          <div style={{ ...card, gap: 12 }}>
+          <div className="glass-card animate-fade-in-up" style={{ ...card, gap: 12 }}>
             <h2 style={sh}>관리</h2>
-            <button disabled={linkLoading} onClick={() => { void handleCopyLink(); }} style={{ ...btnP, background: linkCopied ? "var(--success)" : "var(--brand)" }}>
+            <button className="btn-hover" disabled={linkLoading} onClick={() => { void handleCopyLink(); }} style={{ ...btnP, background: linkCopied ? "var(--success)" : "var(--brand)" }}>
               {linkCopied ? "복사 완료!" : linkLoading ? "생성 중..." : "초대 링크 복사"}
             </button>
-            <Link href={`/groups/${group.id}/invite-history`} style={{ textDecoration: "none" }}><div style={{ ...btnSec, textAlign: "center" }}>초대 이력</div></Link>
+            <Link href={`/groups/${group.id}/invite-history`} className="btn-hover" style={{ textDecoration: "none" }}><div style={btnSec}>초대 이력</div></Link>
             {isOwnerOrManager && (
-              <Link href={`/groups/${group.id}/edit`} style={{ textDecoration: "none" }}><div style={{ ...btnSec, textAlign: "center" }}>이벤트 정보 수정</div></Link>
+              <Link href={`/groups/${group.id}/edit`} className="btn-hover" style={{ textDecoration: "none" }}><div style={btnSec}>이벤트 정보 수정</div></Link>
             )}
             {isOwner && !group.closed && (
-              <button onClick={() => { void handleClose(); }} style={{ ...btnDng, width: "100%" }}>이벤트 종료</button>
+              <button className="btn-hover" onClick={() => { void handleClose(); }} style={{ ...btnDng, width: "100%" }}>이벤트 종료</button>
             )}
             {group.closed && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, fontWeight: 700, textAlign: "center" }}>이 이벤트는 종료되었습니다</p>}
           </div>
@@ -1051,6 +1051,9 @@ const btnP: CSSProperties = {
   fontSize: 15,
   cursor: "pointer",
   boxShadow: "0 10px 22px rgba(63,105,206,0.32)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 };
 const btnSec: CSSProperties = {
   minHeight: 44,
@@ -1061,6 +1064,9 @@ const btnSec: CSSProperties = {
   fontWeight: 700,
   fontSize: 15,
   cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 };
 const btnDng: CSSProperties = {
   minHeight: 48,
@@ -1071,6 +1077,9 @@ const btnDng: CSSProperties = {
   fontWeight: 800,
   fontSize: 15,
   cursor: "pointer",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
 };
 const btnKick: CSSProperties = { padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(255,107,107,0.3)", background: "var(--danger-bg)", color: "var(--danger)", fontSize: 12, fontWeight: 700, cursor: "pointer" };
 const gBadge: CSSProperties = { fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 8, background: "var(--surface-3)", color: "var(--ink-secondary)" };

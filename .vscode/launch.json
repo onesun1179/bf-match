@@ -1,0 +1,34 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Launch Backend (Spring Boot)",
+      "request": "launch",
+      "mainClass": "com.bfmatch.api.BfMatchApplicationKt",
+      "cwd": "${workspaceFolder}/backend",
+      "envFile": "${workspaceFolder}/backend/.env.local"
+    },
+    {
+      "type": "node",
+      "name": "Launch Frontend (Next.js)",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "console": "integratedTerminal"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Launch Fullstack",
+      "configurations": [
+        "Launch Backend (Spring Boot)",
+        "Launch Frontend (Next.js)"
+      ]
+    }
+  ]
+}
