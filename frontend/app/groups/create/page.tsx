@@ -129,7 +129,7 @@ export default function GroupCreatePage() {
                 <select value={f.maxGrade} onChange={set("maxGrade")} style={inp}><option value="">제한 없음</option>{gradeOpts.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select>
               </label>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            <div style={grid3}>
               <label style={lw}><span style={lb}>최대 인원</span><input type="number" value={f.maxMembers} onChange={set("maxMembers")} min={1} placeholder="-" style={inp} /></label>
               <label style={lw}><span style={lb}>최대 남성</span><input type="number" value={f.maxMale} onChange={set("maxMale")} min={0} placeholder="-" style={inp} /></label>
               <label style={lw}><span style={lb}>최대 여성</span><input type="number" value={f.maxFemale} onChange={set("maxFemale")} min={0} placeholder="-" style={inp} /></label>
@@ -154,7 +154,20 @@ const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", g
 const card: CSSProperties = { padding: "24px", borderRadius: "var(--radius-xl)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid", gap: 8 };
 const lw: CSSProperties = { display: "grid", gap: 6 };
 const lb: CSSProperties = { fontWeight: 600, fontSize: 13, color: "var(--ink-secondary)" };
-const inp: CSSProperties = { minHeight: 44, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: "0 14px", fontSize: 15, background: "var(--surface-2)", color: "var(--ink)", outline: "none" };
+const inp: CSSProperties = {
+  minHeight: 44,
+  borderRadius: "var(--radius-md)",
+  border: "1px solid var(--line-2)",
+  padding: "0 14px",
+  fontSize: 15,
+  background: "var(--surface-2)",
+  color: "var(--ink)",
+  outline: "none",
+  width: "100%",
+  minWidth: 0,
+  boxSizing: "border-box",
+};
 const btn: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: 0, background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 4 };
-const grid2: CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 };
+const grid2: CSSProperties = { display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 12 };
+const grid3: CSSProperties = { display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr)", gap: 12 };
 const sectionTitle: CSSProperties = { margin: "8px 0 0", fontSize: 14, fontWeight: 700, color: "var(--ink-secondary)" };

@@ -28,4 +28,44 @@ describe("UserNameActions", () => {
     expect(screen.getByText("나와의 전적 보기")).toBeInTheDocument();
     expect(parentClick).not.toHaveBeenCalled();
   });
+
+  it("closes menu by close button", () => {
+    render(
+      <UserNameActions
+        userId={1}
+        nickname="테스터"
+        gender="MALE"
+        grade="D"
+        lv={3}
+        myUserId={2}
+      />,
+    );
+
+    fireEvent.mouseDown(screen.getByRole("button"));
+    fireEvent.click(screen.getByRole("button"));
+    expect(screen.getByText("개인 기록 보기")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText("액션 메뉴 닫기"));
+    expect(screen.queryByText("개인 기록 보기")).not.toBeInTheDocument();
+  });
+
+  it("closes menu by clicking background", () => {
+    render(
+      <UserNameActions
+        userId={1}
+        nickname="테스터"
+        gender="MALE"
+        grade="D"
+        lv={3}
+        myUserId={2}
+      />,
+    );
+
+    fireEvent.mouseDown(screen.getByRole("button"));
+    fireEvent.click(screen.getByRole("button"));
+    expect(screen.getByText("개인 기록 보기")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("user-actions-wrap"));
+    expect(screen.queryByText("개인 기록 보기")).not.toBeInTheDocument();
+  });
 });

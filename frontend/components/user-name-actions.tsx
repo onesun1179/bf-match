@@ -71,11 +71,30 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
 
   const dialog = (
     <>
-      <div style={backdrop} onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
-      <div style={menuWrap} onClick={(e) => e.stopPropagation()}>
+      <div data-testid="user-actions-backdrop" style={backdrop} onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
+      <div
+        data-testid="user-actions-wrap"
+        style={menuWrap}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (e.target === e.currentTarget) setOpen(false);
+        }}
+      >
         <div ref={menuRef} style={menu}>
           <div style={menuHeader}>
             <UserInfoChip nickname={nickname} gender={gender} grade={grade} lv={lv} style={{ fontSize: 13 }} />
+            <button
+              type="button"
+              aria-label="액션 메뉴 닫기"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setOpen(false);
+              }}
+              style={closeBtn}
+            >
+              ✕
+            </button>
           </div>
           <Link href={`/users/${userId}/record`} style={menuItem} onClick={(e) => { e.stopPropagation(); setOpen(false); }}>
             개인 기록 보기
@@ -201,6 +220,10 @@ const backdrop: CSSProperties = {
 };
 
 const menuHeader: CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 8,
   padding: "10px 12px",
   borderBottom: "1px solid var(--line)",
   fontSize: 13,
@@ -210,6 +233,21 @@ const menuHeader: CSSProperties = {
   whiteSpace: "nowrap",
   overflow: "hidden",
   textOverflow: "ellipsis",
+};
+
+const closeBtn: CSSProperties = {
+  border: "1px solid rgba(220, 95, 95, 0.5)",
+  background: "rgba(220, 95, 95, 0.15)",
+  color: "#ff8e8e",
+  width: 24,
+  height: 24,
+  borderRadius: 999,
+  fontSize: 12,
+  lineHeight: "22px",
+  textAlign: "center",
+  cursor: "pointer",
+  flex: "0 0 auto",
+  padding: 0,
 };
 
 const menuItem: CSSProperties = {
