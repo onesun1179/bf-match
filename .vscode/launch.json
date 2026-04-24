@@ -3,30 +3,25 @@
   "configurations": [
     {
       "type": "java",
-      "name": "Launch Backend (Spring Boot)",
-      "request": "launch",
-      "mainClass": "com.bfmatch.api.BfMatchApplicationKt",
-      "cwd": "${workspaceFolder}/backend",
-      "envFile": "${workspaceFolder}/backend/.env.local"
+      "name": "Attach Backend (Spring Boot)",
+      "request": "attach",
+      "hostName": "localhost",
+      "port": 5005,
+      "preLaunchTask": "Run Spring Boot (Debug)"
     },
     {
-      "type": "node",
+      "type": "node-terminal",
       "name": "Launch Frontend (Next.js)",
       "request": "launch",
-      "cwd": "${workspaceFolder}/frontend",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "dev"
-      ],
-      "console": "integratedTerminal"
+      "command": "npm run dev",
+      "cwd": "${workspaceFolder}/frontend"
     }
   ],
   "compounds": [
     {
       "name": "Launch Fullstack",
       "configurations": [
-        "Launch Backend (Spring Boot)",
+        "Attach Backend (Spring Boot)",
         "Launch Frontend (Next.js)"
       ]
     }

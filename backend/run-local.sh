@@ -14,4 +14,4 @@ set -a
 source "${ENV_FILE}"
 set +a
 
-./gradlew bootRun
+./gradlew bootRun "$@"

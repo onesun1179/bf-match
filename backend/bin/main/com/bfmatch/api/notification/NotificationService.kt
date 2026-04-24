@@ -71,7 +71,7 @@ class NotificationService(
             .forEach { it.isRead = true; notificationRepository.save(it) }
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = [Exception::class])
     fun registerFcmToken(user: User, token: String) {
         try {
             fcmTokenRepository.deleteAllByUserId(user.id!!)

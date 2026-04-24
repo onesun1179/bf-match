@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ThemeProvider, createTheme, Button, Dialog as MuiDialog, DialogTitle, DialogContent, DialogActions, TextField, Typography } from "@mui/material";
 import {useParams, useRouter, useSearchParams} from "next/navigation";
 import {CSSProperties, useEffect, useState} from "react";
 import {
@@ -39,7 +40,35 @@ import {BottomNavGroupDetail} from "@/components/bottom-nav-group-detail";
 import {UserNameActions} from "@/components/user-name-actions";
 
 type Tab = "info" | "manage" | "members" | "games" | "stats";
-type Dialog = { type: "none" } | { type: "invite"; token: string; info: InviteLinkInfo | null } | { type: "decline"; token: string; info: InviteLinkInfo | null };
+type DialogType = { type: "none" } | { type: "invite"; token: string; info: InviteLinkInfo | null } | { type: "decline"; token: string; info: InviteLinkInfo | null };
+
+const darkTheme = createTheme({
+  palette: {
+    mode: "dark",
+    primary: { main: "#5b8cff" },
+    secondary: { main: "#18d2b6" },
+    error: { main: "#ff6d7a" },
+    success: { main: "#23c686" },
+    warning: { main: "#f3c56f" },
+    background: { default: "transparent", paper: "#161b25" },
+  },
+  typography: {
+    fontFamily: '"Pretendard Variable", "Pretendard", -apple-system, sans-serif',
+  },
+  shape: { borderRadius: 16 },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: { textTransform: "none", fontWeight: 700, borderRadius: 12 },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: { backgroundImage: "none" },
+      },
+    },
+  },
+});
 
 export default function GroupDetailPage() {
   const params = useParams<{ groupId: string }>();
@@ -51,7 +80,7 @@ export default function GroupDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("info");
-  const [dialog, setDialog] = useState<Dialog>({ type: "none" });
+  const [dialog, setDialog] = useState<DialogType>({ type: "none" });
   const [declineReason, setDeclineReason] = useState("");
   const [ds, setDs] = useState(false); // dialog submitting
   const [de, setDe] = useState<string | null>(null); // dialog error
@@ -380,44 +409,53 @@ export default function GroupDetailPage() {
   if (error && !group && dialog.type === "none") return <main style={main}><div style={{ ...card, maxWidth: 400, margin: "60px auto" }}><p style={{ margin: 0, color: "var(--danger)", textAlign: "center" }}>{error}</p><Link href="/groups/list" style={{ color: "var(--brand-light)", fontWeight: 700, textAlign: "center" }}>이벤트 목록으로</Link></div></main>;
 
   return (
+    <ThemeProvider theme={darkTheme}>
     <main style={{ ...main, paddingBottom: 80 }}>
       {/* ── Invite Dialog ── */}
-      {(dialog.type === "invite" || dialog.type === "decline") && (
-        <div style={overlay}><div style={dlg}>
-          {dialog.type === "invite" && (<>
-            <div style={{ fontSize: 40, textAlign: "center" }}>{"\u{1F3F8}"}</div>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, textAlign: "center" }}>이벤트 초대</h2>
-            <p style={{ margin: 0, color: "var(--ink-secondary)", textAlign: "center", fontSize: 15, lineHeight: 1.6 }}>
-              <strong style={{ color: "var(--ink)" }}>{group?.name ?? inviteInfo?.groupName ?? "이벤트"}</strong>에 초대되었습니다.
-            </p>
-            {inviteInfo && (
-              <div style={{ padding: "12px 16px", borderRadius: "var(--radius-sm)", background: "var(--surface-3)", display: "grid", gap: 4 }}>
-                <p style={{ margin: 0, fontSize: 13, color: "var(--ink-secondary)" }}>초대자: <strong style={{ color: "var(--ink)" }}>{inviteInfo.inviterNickname}</strong></p>
-                <p style={{ margin: 0, fontSize: 13, color: "var(--ink-secondary)" }}>초대일시: {fmtDate(inviteInfo.invitedAt)}</p>
-              </div>
-            )}
-            {de && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{de}</p>}
-            <div style={{ display: "grid", gap: 10 }}>
-              <button disabled={ds} onClick={() => { void handleAccept(); }} style={{ ...btnP, width: "100%" }}>{ds ? "처리 중..." : "승인"}</button>
-              <button disabled={ds} onClick={() => setDialog({ type: "decline", token: dialog.token, info: dialog.info })} style={{ ...btnDng, width: "100%" }}>거절</button>
-            </div>
-          </>)}
-          {dialog.type === "decline" && (<>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, textAlign: "center" }}>초대 거절</h2>
-            <textarea value={declineReason} onChange={(e) => setDeclineReason(e.target.value)} placeholder="거절 사유 (선택)" rows={3} style={ta} />
-            {de && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{de}</p>}
-            <div style={{ display: "grid", gap: 10 }}>
-              <button disabled={ds} onClick={() => { void handleDecline(); }} style={{ ...btnDng, width: "100%" }}>{ds ? "처리 중..." : "거절 확인"}</button>
-              <button disabled={ds} onClick={() => setDialog({ type: "invite", token: dialog.token, info: dialog.info })} style={{ ...btnSec, width: "100%" }}>돌아가기</button>
-            </div>
-          </>)}
-        </div></div>
-      )}
+      <MuiDialog open={dialog.type === "invite" || dialog.type === "decline"} onClose={() => {}} fullWidth maxWidth="xs" PaperProps={{ sx: { background: "var(--surface)", borderRadius: "var(--radius-lg)" } }}>
+        {dialog.type === "invite" && (
+          <>
+            <DialogTitle sx={{ textAlign: "center", pb: 0 }}>
+              <div style={{ fontSize: 40, textAlign: "center", marginBottom: 8 }}>{"\u{1F3F8}"}</div>
+              <span style={{ fontSize: 20, fontWeight: 800 }}>이벤트 초대</span>
+            </DialogTitle>
+            <DialogContent sx={{ textAlign: "center", pb: 2 }}>
+              <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 15, lineHeight: 1.6 }}>
+                <strong style={{ color: "var(--ink)" }}>{group?.name ?? inviteInfo?.groupName ?? "이벤트"}</strong>에 초대되었습니다.
+              </p>
+              {inviteInfo && (
+                <div style={{ padding: "12px 16px", borderRadius: "var(--radius-sm)", background: "var(--surface-3)", display: "grid", gap: 4, marginTop: 12 }}>
+                  <p style={{ margin: 0, fontSize: 13, color: "var(--ink-secondary)" }}>초대자: <strong style={{ color: "var(--ink)" }}>{inviteInfo.inviterNickname}</strong></p>
+                  <p style={{ margin: 0, fontSize: 13, color: "var(--ink-secondary)" }}>초대일시: {fmtDate(inviteInfo.invitedAt)}</p>
+                </div>
+              )}
+              {de && <Typography color="error" variant="body2" sx={{ mt: 1 }}>{de}</Typography>}
+            </DialogContent>
+            <DialogActions sx={{ flexDirection: "column", px: 3, pb: 3, gap: 1 }}>
+              <Button fullWidth variant="contained" disabled={ds} onClick={() => { void handleAccept(); }} sx={{ py: 1.5 }}>{ds ? "처리 중..." : "승인"}</Button>
+              <Button fullWidth variant="outlined" color="error" disabled={ds} onClick={() => setDialog({ type: "decline", token: dialog.token, info: dialog.info })} sx={{ margin: "0 !important", py: 1.5 }}>거절</Button>
+            </DialogActions>
+          </>
+        )}
+        {dialog.type === "decline" && (
+          <>
+            <DialogTitle sx={{ textAlign: "center", fontWeight: 800 }}>초대 거절</DialogTitle>
+            <DialogContent>
+              <TextField fullWidth multiline rows={3} value={declineReason} onChange={(e) => setDeclineReason(e.target.value)} placeholder="거절 사유 (선택)" sx={{ mt: 1, "& .MuiOutlinedInput-root": { color: "var(--ink)", background: "var(--surface-2)" } }} />
+              {de && <Typography color="error" variant="body2" sx={{ mt: 1, textAlign: "center" }}>{de}</Typography>}
+            </DialogContent>
+            <DialogActions sx={{ flexDirection: "column", px: 3, pb: 3, gap: 1 }}>
+              <Button fullWidth variant="contained" color="error" disabled={ds} onClick={() => { void handleDecline(); }} sx={{ py: 1.5 }}>{ds ? "처리 중..." : "거절 확인"}</Button>
+              <Button fullWidth variant="outlined" disabled={ds} onClick={() => setDialog({ type: "invite", token: dialog.token, info: dialog.info })} sx={{ margin: "0 !important", py: 1.5 }}>돌아가기</Button>
+            </DialogActions>
+          </>
+        )}
+      </MuiDialog>
 
       {/* ── Content ── */}
       {group && <section style={sec}>
         {/* Header */}
-        <div style={{ ...card, gap: 8 }}>
+        <div className="mui-card animate-fade-in-up" style={{ ...card, gap: 8 }}>
           <Link href="/groups/list" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 이벤트 목록</Link>
           <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em" }}>{group.name}</h1>
           {group.description && <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 14, lineHeight: 1.5 }}>{group.description}</p>}
@@ -425,7 +463,7 @@ export default function GroupDetailPage() {
 
         {/* ── Tab: Info ── */}
         {tab === "info" && (
-          <div style={{ ...card, gap: 12 }}>
+          <div className="mui-card animate-fade-in-up" style={{ ...card, gap: 12 }}>
             <h2 style={sh}>이벤트 정보</h2>
             <div style={infoGrid}>
               <InfoRow label="장소" value={group.location ?? "-"} />
@@ -446,6 +484,7 @@ export default function GroupDetailPage() {
               <div style={{ marginTop: 8 }}>
                 {joinBlock && <p style={{ margin: "0 0 8px", color: "var(--warning)", fontSize: 13 }}>{joinBlock}</p>}
                 <button
+                  className="mui-btn"
                   disabled={!canJoin || joinLoading}
                   onClick={() => { void handleJoinPublic(); }}
                   style={{ ...btnP, width: "100%", opacity: canJoin ? 1 : 0.4, cursor: canJoin ? "pointer" : "not-allowed" }}
@@ -458,7 +497,7 @@ export default function GroupDetailPage() {
             {/* Leave Button for non-owner members */}
             {isMember && !isOwner && (
               <div style={{ marginTop: 8 }}>
-                <button onClick={() => { void handleLeave(); }} style={{ ...btnDng, width: "100%" }}>
+                <button className="mui-btn" onClick={() => { void handleLeave(); }} style={{ ...btnDng, width: "100%" }}>
                   이벤트 탈퇴
                 </button>
               </div>
@@ -468,17 +507,17 @@ export default function GroupDetailPage() {
 
         {/* ── Tab: Manage ── */}
         {tab === "manage" && isOwnerOrManager && (
-          <div className="glass-card animate-fade-in-up" style={{ ...card, gap: 12 }}>
+          <div className="mui-card animate-fade-in-up" style={{ ...card, gap: 12 }}>
             <h2 style={sh}>관리</h2>
-            <button className="btn-hover" disabled={linkLoading} onClick={() => { void handleCopyLink(); }} style={{ ...btnP, background: linkCopied ? "var(--success)" : "var(--brand)" }}>
+            <button className="mui-btn" disabled={linkLoading} onClick={() => { void handleCopyLink(); }} style={{ ...btnP, background: linkCopied ? "var(--success)" : "var(--brand)" }}>
               {linkCopied ? "복사 완료!" : linkLoading ? "생성 중..." : "초대 링크 복사"}
             </button>
-            <Link href={`/groups/${group.id}/invite-history`} className="btn-hover" style={{ textDecoration: "none" }}><div style={btnSec}>초대 이력</div></Link>
+            <Link href={`/groups/${group.id}/invite-history`} className="mui-btn" style={{ textDecoration: "none" }}><div style={btnSec}>초대 이력</div></Link>
             {isOwnerOrManager && (
-              <Link href={`/groups/${group.id}/edit`} className="btn-hover" style={{ textDecoration: "none" }}><div style={btnSec}>이벤트 정보 수정</div></Link>
+              <Link href={`/groups/${group.id}/edit`} className="mui-btn" style={{ textDecoration: "none" }}><div style={btnSec}>이벤트 정보 수정</div></Link>
             )}
             {isOwner && !group.closed && (
-              <button className="btn-hover" onClick={() => { void handleClose(); }} style={{ ...btnDng, width: "100%" }}>이벤트 종료</button>
+              <button className="mui-btn" onClick={() => { void handleClose(); }} style={{ ...btnDng, width: "100%" }}>이벤트 종료</button>
             )}
             {group.closed && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, fontWeight: 700, textAlign: "center" }}>이 이벤트는 종료되었습니다</p>}
           </div>
@@ -486,7 +525,7 @@ export default function GroupDetailPage() {
 
         {/* ── Tab: Members ── */}
         {tab === "members" && (
-          <div style={{ ...card, gap: 10 }}>
+          <div className="mui-card animate-fade-in-up" style={{ ...card, gap: 10 }}>
             <h2 style={sh}>멤버 ({group.members.length})</h2>
             {sortedMembers.map((m) => (
               <div key={m.userId} style={{ ...item, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -539,7 +578,7 @@ export default function GroupDetailPage() {
                         <option value="MANAGER">관리자</option>
                         <option value="MEMBER">멤버</option>
                       </select>
-                      <button onClick={() => { void handleKick(m.userId, m.nickname); }} style={btnKick}>강퇴</button>
+                      <button className="mui-btn" onClick={() => { void handleKick(m.userId, m.nickname); }} style={btnKick}>강퇴</button>
                     </div>
                   )}
                 </div>
@@ -550,7 +589,7 @@ export default function GroupDetailPage() {
 
         {/* ── Tab: Games ── */}
         {tab === "games" && (
-          <div style={{ ...card, gap: 12 }}>
+          <div className="mui-card animate-fade-in-up" style={{ ...card, gap: 12 }}>
             <div style={{ display: "grid", gap: 10 }}>
               <h2 style={sh}>게임</h2>
               {isMember && !group.closed && (
@@ -558,6 +597,7 @@ export default function GroupDetailPage() {
                   {isOwnerOrManager && (
                     <Link
                       href={`/groups/${group.id}/games/new?mode=create`}
+                      className="mui-btn"
                       style={{ ...gameTopBtn, background: "var(--accent)" }}
                     >
                       + 게임 생성
@@ -565,6 +605,7 @@ export default function GroupDetailPage() {
                   )}
                   <Link
                     href={`/groups/${group.id}/games/new?mode=propose`}
+                    className="mui-btn"
                     style={{ ...gameTopBtn, background: "var(--brand)" }}
                   >
                     + 게임 제안
@@ -802,13 +843,13 @@ export default function GroupDetailPage() {
                   <div style={{ display: "flex", gap: 6, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
                     {canManageProposal && (
                       <>
-                        <button onClick={() => { void handleApproveProposal(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}>제안 수락</button>
-                        <button onClick={() => { void handleRejectProposal(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>제안 거절</button>
+                        <button className="mui-btn" onClick={() => { void handleApproveProposal(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}>제안 수락</button>
+                        <button className="mui-btn" onClick={() => { void handleRejectProposal(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>제안 거절</button>
                       </>
                     )}
-                    {g.status === "PENDING" && isMember && isProposalApproved && !group.closed && <button onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
-                    {g.status === "IN_PROGRESS" && isMember && !group.closed && <button onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>게임 완료</button>}
-                    {g.status === "FINISHED" && isPlayer && !group.closed && g.winnerTeam == null && g.pendingWinnerTeam == null && <button onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setPendingWinnerTeam(null); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>결과 입력</button>}
+                    {g.status === "PENDING" && isMember && isProposalApproved && !group.closed && <button className="mui-btn" onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
+                    {g.status === "IN_PROGRESS" && isMember && !group.closed && <button className="mui-btn" onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>게임 완료</button>}
+                    {g.status === "FINISHED" && isPlayer && !group.closed && g.winnerTeam == null && g.pendingWinnerTeam == null && <button className="mui-btn" onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setPendingWinnerTeam(null); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>결과 입력</button>}
                     {canManagerForceConfirm && (
                       <button
                         onClick={() => {
@@ -826,6 +867,7 @@ export default function GroupDetailPage() {
                     )}
                     {canManagerEditScoredGame && (
                       <button
+                        className="mui-btn"
                         onClick={() => {
                           setScoreDialog({ gameId: g.id, autoConfirm: true });
                           setPendingWinnerTeam((g.winnerTeam === "A" || g.winnerTeam === "B") ? g.winnerTeam : null);
@@ -836,7 +878,7 @@ export default function GroupDetailPage() {
                       </button>
                     )}
                     {canPlayerRejectScore && (
-                      <button onClick={() => { void handleRejectScore(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>
+                      <button className="mui-btn" onClick={() => { void handleRejectScore(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>
                         결과 거절
                       </button>
                     )}
@@ -850,11 +892,11 @@ export default function GroupDetailPage() {
 
         {/* ── Tab: Stats ── */}
         {tab === "stats" && (
-          <div style={{ ...card, gap: 10 }}>
+          <div className="mui-card animate-fade-in-up" style={{ ...card, gap: 10 }}>
             <h2 style={sh}>랭킹</h2>
             <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)" }}>
-              <button onClick={() => setRankingMode("PERSONAL")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "PERSONAL" ? "var(--brand)" : "transparent", color: rankingMode === "PERSONAL" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>개인</button>
-              <button onClick={() => setRankingMode("TEAM")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "TEAM" ? "var(--brand)" : "transparent", color: rankingMode === "TEAM" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>팀</button>
+              <button className="mui-btn" onClick={() => setRankingMode("PERSONAL")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "PERSONAL" ? "var(--brand)" : "transparent", color: rankingMode === "PERSONAL" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>개인</button>
+              <button className="mui-btn" onClick={() => setRankingMode("TEAM")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "TEAM" ? "var(--brand)" : "transparent", color: rankingMode === "TEAM" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>팀</button>
             </div>
             {rankingMode === "PERSONAL" && memberStats.length === 0 && <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center", padding: 20 }}>개인 랭킹 데이터가 없습니다</p>}
             {rankingMode === "TEAM" && teamRankingEntries.length === 0 && <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center", padding: 20 }}>팀 랭킹 데이터가 없습니다</p>}
@@ -894,6 +936,7 @@ export default function GroupDetailPage() {
                 ))}
               {memberStats.length > 5 && (
                 <button
+                  className="mui-btn"
                   onClick={() => setShowAllRanking((prev) => !prev)}
                   style={{ ...btnSec, minHeight: 36, fontSize: 13, marginTop: 4 }}
                 >
@@ -949,6 +992,7 @@ export default function GroupDetailPage() {
                 })}
               {teamRankingEntries.length > 5 && (
                 <button
+                  className="mui-btn"
                   onClick={() => setShowAllTeamRanking((prev) => !prev)}
                   style={{ ...btnSec, minHeight: 36, fontSize: 13, marginTop: 4 }}
                 >
@@ -960,43 +1004,43 @@ export default function GroupDetailPage() {
         )}
 
         {/* Result Dialog */}
-        {scoreDialog && (
-          <div style={overlay}><div style={dlg}>
-            <button
-              onClick={() => setScoreDialog(null)}
-              aria-label="닫기"
-              style={closeIconBtn}
-            >
-              ×
-            </button>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, textAlign: "center" }}>승패 입력</h2>
-            <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 14, textAlign: "center" }}>승리 팀을 선택하세요</p>
+        <MuiDialog open={scoreDialog !== null} onClose={() => setScoreDialog(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { background: "var(--surface)", borderRadius: "var(--radius-lg)" } }}>
+          <DialogTitle sx={{ textAlign: "center", fontWeight: 800 }}>승패 입력</DialogTitle>
+          <DialogContent sx={{ textAlign: "center" }}>
+            <p style={{ margin: "0 0 16px 0", color: "var(--ink-secondary)", fontSize: 14 }}>승리 팀을 선택하세요</p>
             <div style={{ display: "grid", gap: 10 }}>
-              <button
+              <Button
+                variant={pendingWinnerTeam === "A" ? "contained" : "outlined"}
+                color="primary"
                 onClick={() => setPendingWinnerTeam("A")}
-                style={{ ...btnSec, minHeight: 42, borderColor: pendingWinnerTeam === "A" ? "rgba(91,140,255,0.75)" : "var(--line-2)", background: pendingWinnerTeam === "A" ? "rgba(91,140,255,0.16)" : "var(--surface-2)", color: pendingWinnerTeam === "A" ? "var(--brand-light)" : "var(--ink)" }}
+                sx={{ minHeight: 48, fontSize: 16 }}
               >
                 팀 A 승리
-              </button>
-              <button
+              </Button>
+              <Button
+                variant={pendingWinnerTeam === "B" ? "contained" : "outlined"}
+                color="secondary"
                 onClick={() => setPendingWinnerTeam("B")}
-                style={{ ...btnSec, minHeight: 42, borderColor: pendingWinnerTeam === "B" ? "rgba(24,210,182,0.75)" : "var(--line-2)", background: pendingWinnerTeam === "B" ? "rgba(24,210,182,0.16)" : "var(--surface-2)", color: pendingWinnerTeam === "B" ? "var(--accent)" : "var(--ink)" }}
+                sx={{ minHeight: 48, fontSize: 16 }}
               >
                 팀 B 승리
-              </button>
+              </Button>
             </div>
-            {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{error}</p>}
-            <div style={{ display: "grid", gap: 10 }}>
-              <button
-                disabled={pendingWinnerTeam == null}
-                onClick={() => { void handleSubmitScore(); }}
-                style={{ ...btnP, width: "100%", opacity: pendingWinnerTeam == null ? 0.45 : 1, cursor: pendingWinnerTeam == null ? "not-allowed" : "pointer" }}
-              >
-                확인
-              </button>
-            </div>
-          </div></div>
-        )}
+            {error && <Typography color="error" variant="body2" sx={{ mt: 2 }}>{error}</Typography>}
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 3 }}>
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              disabled={pendingWinnerTeam == null}
+              onClick={() => { void handleSubmitScore(); }}
+              sx={{ py: 1.5 }}
+            >
+              확인
+            </Button>
+          </DialogActions>
+        </MuiDialog>
 
         {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14 }}>{error}</p>}
       </section>}
@@ -1010,6 +1054,7 @@ export default function GroupDetailPage() {
         />
       )}
     </main>
+    </ThemeProvider>
   );
 }
 
