@@ -1,7 +1,7 @@
 "use client";
 
-import {useRouter} from "next/navigation";
-import {CSSProperties, useEffect, useState} from "react";
+import {useRouter, useSearchParams} from "next/navigation";
+import {CSSProperties, Suspense, useEffect, useState} from "react";
 import {
   fetchRanking,
   fetchTeamRanking,
@@ -22,18 +22,37 @@ const TYPE_TABS = [
   { key: "FEMALE_DOUBLES", label: "여복" },
   { key: "MIXED_DOUBLES", label: "혼복" },
   { key: "FREE", label: "자유" },
-];
+] as const;
+
+type RankingMode = "PERSONAL" | "TEAM";
+type RankingType = (typeof TYPE_TABS)[number]["key"];
+type RankingQuery = {
+  mode: RankingMode;
+  grade: Grade;
+  type: RankingType;
+  hasGrade: boolean;
+};
 
 export default function RankingPage() {
+  return (
+    <Suspense fallback={<RankingPageFallback />}>
+      <RankingPageContent />
+    </Suspense>
+  );
+}
+
+function RankingPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [initialQuery] = useState<RankingQuery>(() => parseRankingQuery(searchParams));
   const [data, setData] = useState<RankingByGrade | null>(null);
   const [teamData, setTeamData] = useState<TeamRankingResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mode, setMode] = useState<"PERSONAL" | "TEAM">("PERSONAL");
-  const [gradeTab, setGradeTab] = useState<Grade>("F");
-  const [teamGradeTab, setTeamGradeTab] = useState<Grade>("F");
-  const [teamTypeTab, setTeamTypeTab] = useState("ALL");
-  const [typeTab, setTypeTab] = useState("ALL");
+  const [mode, setMode] = useState<RankingMode>(initialQuery.mode);
+  const [gradeTab, setGradeTab] = useState<Grade>(initialQuery.grade);
+  const [teamGradeTab, setTeamGradeTab] = useState<Grade>(initialQuery.grade);
+  const [teamTypeTab, setTeamTypeTab] = useState<RankingType>(initialQuery.type);
+  const [typeTab, setTypeTab] = useState<RankingType>(initialQuery.type);
   const [personalVisibleCount, setPersonalVisibleCount] = useState(5);
   const [teamVisibleCount, setTeamVisibleCount] = useState(5);
 
@@ -48,16 +67,16 @@ export default function RankingPage() {
           const byType = d.grades[g];
           return byType && Object.values(byType).some((arr) => arr.length > 0);
         });
-        if (first) setGradeTab(first);
+        if (first && !(initialQuery.mode === "PERSONAL" && initialQuery.hasGrade)) setGradeTab(first);
         const firstTeamGrade = GRADES.find((g) => {
           const byType = teamRanking.grades[g];
           return byType && Object.values(byType).some((arr) => arr.length > 0);
         });
-        if (firstTeamGrade) setTeamGradeTab(firstTeamGrade);
+        if (firstTeamGrade && !(initialQuery.mode === "TEAM" && initialQuery.hasGrade)) setTeamGradeTab(firstTeamGrade);
       } catch {}
       finally { setLoading(false); }
     })();
-  }, []);
+  }, [initialQuery]);
 
   const entries: GradeRankingEntry[] = data?.grades[gradeTab]?.[typeTab] ?? [];
   const teamEntriesByGrade = teamData?.grades?.[teamGradeTab]?.[teamTypeTab] ?? [];
@@ -76,6 +95,15 @@ export default function RankingPage() {
   useEffect(() => {
     setTeamVisibleCount(5);
   }, [teamGradeTab, teamTypeTab]);
+
+  useEffect(() => {
+    if (loading) return;
+    replaceRankingQuery({
+      mode,
+      grade: mode === "PERSONAL" ? gradeTab : teamGradeTab,
+      type: mode === "PERSONAL" ? typeTab : teamTypeTab,
+    });
+  }, [gradeTab, loading, mode, teamGradeTab, teamTypeTab, typeTab]);
 
   function medal(idx: number) {
     if (idx === 0) return "\u{1F947}";
@@ -110,7 +138,9 @@ export default function RankingPage() {
           }}>팀 랭킹</button>
         </div>
 
-        {mode === "PERSONAL" && (
+        {loading && <RankingLoadingState />}
+
+        {!loading && mode === "PERSONAL" && (
           <>
             {/* Grade Tabs */}
             <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)", overflowX: "auto" }}>
@@ -144,7 +174,7 @@ export default function RankingPage() {
           </>
         )}
 
-        {mode === "TEAM" && (
+        {!loading && mode === "TEAM" && (
           <>
             <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)", overflowX: "auto" }}>
               {GRADES.map((g) => {
@@ -176,8 +206,6 @@ export default function RankingPage() {
           </>
         )}
 
-        {loading && <p style={{ color: "var(--muted)", textAlign: "center", padding: 40 }}>불러오는 중...</p>}
-
         {!loading && mode === "PERSONAL" && entries.length === 0 && (
           <div style={{ ...card, textAlign: "center", padding: "40px 20px" }}>
             <p style={{ margin: 0, color: "var(--muted)", fontSize: 15 }}>해당 조건의 랭킹이 없습니다</p>
@@ -190,7 +218,7 @@ export default function RankingPage() {
           </div>
         )}
 
-        {mode === "PERSONAL" && visiblePersonalEntries.map((r, idx) => (
+        {!loading && mode === "PERSONAL" && visiblePersonalEntries.map((r, idx) => (
           <div
             key={`${r.userId}`}
             role="button"
@@ -222,7 +250,7 @@ export default function RankingPage() {
           </div>
         ))}
 
-        {mode === "PERSONAL" && entries.length > personalVisibleCount && (
+        {!loading && mode === "PERSONAL" && entries.length > personalVisibleCount && (
           <button
             onClick={() => setPersonalVisibleCount((prev) => prev + 5)}
             style={{ border: "1px solid var(--line)", background: "var(--surface-2)", color: "var(--ink)", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
@@ -231,7 +259,7 @@ export default function RankingPage() {
           </button>
         )}
 
-        {mode === "TEAM" && visibleTeamEntries.map((r, idx) => (
+        {!loading && mode === "TEAM" && visibleTeamEntries.map((r, idx) => (
           <div
             key={r.teamKey}
             role="button"
@@ -270,7 +298,7 @@ export default function RankingPage() {
           </div>
         ))}
 
-        {mode === "TEAM" && teamEntriesByGrade.length > teamVisibleCount && (
+        {!loading && mode === "TEAM" && teamEntriesByGrade.length > teamVisibleCount && (
           <button
             onClick={() => setTeamVisibleCount((prev) => prev + 5)}
             style={{ border: "1px solid var(--line)", background: "var(--surface-2)", color: "var(--ink)", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
@@ -283,6 +311,91 @@ export default function RankingPage() {
       <BottomNavMain active="ranking" />
     </main>
   );
+}
+
+function RankingPageFallback() {
+  return (
+    <main style={main}>
+      <section style={sec}>
+        <div style={hero}>
+          <p style={{ margin: 0, color: "var(--brand-light)", fontSize: 12, fontWeight: 700 }}>BF MATCH RANKING</p>
+          <h1 style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em" }}>랭킹</h1>
+        </div>
+        <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)", border: "1px solid var(--line)" }}>
+          <div style={{ flex: 1, minHeight: 34, borderRadius: "var(--radius-sm)", background: "rgba(255,255,255,0.07)" }} />
+          <div style={{ flex: 1, minHeight: 34, borderRadius: "var(--radius-sm)", background: "rgba(255,255,255,0.07)" }} />
+        </div>
+        <RankingLoadingState />
+      </section>
+      <BottomNavMain active="ranking" />
+    </main>
+  );
+}
+
+function RankingLoadingState() {
+  return (
+    <div role="status" aria-label="랭킹 불러오는 중" aria-busy="true" style={loadingWrap}>
+      <div style={loadingTabRow}>
+        {Array.from({ length: 7 }).map((_, idx) => (
+          <div key={`grade-skeleton-${idx}`} style={loadingGradePill} />
+        ))}
+      </div>
+      <div style={loadingTypeRow}>
+        {Array.from({ length: 5 }).map((_, idx) => (
+          <div key={`type-skeleton-${idx}`} style={loadingTypePill} />
+        ))}
+      </div>
+      {Array.from({ length: 5 }).map((_, idx) => (
+        <div key={`ranking-skeleton-${idx}`} style={loadingCard}>
+          <div style={loadingRank} />
+          <div style={loadingTextBlock}>
+            <div style={loadingLineWide} />
+            <div style={loadingLineNarrow} />
+          </div>
+          <div style={loadingScoreBlock}>
+            <div style={loadingScoreLine} />
+            <div style={loadingScoreSmall} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function parseRankingQuery(searchParams: { get(name: string): string | null }): RankingQuery {
+  const mode = parseRankingMode(searchParams.get("mode"));
+  const rawGrade = searchParams.get("grade")?.toUpperCase();
+  const hasGrade = isGrade(rawGrade);
+  const rawType = searchParams.get("type")?.toUpperCase();
+
+  return {
+    mode,
+    grade: hasGrade ? rawGrade : "F",
+    type: isRankingType(rawType) ? rawType : "ALL",
+    hasGrade,
+  };
+}
+
+function parseRankingMode(value: string | null): RankingMode {
+  const normalized = value?.toUpperCase();
+  if (normalized === "TEAM") return "TEAM";
+  return "PERSONAL";
+}
+
+function isGrade(value: string | null | undefined): value is Grade {
+  return GRADES.includes(value as Grade);
+}
+
+function isRankingType(value: string | null | undefined): value is RankingType {
+  return TYPE_TABS.some((typeTab) => typeTab.key === value);
+}
+
+function replaceRankingQuery(query: { mode: RankingMode; grade: Grade; type: RankingType }) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("mode", query.mode.toLowerCase());
+  url.searchParams.set("grade", query.grade);
+  url.searchParams.set("type", query.type);
+  window.history.replaceState(window.history.state, "", `${url.pathname}?${url.searchParams.toString()}${url.hash}`);
 }
 
 const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
@@ -314,3 +427,44 @@ const teamMemberName: CSSProperties = {
   textOverflow: "ellipsis",
   whiteSpace: "nowrap",
 };
+const loadingWrap: CSSProperties = { display: "grid", gap: 10 };
+const loadingSurface: CSSProperties = {
+  background: "rgba(255,255,255,0.07)",
+};
+const loadingTabRow: CSSProperties = {
+  display: "flex",
+  gap: 4,
+  padding: 4,
+  borderRadius: "var(--radius-md)",
+  background: "var(--surface-2)",
+  overflow: "hidden",
+};
+const loadingGradePill: CSSProperties = {
+  ...loadingSurface,
+  width: 37,
+  height: 34,
+  borderRadius: "var(--radius-sm)",
+  flexShrink: 0,
+};
+const loadingTypeRow: CSSProperties = { display: "flex", gap: 4, overflow: "hidden" };
+const loadingTypePill: CSSProperties = {
+  ...loadingSurface,
+  width: 56,
+  height: 30,
+  borderRadius: 999,
+  flexShrink: 0,
+};
+const loadingCard: CSSProperties = {
+  ...card,
+  display: "flex",
+  alignItems: "center",
+  gap: 14,
+  minHeight: 74,
+};
+const loadingRank: CSSProperties = { ...loadingSurface, width: 36, height: 28, borderRadius: 8, flexShrink: 0 };
+const loadingTextBlock: CSSProperties = { flex: 1, display: "grid", gap: 8, minWidth: 0 };
+const loadingLineWide: CSSProperties = { ...loadingSurface, width: "72%", height: 14, borderRadius: 999 };
+const loadingLineNarrow: CSSProperties = { ...loadingSurface, width: "44%", height: 10, borderRadius: 999 };
+const loadingScoreBlock: CSSProperties = { display: "grid", gap: 8, justifyItems: "end", flexShrink: 0 };
+const loadingScoreLine: CSSProperties = { ...loadingSurface, width: 54, height: 14, borderRadius: 999 };
+const loadingScoreSmall: CSSProperties = { ...loadingSurface, width: 46, height: 10, borderRadius: 999 };

@@ -51,9 +51,8 @@ export function HomePageClient() {
     <main style={main}>
       <section style={section}>
         {/* Hero */}
-        <div style={{...hero, animation: "float 6s ease-in-out infinite"}}>
-          <div style={{...heroGlowA, animation: "pulse-glow 3s infinite"}} />
-          <div style={heroGlowB} />
+        <div style={hero}>
+          <div style={heroDepth} />
           <div style={heroTop}>
             <div style={brandBadge}>BF MATCH</div>
             <span style={heroGhostTag}>MATCH HUB</span>
@@ -198,12 +197,18 @@ const section: CSSProperties = { maxWidth: 480, margin: "0 auto", display: "grid
 const hero: CSSProperties = {
   position: "relative",
   overflow: "hidden",
-  padding: "20px 20px 18px",
+  padding: "22px 20px 18px",
   borderRadius: "var(--radius-xl)",
-  background: "linear-gradient(145deg, rgba(13,20,36,0.96), rgba(9,14,26,0.92))",
-  border: "1px solid rgba(173, 193, 230, 0.26)",
-  boxShadow: "0 18px 48px rgba(2,6,16,0.42)",
+  background: "linear-gradient(145deg, rgba(23,29,44,0.96), rgba(12,15,23,0.92) 54%, rgba(26,36,44,0.94))",
+  border: "1px solid var(--glass-border)",
+  boxShadow: "var(--shadow-lg)",
   backdropFilter: "blur(24px)",
+};
+const heroDepth: CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  background: "linear-gradient(120deg, rgba(111,145,255,0.22), transparent 34%), linear-gradient(300deg, rgba(33,208,173,0.18), transparent 44%), linear-gradient(180deg, rgba(255,255,255,0.08), transparent 42%)",
+  pointerEvents: "none",
 };
 const heroTop: CSSProperties = { position: "relative", zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 };
 const brandBadge: CSSProperties = {
@@ -212,8 +217,8 @@ const brandBadge: CSSProperties = {
   height: 30,
   padding: "0 10px",
   borderRadius: 999,
-  background: "rgba(91, 140, 255, 0.16)",
-  border: "1px solid rgba(142, 178, 255, 0.4)",
+  background: "rgba(111, 145, 255, 0.18)",
+  border: "1px solid rgba(169, 190, 255, 0.38)",
   color: "var(--brand-light)",
   fontSize: 11,
   fontWeight: 800,
@@ -229,24 +234,6 @@ const heroGhostTag: CSSProperties = {
   fontWeight: 700,
   display: "inline-flex",
   alignItems: "center",
-};
-const heroGlowA: CSSProperties = {
-  position: "absolute",
-  width: 220,
-  height: 220,
-  borderRadius: 999,
-  top: -120,
-  right: -70,
-  background: "radial-gradient(circle, rgba(91,140,255,0.35), rgba(91,140,255,0))",
-};
-const heroGlowB: CSSProperties = {
-  position: "absolute",
-  width: 180,
-  height: 180,
-  borderRadius: 999,
-  bottom: -100,
-  left: -50,
-  background: "radial-gradient(circle, rgba(24,210,182,0.24), rgba(24,210,182,0))",
 };
 const heroStatsRow: CSSProperties = { position: "relative", zIndex: 2, marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" };
 const cardMain: CSSProperties = {
