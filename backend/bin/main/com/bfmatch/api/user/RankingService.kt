@@ -23,7 +23,11 @@ class RankingService(
         for (user in users) {
             val skill = playerSkillRepository.findByUserId(user.id!!) ?: continue
             val plays = gamePlayerRepository.findAllByUserId(user.id!!)
-                .filter { it.game.status == GameStatus.FINISHED && it.gradeAtTime != null }
+                .filter {
+                    it.game.status == GameStatus.FINISHED &&
+                        it.game.winnerTeam != null &&
+                        it.gradeAtTime != null
+                }
 
             val byGrade = plays.groupBy { it.gradeAtTime!! }
 

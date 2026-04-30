@@ -20,7 +20,7 @@ class MyRecordService(
         val skill = playerSkillRepository.findByUserId(userId)
 
         val allPlays = gamePlayerRepository.findAllByUserId(userId)
-        val finished = allPlays.filter { it.game.status == GameStatus.FINISHED }
+        val finished = allPlays.filter { it.isScoredFinished() }
 
         val totalGames = finished.size
         val totalWins = finished.count { it.team == it.game.winnerTeam }
@@ -192,7 +192,7 @@ class MyRecordService(
     @Transactional(readOnly = true)
     fun getAllRecentGames(userId: Long): List<RecentGameRecord> {
         val finished = gamePlayerRepository.findAllByUserId(userId)
-            .filter { it.game.status == GameStatus.FINISHED }
+            .filter { it.isScoredFinished() }
             .sortedByDescending { it.game.finishedAt }
         return finished.map { gp ->
             val game = gp.game
@@ -211,7 +211,7 @@ class MyRecordService(
 
     @Transactional(readOnly = true)
     fun getAllPartnerStats(userId: Long): Map<String, List<PartnerStatResponse>> {
-        val finished = gamePlayerRepository.findAllByUserId(userId).filter { it.game.status == GameStatus.FINISHED }
+        val finished = gamePlayerRepository.findAllByUserId(userId).filter { it.isScoredFinished() }
         val partnerMap = mutableMapOf<Long, Pair<Int, Int>>()
         val opponentMap = mutableMapOf<Long, Pair<Int, Int>>()
         for (gp in finished) {
@@ -246,7 +246,7 @@ class MyRecordService(
     @Transactional(readOnly = true)
     fun getAllMonthlyStats(userId: Long): List<MonthlyStatResponse> {
         return gamePlayerRepository.findAllByUserId(userId)
-            .filter { it.game.status == GameStatus.FINISHED && it.game.finishedAt != null }
+            .filter { it.isScoredFinished() && it.game.finishedAt != null }
             .groupBy { it.game.finishedAt!!.toString().substring(0, 7) }
             .entries.sortedByDescending { it.key }
             .map { (month, plays) ->
@@ -267,7 +267,7 @@ class MyRecordService(
         val targetSkill = playerSkillRepository.findByUserId(targetUserId)
 
         val myFinishedPlays = gamePlayerRepository.findAllByUserId(meUserId)
-            .filter { it.game.status == GameStatus.FINISHED }
+            .filter { it.isScoredFinished() }
 
         val partnerGames = mutableListOf<WithMeRecentGameRecord>()
         val opponentGames = mutableListOf<WithMeRecentGameRecord>()
@@ -278,7 +278,7 @@ class MyRecordService(
         for (myPlay in myFinishedPlays) {
             val game = myPlay.game
             val targetPlay = gamePlayerRepository.findByGameIdAndUserId(game.id!!, targetUserId) ?: continue
-            if (targetPlay.game.status != GameStatus.FINISHED) continue
+            if (!targetPlay.isScoredFinished()) continue
 
             val isPartner = myPlay.team == targetPlay.team
             val isWin = myPlay.team == game.winnerTeam
@@ -336,6 +336,9 @@ class MyRecordService(
             ),
         )
     }
+
+    private fun com.bfmatch.api.group.GamePlayer.isScoredFinished(): Boolean =
+        game.status == GameStatus.FINISHED && game.winnerTeam != null
 }
 
 data class MyRecordResponse(

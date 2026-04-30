@@ -6,6 +6,17 @@ spring:
     driver-class-name: org.mariadb.jdbc.Driver
     username: ${DB_USERNAME:bfmatch}
     password: ${DB_PASSWORD:bfmatch}
+  mail:
+    host: ${MAIL_HOST:}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS_ENABLE:true}
   jpa:
     hibernate:
       ddl-auto: update
@@ -54,3 +65,5 @@ app:
     cookie-name: ${REFRESH_TOKEN_COOKIE_NAME:bf_match_refresh_token}
     secure: ${REFRESH_TOKEN_COOKIE_SECURE:false}
     same-site: ${REFRESH_TOKEN_COOKIE_SAME_SITE:Lax}
+  mail:
+    from: ${MAIL_FROM:no-reply@bf-match.local}

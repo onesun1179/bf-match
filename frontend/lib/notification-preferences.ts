@@ -3,10 +3,15 @@ export type NotificationPreferenceKey =
   | "inviteDeclined"
   | "memberJoined"
   | "memberKicked"
+  | "memberRoleChanged"
   | "groupUpdated"
+  | "groupClosed"
+  | "groupReminder"
   | "gradeUpgraded"
   | "gameCreated"
+  | "gameCancelled"
   | "gameStarted"
+  | "gameCourtChanged"
   | "gameFinished"
   | "gameProposalReceived"
   | "gameProposalApproved"
@@ -22,10 +27,15 @@ export const defaultNotificationPreferences: NotificationPreferences = {
   inviteDeclined: true,
   memberJoined: true,
   memberKicked: true,
+  memberRoleChanged: true,
   groupUpdated: true,
+  groupClosed: true,
+  groupReminder: true,
   gradeUpgraded: true,
   gameCreated: true,
+  gameCancelled: true,
   gameStarted: true,
+  gameCourtChanged: true,
   gameFinished: true,
   gameProposalReceived: true,
   gameProposalApproved: true,

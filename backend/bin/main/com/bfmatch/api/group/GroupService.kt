@@ -353,6 +353,19 @@ class GroupService(
         val group = getGroup(groupId)
         group.closed = true
         matchGroupRepository.save(group)
+
+        val memberIds = groupMemberRepository.findAllByGroupId(groupId)
+            .filter { it.status == GroupMemberStatus.ACTIVE }
+            .mapNotNull { it.user.id }
+        notificationService.sendToGroupMembers(
+            memberIds,
+            authenticatedUser.userId,
+            NotificationType.GROUP_CLOSED,
+            "이벤트 종료",
+            "${group.name} 이벤트가 종료되었습니다.",
+            "GROUP",
+            groupId,
+        )
         return getGroupDetail(authenticatedUser, groupId)
     }
 
@@ -409,7 +422,22 @@ class GroupService(
         target.role = newRole
         groupMemberRepository.save(target)
 
+        notificationService.send(
+            targetUserId,
+            NotificationType.MEMBER_ROLE_CHANGED,
+            "권한 변경",
+            "${target.group.name} 이벤트 권한이 ${roleLabel(newRole)}로 변경되었습니다.",
+            "GROUP",
+            groupId,
+        )
+
         return getGroupDetail(authenticatedUser, groupId)
+    }
+
+    private fun roleLabel(role: GroupRole): String = when (role) {
+        GroupRole.OWNER -> "이벤트장"
+        GroupRole.MANAGER -> "관리자"
+        GroupRole.MEMBER -> "멤버"
     }
 
     private fun requireOwnerOrManager(groupId: Long, userId: Long) {

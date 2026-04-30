@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import EmojiEventsRoundedIcon from "@mui/icons-material/EmojiEventsRounded";
+import EventRoundedIcon from "@mui/icons-material/EventRounded";
+import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
+import NotificationsNoneRoundedIcon from "@mui/icons-material/NotificationsNoneRounded";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import {CSSProperties} from "react";
 
 type MainTab = "home" | "event" | "ranking" | "notifications" | "my";
@@ -14,24 +19,24 @@ export function BottomNavMain({ active, unreadCount = 0 }: BottomNavMainProps) {
   return (
     <nav style={bottomBar}>
       <Link href="/" style={tabBtn(active === "home")}>
-        <span style={{ fontSize: 18 }}>{"\u{1F3E0}"}</span>
+        <HomeRoundedIcon style={navIcon} />
         <span style={{ fontSize: 11 }}>홈</span>
       </Link>
       <Link href="/groups/list" style={tabBtn(active === "event")}>
-        <span style={{ fontSize: 18 }}>{"\u{1F3F8}"}</span>
+        <EventRoundedIcon style={navIcon} />
         <span style={{ fontSize: 11 }}>이벤트</span>
       </Link>
       <Link href="/ranking" style={tabBtn(active === "ranking")}>
-        <span style={{ fontSize: 18 }}>{"\u{1F3C6}"}</span>
+        <EmojiEventsRoundedIcon style={navIcon} />
         <span style={{ fontSize: 11 }}>랭킹</span>
       </Link>
       <Link href="/notifications" style={{ ...tabBtn(active === "notifications"), position: "relative" }}>
-        <span style={{ fontSize: 18 }}>{"\u{1F514}"}</span>
+        <NotificationsNoneRoundedIcon style={navIcon} />
         {unreadCount > 0 && <span style={unreadBadge}>{unreadCount > 99 ? "99+" : unreadCount}</span>}
         <span style={{ fontSize: 11 }}>알림</span>
       </Link>
       <Link href="/my" style={tabBtn(active === "my")}>
-        <span style={{ fontSize: 18 }}>{"\u{1F464}"}</span>
+        <PersonRoundedIcon style={navIcon} />
         <span style={{ fontSize: 11 }}>마이</span>
       </Link>
     </nav>
@@ -66,6 +71,12 @@ const unreadBadge: CSSProperties = {
   padding: "1px 5px",
   borderRadius: 10,
   lineHeight: 1.4,
+};
+
+const navIcon: CSSProperties = {
+  width: 22,
+  height: 22,
+  display: "block",
 };
 
 function tabBtn(active: boolean): CSSProperties {

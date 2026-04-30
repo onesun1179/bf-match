@@ -13,7 +13,7 @@ const gradeOptions = [
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [f, setF] = useState({ username: "", password: "", passwordConfirm: "", nickname: "", nationalGrade: "F", gender: "MALE" });
+  const [f, setF] = useState({ email: "", password: "", passwordConfirm: "", nickname: "", nationalGrade: "F", gender: "MALE" });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -22,7 +22,7 @@ export default function RegisterPage() {
     if (f.password !== f.passwordConfirm) { setError("비밀번호가 일치하지 않습니다."); return; }
     setError(null); setSubmitting(true);
     try {
-      await registerLocal(f.username.trim(), f.password, f.nickname.trim(), f.nationalGrade, f.gender);
+      await registerLocal(f.email.trim(), f.password, f.nickname.trim(), f.nationalGrade, f.gender);
       router.replace("/");
     } catch (err) { setError(err instanceof Error ? err.message : "회원가입에 실패했습니다."); }
     finally { setSubmitting(false); }
@@ -39,7 +39,11 @@ export default function RegisterPage() {
         </div>
         <div style={card}>
           <form onSubmit={(e) => { void handleSubmit(e); }} style={{ display: "grid", gap: 14 }}>
-            <label style={lw}><span style={lb}>아이디</span><input value={f.username} onChange={set("username")} placeholder="2자 이상" required minLength={2} maxLength={60} style={inp} /></label>
+            <label style={lw}>
+              <span style={lb}>이메일</span>
+              <input type="email" value={f.email} onChange={set("email")} placeholder="name@example.com" required maxLength={100} style={inp} />
+              <span style={helpText}>이메일은 로그인 아이디로 사용되며 비밀번호 초기화 등 개인정보 관련 안내에 사용됩니다.</span>
+            </label>
             <label style={lw}><span style={lb}>비밀번호</span><input type="password" value={f.password} onChange={set("password")} placeholder="4자 이상" required minLength={4} style={inp} /></label>
             <label style={lw}><span style={lb}>비밀번호 확인</span><input type="password" value={f.passwordConfirm} onChange={set("passwordConfirm")} placeholder="비밀번호 다시 입력" required minLength={4} style={inp} /></label>
             <label style={lw}><span style={lb}>닉네임</span><input value={f.nickname} onChange={set("nickname")} placeholder="이름" required minLength={2} maxLength={10} style={inp} /></label>
@@ -75,5 +79,6 @@ const logo: CSSProperties = { width: 48, height: 48, borderRadius: 14, backgroun
 const h1: CSSProperties = { margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" };
 const lw: CSSProperties = { display: "grid", gap: 6 };
 const lb: CSSProperties = { fontWeight: 600, fontSize: 13, color: "var(--ink-secondary)" };
+const helpText: CSSProperties = { color: "var(--muted)", fontSize: 12, lineHeight: 1.45 };
 const inp: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: "0 16px", fontSize: 15, background: "var(--surface-2)", color: "var(--ink)", outline: "none" };
 const btn: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: 0, background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 4 };

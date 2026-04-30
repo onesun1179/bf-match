@@ -98,7 +98,7 @@ class GameService(
             notificationService.sendToGroupMembers(
                 allUserIds, authenticatedUser.userId,
                 NotificationType.GAME_CREATED, "게임 생성", "${group.name} 이벤트에서 새 게임이 생성되었습니다.",
-                "GAME", game.id!!,
+                "GROUP", groupId,
             )
         } else {
             val managerIds = groupMemberRepository.findAllByGroupId(groupId)
@@ -113,8 +113,8 @@ class GameService(
                 NotificationType.GAME_PROPOSAL_RECEIVED,
                 "게임 제안 도착",
                 "${creator.nickname}님이 ${group.name} 이벤트에 게임을 제안했습니다.",
-                "GAME",
-                game.id!!,
+                "GROUP",
+                groupId,
             )
         }
 
@@ -166,7 +166,7 @@ class GameService(
             memberIds, authenticatedUser.userId,
             NotificationType.GAME_STARTED, "게임 시작",
             "${game.group.name} 이벤트에서 게임이 시작되었습니다${courtNumberSuffix(game)}.",
-            "GAME", game.id!!,
+            "GROUP", groupId,
         )
 
         return toGameResponse(game)
@@ -195,8 +195,22 @@ class GameService(
             throw ResponseStatusException(HttpStatus.BAD_REQUEST, "코트 번호는 1 이상이어야 합니다.")
         }
 
+        val previousCourtNumber = game.courtNumber
         game.courtNumber = request.courtNumber
         gameRepository.save(game)
+        if (previousCourtNumber != request.courtNumber) {
+            val playerUserIds = gamePlayerRepository.findAllByGameId(gameId).mapNotNull { it.user.id }
+            val courtLabel = request.courtNumber?.let { "${it}번 코트" } ?: "미지정"
+            notificationService.sendToGroupMembers(
+                playerUserIds,
+                authenticatedUser.userId,
+                NotificationType.GAME_COURT_CHANGED,
+                "코트 변경",
+                "${game.group.name} 이벤트 게임의 코트가 $courtLabel(으)로 변경되었습니다.",
+                "GROUP",
+                groupId,
+            )
+        }
         return toGameResponse(game)
     }
 
@@ -227,8 +241,8 @@ class GameService(
             NotificationType.GAME_PROPOSAL_APPROVED,
             "게임 제안 수락",
             "${game.group.name} 이벤트에서 제안된 게임이 수락되었습니다.",
-            "GAME",
-            game.id!!,
+            "GROUP",
+            groupId,
         )
 
         return toGameResponse(game)
@@ -268,8 +282,8 @@ class GameService(
                 NotificationType.GAME_PROPOSAL_REJECTED,
                 "게임 제안 거절",
                 "${game.group.name} 이벤트에서 게임 제안이 거절되었습니다$reasonMessage.",
-                "GAME",
-                game.id!!,
+                "GROUP",
+                groupId,
             )
         }
 
@@ -297,7 +311,7 @@ class GameService(
             playerUserIds, authenticatedUser.userId,
             NotificationType.GAME_FINISHED, "게임 종료",
             "${game.group.name} 이벤트의 게임이 종료되었습니다.",
-            "GAME", game.id!!,
+            "GROUP", groupId,
         )
 
         return toGameResponse(game)
@@ -360,7 +374,7 @@ class GameService(
                 targetUserIds, authenticatedUser.userId,
                 NotificationType.GAME_SCORE_REQUESTED, "결과 확인 요청",
                 "${game.group.name} 이벤트 게임의 결과 확인 요청이 도착했습니다.",
-                "GAME", game.id!!,
+                "GROUP", groupId,
             )
         }
 
@@ -386,6 +400,7 @@ class GameService(
         // 이미 확정된 점수가 있었으면 먼저 해당 경기의 반영 EXP를 롤백한다.
         rollbackExpIfScored(game)
 
+        val requesterUserId = game.pendingRequestedByUserId
         game.teamAScore = null
         game.teamBScore = null
         game.winnerTeam = pendingWinnerTeam
@@ -399,7 +414,6 @@ class GameService(
             players.forEach { it.appliedExp = 0.0 }
         }
 
-        val requesterUserId = game.pendingRequestedByUserId
         if (requesterUserId != null) {
             notificationService.send(
                 requesterUserId,
@@ -410,8 +424,8 @@ class GameService(
                 } else {
                     "${game.group.name} 이벤트 게임의 결과가 상대 팀 확인으로 확정되었습니다."
                 },
-                "GAME",
-                game.id!!,
+                "GROUP",
+                groupId,
             )
         }
 
@@ -442,8 +456,8 @@ class GameService(
             NotificationType.GAME_SCORE_REJECTED,
             "결과 입력 반려",
             "${game.group.name} 이벤트 게임의 결과 요청이 반려되어 재입력이 필요합니다.",
-            "GAME",
-            game.id!!,
+            "GROUP",
+            groupId,
         )
 
         return toGameResponse(game)
@@ -465,6 +479,17 @@ class GameService(
         game.winnerTeam = null
         game.status = GameStatus.CANCELLED
         gameRepository.save(game)
+
+        val playerUserIds = gamePlayerRepository.findAllByGameId(gameId).mapNotNull { it.user.id }
+        notificationService.sendToGroupMembers(
+            playerUserIds,
+            authenticatedUser.userId,
+            NotificationType.GAME_CANCELLED,
+            "게임 취소",
+            "${game.group.name} 이벤트의 게임이 취소되었습니다.",
+            "GROUP",
+            groupId,
+        )
 
         return toGameResponse(game)
     }
@@ -505,7 +530,10 @@ class GameService(
         val allGames = gameRepository.findAllByGroupIdOrderByCreatedAtDesc(groupId)
             .filter { it.status != GameStatus.CANCELLED }
         val allGameIds = allGames.map { it.id!! }.toSet()
-        val finishedGameIds = allGames.filter { it.status == GameStatus.FINISHED }.map { it.id!! }.toSet()
+        val finishedGameIds = allGames
+            .filter { it.status == GameStatus.FINISHED && it.winnerTeam != null }
+            .map { it.id!! }
+            .toSet()
 
         return members.map { member ->
             val userId = member.user.id!!
@@ -516,7 +544,9 @@ class GameService(
             val winCount = finishedPlays.count { it.team == it.game.winnerTeam }
             val overallPlays = gamePlayerRepository.findAllByUserId(userId)
                 .filter { it.game.status != GameStatus.CANCELLED }
-            val overallFinishedPlays = overallPlays.filter { it.game.status == GameStatus.FINISHED }
+            val overallFinishedPlays = overallPlays.filter {
+                it.game.status == GameStatus.FINISHED && it.game.winnerTeam != null
+            }
             val overallWinCount = overallFinishedPlays.count { it.team == it.game.winnerTeam }
             MemberStatResponse(
                 userId = userId,

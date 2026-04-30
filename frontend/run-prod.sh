@@ -3,9 +3,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
-LOCAL_ENV_FILE="${SCRIPT_DIR}/.env.local"
+PROD_ENV_FILE="${SCRIPT_DIR}/.env.production"
 
-cd "${SCRIPT_DIR}"
 load_env_file() {
   local file="$1"
   local line key value
@@ -25,12 +24,22 @@ load_env_file() {
   done < "${file}"
 }
 
+if [[ ! -f "${PROD_ENV_FILE}" ]]; then
+  echo "Missing ${PROD_ENV_FILE}"
+  exit 1
+fi
+
+cd "${SCRIPT_DIR}"
+
 if [[ -f "${ENV_FILE}" ]]; then
   load_env_file "${ENV_FILE}"
 fi
 
-if [[ -f "${LOCAL_ENV_FILE}" ]]; then
-  load_env_file "${LOCAL_ENV_FILE}"
+load_env_file "${PROD_ENV_FILE}"
+
+if [[ ! -d node_modules ]]; then
+  npm ci
 fi
 
-./gradlew bootRun "$@"
+npm run build
+exec npm run start -- "$@"

@@ -412,7 +412,7 @@ export default function GroupDetailPage() {
     <ThemeProvider theme={darkTheme}>
     <main style={{ ...main, paddingBottom: 80 }}>
       {/* ── Invite Dialog ── */}
-      <MuiDialog open={dialog.type === "invite" || dialog.type === "decline"} onClose={() => {}} fullWidth maxWidth="xs" PaperProps={{ sx: { background: "var(--surface)", borderRadius: "var(--radius-lg)" } }}>
+      <MuiDialog open={dialog.type === "invite" || dialog.type === "decline"} onClose={() => {}} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { background: "var(--surface)", borderRadius: "var(--radius-lg)" } } }}>
         {dialog.type === "invite" && (
           <>
             <DialogTitle sx={{ textAlign: "center", pb: 0 }}>
@@ -1004,7 +1004,7 @@ export default function GroupDetailPage() {
         )}
 
         {/* Result Dialog */}
-        <MuiDialog open={scoreDialog !== null} onClose={() => setScoreDialog(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { background: "var(--surface)", borderRadius: "var(--radius-lg)" } }}>
+        <MuiDialog open={scoreDialog !== null} onClose={() => setScoreDialog(null)} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { background: "var(--surface)", borderRadius: "var(--radius-lg)" } } }}>
           <DialogTitle sx={{ textAlign: "center", fontWeight: 800 }}>승패 입력</DialogTitle>
           <DialogContent sx={{ textAlign: "center" }}>
             <p style={{ margin: "0 0 16px 0", color: "var(--ink-secondary)", fontSize: 14 }}>승리 팀을 선택하세요</p>

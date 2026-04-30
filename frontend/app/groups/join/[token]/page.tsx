@@ -37,7 +37,7 @@ export default function JoinByInvitePage() {
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, textAlign: "center" }}>이벤트 초대</h1>
             <p style={{ margin: 0, color: "var(--ink-secondary)", textAlign: "center", fontSize: 15 }}>참여하려면 로그인이 필요합니다</p>
             <button type="button" onClick={handleLogin} style={btnKakao}>카카오로 로그인</button>
-            <button type="button" onClick={() => router.push("/auth/login")} style={btnSec}>아이디로 로그인</button>
+            <button type="button" onClick={() => router.push("/auth/login")} style={btnSec}>이메일로 로그인</button>
           </>)}
           {state.status === "error" && (<>
             <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, textAlign: "center" }}>초대 링크 오류</h1>

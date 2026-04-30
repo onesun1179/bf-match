@@ -5,7 +5,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${SCRIPT_DIR}/.env"
 LOCAL_ENV_FILE="${SCRIPT_DIR}/.env.local"
 
-cd "${SCRIPT_DIR}"
 load_env_file() {
   local file="$1"
   local line key value
@@ -25,6 +24,8 @@ load_env_file() {
   done < "${file}"
 }
 
+cd "${SCRIPT_DIR}"
+
 if [[ -f "${ENV_FILE}" ]]; then
   load_env_file "${ENV_FILE}"
 fi
@@ -33,4 +34,8 @@ if [[ -f "${LOCAL_ENV_FILE}" ]]; then
   load_env_file "${LOCAL_ENV_FILE}"
 fi
 
-./gradlew bootRun "$@"
+if [[ ! -d node_modules ]]; then
+  npm ci
+fi
+
+exec npm run dev -- "$@"

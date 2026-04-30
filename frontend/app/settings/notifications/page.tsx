@@ -38,9 +38,24 @@ const notificationItems: { key: NotificationPreferenceKey; title: string; descri
     description: "이벤트에서 강퇴되었을 때 알림",
   },
   {
+    key: "memberRoleChanged",
+    title: "권한 변경",
+    description: "내 이벤트 권한이 관리자/멤버로 변경되었을 때 알림",
+  },
+  {
     key: "groupUpdated",
     title: "이벤트 정보 변경",
     description: "이벤트 정보가 수정되었을 때 알림",
+  },
+  {
+    key: "groupClosed",
+    title: "이벤트 종료",
+    description: "참여 중인 이벤트가 종료되었을 때 알림",
+  },
+  {
+    key: "groupReminder",
+    title: "이벤트 리마인더",
+    description: "이벤트 시작 전 리마인더 알림",
   },
   {
     key: "gradeUpgraded",
@@ -53,9 +68,19 @@ const notificationItems: { key: NotificationPreferenceKey; title: string; descri
     description: "내가 포함된 새로운 게임이 생성되었을 때 알림",
   },
   {
+    key: "gameCancelled",
+    title: "게임 취소",
+    description: "내가 포함된 게임이 취소되었을 때 알림",
+  },
+  {
     key: "gameStarted",
     title: "게임 시작",
     description: "이벤트 내 게임이 시작되었을 때 알림 (코트 번호 포함)",
+  },
+  {
+    key: "gameCourtChanged",
+    title: "코트 변경",
+    description: "게임 코트 번호가 변경되었을 때 알림",
   },
   {
     key: "gameFinished",

@@ -129,16 +129,26 @@ export async function apiFetch(input: string, init: RequestInit = {}): Promise<R
 
 // ── Auth ──
 
-export async function registerLocal(username: string, password: string, nickname: string, nationalGrade: string, gender: string): Promise<void> {
-  const r = await fetch(`${API_BASE_URL}/api/v1/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ username, password, nickname, nationalGrade, gender }) });
-  if (!r.ok) { if (r.status === 409) { const body = await r.json().catch(() => null) as { message?: string } | null; throw new Error(body?.message ?? "이미 사용 중인 아이디 또는 닉네임입니다."); } throw new Error("회원가입에 실패했습니다."); }
+export async function registerLocal(email: string, password: string, nickname: string, nationalGrade: string, gender: string): Promise<void> {
+  const r = await fetch(`${API_BASE_URL}/api/v1/auth/register`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ email, password, nickname, nationalGrade, gender }) });
+  if (!r.ok) { if (r.status === 409) { const body = await r.json().catch(() => null) as { message?: string } | null; throw new Error(body?.message ?? "이미 사용 중인 이메일 또는 닉네임입니다."); } throw new Error("회원가입에 실패했습니다."); }
   setAccessToken(((await r.json()) as RefreshResponse).accessToken);
 }
 
-export async function loginLocal(username: string, password: string): Promise<void> {
-  const r = await fetch(`${API_BASE_URL}/api/v1/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ username, password }) });
-  if (!r.ok) { if (r.status === 401) throw new Error("아이디 또는 비밀번호가 올바르지 않습니다."); throw new Error("로그인에 실패했습니다."); }
+export async function loginLocal(email: string, password: string): Promise<void> {
+  const r = await fetch(`${API_BASE_URL}/api/v1/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ email, password }) });
+  if (!r.ok) { if (r.status === 401) throw new Error("이메일 또는 비밀번호가 올바르지 않습니다."); throw new Error("로그인에 실패했습니다."); }
   setAccessToken(((await r.json()) as RefreshResponse).accessToken);
+}
+
+export async function resetPassword(email: string): Promise<void> {
+  const r = await fetch(`${API_BASE_URL}/api/v1/auth/password/reset`, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "include", body: JSON.stringify({ email }) });
+  if (!r.ok) { const b = await r.json().catch(() => null) as { message?: string } | null; throw new Error(b?.message ?? "비밀번호 초기화에 실패했습니다."); }
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const r = await apiFetch("/api/v1/auth/password/change", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currentPassword, newPassword }) });
+  if (!r.ok) { const b = await r.json().catch(() => null) as { message?: string } | null; throw new Error(b?.message ?? "비밀번호 변경에 실패했습니다."); }
 }
 
 export function getKakaoLoginUrl(): string { return `${API_BASE_URL}/oauth2/authorization/kakao`; }
@@ -156,7 +166,7 @@ export async function logout(): Promise<void> {
 
 export async function updateMyProfile(request: { nickname: string; gender?: Gender | null; regionCode?: string | null; preferredCourt?: string | null }): Promise<MeResponse> {
   const r = await apiFetch("/api/v1/me/profile", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(request) });
-  if (!r.ok) throw new Error("프로필을 저장하지 못했습니다."); return (await r.json()) as MeResponse;
+  if (!r.ok) { const b = await r.json().catch(() => null) as { message?: string } | null; throw new Error(b?.message ?? "프로필을 저장하지 못했습니다."); } return (await r.json()) as MeResponse;
 }
 
 export async function updateMySkill(request: { nationalGrade: string }): Promise<MeResponse> {
@@ -456,10 +466,15 @@ export type NotificationPreferences = {
   inviteDeclined: boolean;
   memberJoined: boolean;
   memberKicked: boolean;
+  memberRoleChanged: boolean;
   groupUpdated: boolean;
+  groupClosed: boolean;
+  groupReminder: boolean;
   gradeUpgraded: boolean;
   gameCreated: boolean;
+  gameCancelled: boolean;
   gameStarted: boolean;
+  gameCourtChanged: boolean;
   gameFinished: boolean;
   gameProposalReceived: boolean;
   gameProposalApproved: boolean;
