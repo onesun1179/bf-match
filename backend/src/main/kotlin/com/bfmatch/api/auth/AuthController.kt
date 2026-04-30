@@ -3,6 +3,7 @@ package com.bfmatch.api.auth
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -25,6 +26,23 @@ class AuthController(
         @RequestBody @Valid request: LoginRequest,
         response: HttpServletResponse,
     ): TokenRefreshResponse = localAuthService.login(request, response)
+
+    @PostMapping("/password/reset")
+    fun resetPassword(
+        @RequestBody @Valid request: PasswordResetRequest,
+    ): Map<String, String> {
+        localAuthService.resetPassword(request)
+        return mapOf("message" to "Temporary password sent.")
+    }
+
+    @PostMapping("/password/change")
+    fun changePassword(
+        @AuthenticationPrincipal principal: AuthenticatedUser,
+        @RequestBody @Valid request: PasswordChangeRequest,
+    ): Map<String, String> {
+        localAuthService.changePassword(principal, request)
+        return mapOf("message" to "Password changed.")
+    }
 
     @PostMapping("/refresh")
     fun refresh(

@@ -25,7 +25,16 @@ class NotificationPreference(
     var memberKicked: Boolean = true,
 
     @Column(nullable = false)
+    var memberRoleChanged: Boolean = true,
+
+    @Column(nullable = false)
     var groupUpdated: Boolean = true,
+
+    @Column(nullable = false)
+    var groupClosed: Boolean = true,
+
+    @Column(nullable = false)
+    var groupReminder: Boolean = true,
 
     @Column(nullable = false)
     var gradeUpgraded: Boolean = true,
@@ -34,7 +43,13 @@ class NotificationPreference(
     var gameCreated: Boolean = true,
 
     @Column(nullable = false)
+    var gameCancelled: Boolean = true,
+
+    @Column(nullable = false)
     var gameStarted: Boolean = true,
+
+    @Column(nullable = false)
+    var gameCourtChanged: Boolean = true,
 
     @Column(nullable = false)
     var gameFinished: Boolean = true,
@@ -63,10 +78,15 @@ data class NotificationPreferencesResponse(
     val inviteDeclined: Boolean,
     val memberJoined: Boolean,
     val memberKicked: Boolean,
+    val memberRoleChanged: Boolean,
     val groupUpdated: Boolean,
+    val groupClosed: Boolean,
+    val groupReminder: Boolean,
     val gradeUpgraded: Boolean,
     val gameCreated: Boolean,
+    val gameCancelled: Boolean,
     val gameStarted: Boolean,
+    val gameCourtChanged: Boolean,
     val gameFinished: Boolean,
     val gameProposalReceived: Boolean,
     val gameProposalApproved: Boolean,
@@ -81,10 +101,15 @@ data class UpdateNotificationPreferencesRequest(
     val inviteDeclined: Boolean? = null,
     val memberJoined: Boolean? = null,
     val memberKicked: Boolean? = null,
+    val memberRoleChanged: Boolean? = null,
     val groupUpdated: Boolean? = null,
+    val groupClosed: Boolean? = null,
+    val groupReminder: Boolean? = null,
     val gradeUpgraded: Boolean? = null,
     val gameCreated: Boolean? = null,
+    val gameCancelled: Boolean? = null,
     val gameStarted: Boolean? = null,
+    val gameCourtChanged: Boolean? = null,
     val gameFinished: Boolean? = null,
     val gameProposalReceived: Boolean? = null,
     val gameProposalApproved: Boolean? = null,

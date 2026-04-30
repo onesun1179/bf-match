@@ -30,15 +30,15 @@ export default function SettingsPage() {
           <span style={{ color: "var(--brand-light)", fontWeight: 700 }}>이동</span>
         </Link>
 
-        <div style={itemDisabled}>
+        <Link href="/settings/account" style={itemLink}>
           <div>
             <p style={{ margin: 0, fontWeight: 700, fontSize: 16 }}>계정 및 보안</p>
             <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>
-              비밀번호/연동 계정/보안 설정 (준비 중)
+              닉네임과 비밀번호를 관리합니다.
             </p>
           </div>
-          <span style={{ color: "var(--muted)", fontWeight: 700 }}>준비중</span>
-        </div>
+          <span style={{ color: "var(--brand-light)", fontWeight: 700 }}>이동</span>
+        </Link>
       </section>
     </main>
   );
@@ -66,12 +66,4 @@ const itemLink: CSSProperties = {
   alignItems: "center",
   justifyContent: "space-between",
   textDecoration: "none",
-};
-
-const itemDisabled: CSSProperties = {
-  ...card,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  opacity: 0.72,
 };

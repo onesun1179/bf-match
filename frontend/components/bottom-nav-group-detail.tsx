@@ -1,6 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import GroupsRoundedIcon from "@mui/icons-material/GroupsRounded";
+import InfoRoundedIcon from "@mui/icons-material/InfoRounded";
+import LeaderboardRoundedIcon from "@mui/icons-material/LeaderboardRounded";
+import ManageAccountsRoundedIcon from "@mui/icons-material/ManageAccountsRounded";
+import SportsTennisRoundedIcon from "@mui/icons-material/SportsTennisRounded";
 import {CSSProperties} from "react";
 
 export type GroupDetailTab = "info" | "manage" | "members" | "games" | "stats";
@@ -19,24 +24,24 @@ export function BottomNavGroupDetail({
   return (
     <nav style={bottomBar}>
       <Link href={`/groups/${groupId}?view=info`} style={tabBtn(active === "info")}>
-        <span style={{ fontSize: 18 }}>{"\u2139\uFE0F"}</span>
+        <InfoRoundedIcon style={navIcon} />
         <span style={{ fontSize: 11 }}>정보</span>
       </Link>
       <Link href={`/groups/${groupId}?view=members`} style={tabBtn(active === "members")}>
-        <span style={{ fontSize: 18 }}>{"\u{1F465}"}</span>
+        <GroupsRoundedIcon style={navIcon} />
         <span style={{ fontSize: 11 }}>멤버</span>
       </Link>
       <Link href={`/groups/${groupId}?view=games`} style={tabBtn(active === "games")}>
-        <span style={{ fontSize: 18 }}>{"\u{1F3BE}"}</span>
+        <SportsTennisRoundedIcon style={navIcon} />
         <span style={{ fontSize: 11 }}>게임</span>
       </Link>
       <Link href={`/groups/${groupId}?view=ranking`} style={tabBtn(active === "stats")}>
-        <span style={{ fontSize: 18 }}>{"\u{1F4CA}"}</span>
+        <LeaderboardRoundedIcon style={navIcon} />
         <span style={{ fontSize: 11 }}>랭킹</span>
       </Link>
       {isOwnerOrManager && (
         <Link href={`/groups/${groupId}?view=manage`} style={tabBtn(active === "manage")}>
-          <span style={{ fontSize: 18 }}>{"\u2699\uFE0F"}</span>
+          <ManageAccountsRoundedIcon style={navIcon} />
           <span style={{ fontSize: 11 }}>관리</span>
         </Link>
       )}
@@ -56,6 +61,12 @@ const bottomBar: CSSProperties = {
   borderTop: "1px solid var(--line)",
   padding: "6px 0",
   zIndex: 100,
+};
+
+const navIcon: CSSProperties = {
+  width: 22,
+  height: 22,
+  display: "block",
 };
 
 function tabBtn(active: boolean): CSSProperties {

@@ -190,6 +190,86 @@ class GameServiceTest {
         assertEquals(null, game.teamBScore)
     }
 
+    @Test
+    fun `cancelGame rolls back exp and clears confirmed and pending result`() {
+        val managerPrincipal = authUser(manager.id!!)
+        whenever(groupMemberRepository.findByGroupIdAndUserId(10, managerPrincipal.userId)).thenReturn(
+            GroupMember(group = group, user = manager, role = GroupRole.MANAGER, status = GroupMemberStatus.ACTIVE),
+        )
+
+        game.winnerTeam = "A"
+        game.teamAScore = 1
+        game.teamBScore = 0
+        game.pendingWinnerTeam = "B"
+        game.pendingRequestedByTeam = "B"
+        game.pendingRequestedByUserId = memberB.id
+        game.pendingRequestedAt = Instant.now()
+
+        val oldWinner = GamePlayer(game = game, user = memberA, team = "A", gradeAtTime = NationalGrade.D, appliedExp = 2.0)
+        val loser = GamePlayer(game = game, user = memberB, team = "B", gradeAtTime = NationalGrade.D, appliedExp = 0.0)
+        whenever(gamePlayerRepository.findAllByGameId(100)).thenReturn(listOf(oldWinner, loser))
+
+        val skillA = PlayerSkill(id = 1, user = memberA, nationalGrade = NationalGrade.D, lv = 3, exp = 20.0)
+        whenever(playerSkillRepository.findByUserId(memberA.id!!)).thenReturn(skillA)
+        whenever(playerSkillRepository.save(any())).thenAnswer { it.arguments[0] as PlayerSkill }
+
+        service.cancelGame(managerPrincipal, 10, 100)
+
+        assertEquals(GameStatus.CANCELLED, game.status)
+        assertEquals(18.0, skillA.exp)
+        assertEquals(0.0, oldWinner.appliedExp)
+        assertEquals(null, game.winnerTeam)
+        assertEquals(null, game.teamAScore)
+        assertEquals(null, game.teamBScore)
+        assertEquals(null, game.pendingWinnerTeam)
+        assertEquals(null, game.pendingRequestedByTeam)
+        assertEquals(null, game.pendingRequestedByUserId)
+        assertEquals(null, game.pendingRequestedAt)
+    }
+
+    @Test
+    fun `getMemberStats ignores finished games without winnerTeam for win loss stats`() {
+        whenever(groupMemberRepository.findAllByGroupId(10)).thenReturn(
+            listOf(GroupMember(group = group, user = memberA, role = GroupRole.MEMBER, status = GroupMemberStatus.ACTIVE)),
+        )
+
+        val unscoredGame = Game(
+            id = 101,
+            group = group,
+            createdBy = owner,
+            status = GameStatus.FINISHED,
+            proposalStatus = GameProposalStatus.APPROVED,
+            createdAt = Instant.now(),
+            finishedAt = Instant.now(),
+        )
+        val scoredGame = Game(
+            id = 102,
+            group = group,
+            createdBy = owner,
+            status = GameStatus.FINISHED,
+            proposalStatus = GameProposalStatus.APPROVED,
+            createdAt = Instant.now(),
+            finishedAt = Instant.now(),
+            winnerTeam = "A",
+        )
+        whenever(gameRepository.findAllByGroupIdOrderByCreatedAtDesc(10)).thenReturn(listOf(unscoredGame, scoredGame))
+        whenever(gamePlayerRepository.findAllByUserId(memberA.id!!)).thenReturn(
+            listOf(
+                GamePlayer(game = unscoredGame, user = memberA, team = "A"),
+                GamePlayer(game = scoredGame, user = memberA, team = "A"),
+            ),
+        )
+
+        val stats = service.getMemberStats(10).single()
+
+        assertEquals(1, stats.finishedGameCount)
+        assertEquals(1, stats.winCount)
+        assertEquals(100.0, stats.winRate)
+        assertEquals(1, stats.overallFinishedGameCount)
+        assertEquals(1, stats.overallWinCount)
+        assertEquals(100.0, stats.overallWinRate)
+    }
+
     private fun authUser(id: Long): AuthenticatedUser =
         AuthenticatedUser(
             userId = id,

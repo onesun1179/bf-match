@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.server.ResponseStatusException
+import java.time.Instant
 
 @Service
 class NotificationService(
@@ -71,21 +72,9 @@ class NotificationService(
             .forEach { it.isRead = true; notificationRepository.save(it) }
     }
 
-    @Transactional(noRollbackFor = [Exception::class])
+    @Transactional
     fun registerFcmToken(user: User, token: String) {
-        try {
-            fcmTokenRepository.deleteAllByUserId(user.id!!)
-            val existing = fcmTokenRepository.findByToken(token)
-            if (existing != null) {
-                existing.user = user
-                existing.createdAt = java.time.Instant.now()
-                fcmTokenRepository.save(existing)
-                return
-            }
-            fcmTokenRepository.save(FcmToken(user = user, token = token))
-        } catch (_: Exception) {
-            // 동시 등록 충돌 무시 — 토큰은 이미 저장됨
-        }
+        fcmTokenRepository.upsertToken(user.id!!, token, Instant.now())
     }
 
     @Transactional
@@ -99,10 +88,15 @@ class NotificationService(
         request.inviteDeclined?.let { preference.inviteDeclined = it }
         request.memberJoined?.let { preference.memberJoined = it }
         request.memberKicked?.let { preference.memberKicked = it }
+        request.memberRoleChanged?.let { preference.memberRoleChanged = it }
         request.groupUpdated?.let { preference.groupUpdated = it }
+        request.groupClosed?.let { preference.groupClosed = it }
+        request.groupReminder?.let { preference.groupReminder = it }
         request.gradeUpgraded?.let { preference.gradeUpgraded = it }
         request.gameCreated?.let { preference.gameCreated = it }
+        request.gameCancelled?.let { preference.gameCancelled = it }
         request.gameStarted?.let { preference.gameStarted = it }
+        request.gameCourtChanged?.let { preference.gameCourtChanged = it }
         request.gameFinished?.let { preference.gameFinished = it }
         request.gameProposalReceived?.let { preference.gameProposalReceived = it }
         request.gameProposalApproved?.let { preference.gameProposalApproved = it }
@@ -122,11 +116,15 @@ class NotificationService(
         NotificationType.INVITE_DECLINED -> preference.inviteDeclined
         NotificationType.MEMBER_JOINED -> preference.memberJoined
         NotificationType.MEMBER_KICKED -> preference.memberKicked
+        NotificationType.MEMBER_ROLE_CHANGED -> preference.memberRoleChanged
         NotificationType.GROUP_UPDATED -> preference.groupUpdated
-        NotificationType.GROUP_REMINDER -> preference.groupUpdated
+        NotificationType.GROUP_CLOSED -> preference.groupClosed
+        NotificationType.GROUP_REMINDER -> preference.groupReminder
         NotificationType.GRADE_UPGRADED -> preference.gradeUpgraded
         NotificationType.GAME_CREATED -> preference.gameCreated
+        NotificationType.GAME_CANCELLED -> preference.gameCancelled
         NotificationType.GAME_STARTED -> preference.gameStarted
+        NotificationType.GAME_COURT_CHANGED -> preference.gameCourtChanged
         NotificationType.GAME_FINISHED -> preference.gameFinished
         NotificationType.GAME_PROPOSAL_RECEIVED -> preference.gameProposalReceived
         NotificationType.GAME_PROPOSAL_APPROVED -> preference.gameProposalApproved
@@ -152,10 +150,15 @@ class NotificationService(
         inviteDeclined = inviteDeclined,
         memberJoined = memberJoined,
         memberKicked = memberKicked,
+        memberRoleChanged = memberRoleChanged,
         groupUpdated = groupUpdated,
+        groupClosed = groupClosed,
+        groupReminder = groupReminder,
         gradeUpgraded = gradeUpgraded,
         gameCreated = gameCreated,
+        gameCancelled = gameCancelled,
         gameStarted = gameStarted,
+        gameCourtChanged = gameCourtChanged,
         gameFinished = gameFinished,
         gameProposalReceived = gameProposalReceived,
         gameProposalApproved = gameProposalApproved,

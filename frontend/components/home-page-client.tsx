@@ -141,7 +141,7 @@ export function HomePageClient() {
               style={btnSecondary}
               onClick={() => router.push("/auth/login")}
             >
-              ID / 비밀번호 로그인
+              이메일 / 비밀번호 로그인
             </button>
           </div>
         )}
