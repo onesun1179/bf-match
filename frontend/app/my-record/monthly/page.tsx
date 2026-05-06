@@ -23,7 +23,7 @@ export default function MonthlyPage() {
     <main style={main}>
       <section style={sec}>
         <Link href="/my-record" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 내 기록</Link>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>월별 전적</h1>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: 0 }}>월별 전적</h1>
 
         {loading && <p style={{ color: "var(--muted)", textAlign: "center", padding: 40 }}>불러오는 중...</p>}
 

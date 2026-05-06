@@ -34,13 +34,13 @@ export default function JoinByInvitePage() {
           {state.status === "loading" && <p style={{ margin: 0, color: "var(--muted)", textAlign: "center" }}>초대 정보 확인 중...</p>}
           {state.status === "login_required" && (<>
             <div style={{ fontSize: 40, textAlign: "center" }}>{"\u{1F3F8}"}</div>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, textAlign: "center" }}>이벤트 초대</h1>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, textAlign: "center" }}>이벤트 초대</h1>
             <p style={{ margin: 0, color: "var(--ink-secondary)", textAlign: "center", fontSize: 15 }}>참여하려면 로그인이 필요합니다</p>
             <button type="button" onClick={handleLogin} style={btnKakao}>카카오로 로그인</button>
             <button type="button" onClick={() => router.push("/auth/login")} style={btnSec}>이메일로 로그인</button>
           </>)}
           {state.status === "error" && (<>
-            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, textAlign: "center" }}>초대 링크 오류</h1>
+            <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, textAlign: "center" }}>초대 링크 오류</h1>
             <p style={{ margin: 0, color: "var(--danger)", textAlign: "center" }}>{state.message}</p>
             <button type="button" onClick={() => router.push("/")} style={btnSec}>홈으로</button>
           </>)}

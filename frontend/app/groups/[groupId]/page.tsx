@@ -44,27 +44,27 @@ type DialogType = { type: "none" } | { type: "invite"; token: string; info: Invi
 
 const darkTheme = createTheme({
   palette: {
-    mode: "dark",
-    primary: { main: "#5b8cff" },
-    secondary: { main: "#18d2b6" },
-    error: { main: "#ff6d7a" },
-    success: { main: "#23c686" },
-    warning: { main: "#f3c56f" },
-    background: { default: "transparent", paper: "#161b25" },
+    mode: "light",
+    primary: { main: "#0066cc" },
+    secondary: { main: "#0066cc" },
+    error: { main: "#b42318" },
+    success: { main: "#1d1d1f" },
+    warning: { main: "#8a6116" },
+    background: { default: "transparent", paper: "#ffffff" },
   },
   typography: {
-    fontFamily: '"Pretendard Variable", "Pretendard", -apple-system, sans-serif',
+    fontFamily: "var(--font-text)",
   },
-  shape: { borderRadius: 16 },
+  shape: { borderRadius: 18 },
   components: {
     MuiButton: {
       styleOverrides: {
-        root: { textTransform: "none", fontWeight: 700, borderRadius: 12 },
+        root: { textTransform: "none", fontWeight: 400, borderRadius: 9999 },
       },
     },
     MuiDialog: {
       styleOverrides: {
-        paper: { backgroundImage: "none" },
+        paper: { backgroundImage: "none", boxShadow: "none", border: "1px solid #e0e0e0" },
       },
     },
   },
@@ -406,7 +406,7 @@ export default function GroupDetailPage() {
     .sort((a, b) => b.winRate - a.winRate || b.wins - a.wins || b.games - a.games || a.teamKey.localeCompare(b.teamKey));
 
   if (loading) return <main style={main}><p style={{ color: "var(--muted)", textAlign: "center", padding: 60 }}>불러오는 중...</p></main>;
-  if (error && !group && dialog.type === "none") return <main style={main}><div style={{ ...card, maxWidth: 400, margin: "60px auto" }}><p style={{ margin: 0, color: "var(--danger)", textAlign: "center" }}>{error}</p><Link href="/groups/list" style={{ color: "var(--brand-light)", fontWeight: 700, textAlign: "center" }}>이벤트 목록으로</Link></div></main>;
+  if (error && !group && dialog.type === "none") return <main style={main}><div style={{ ...card, maxWidth: 400, margin: "60px auto" }}><p style={{ margin: 0, color: "var(--danger)", textAlign: "center" }}>{error}</p><Link href="/groups/list" style={{ color: "var(--brand)", fontWeight: 600, textAlign: "center" }}>이벤트 목록으로</Link></div></main>;
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -416,8 +416,8 @@ export default function GroupDetailPage() {
         {dialog.type === "invite" && (
           <>
             <DialogTitle sx={{ textAlign: "center", pb: 0 }}>
-              <div style={{ fontSize: 40, textAlign: "center", marginBottom: 8 }}>{"\u{1F3F8}"}</div>
-              <span style={{ fontSize: 20, fontWeight: 800 }}>이벤트 초대</span>
+              <div style={{ width: 44, height: 44, borderRadius: "var(--radius-sm)", background: "var(--brand)", color: "var(--on-primary)", display: "inline-grid", placeItems: "center", fontSize: 16, fontWeight: 600, marginBottom: 8 }}>BF</div>
+              <span style={{ fontSize: 20, fontWeight: 600 }}>이벤트 초대</span>
             </DialogTitle>
             <DialogContent sx={{ textAlign: "center", pb: 2 }}>
               <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 15, lineHeight: 1.6 }}>
@@ -439,7 +439,7 @@ export default function GroupDetailPage() {
         )}
         {dialog.type === "decline" && (
           <>
-            <DialogTitle sx={{ textAlign: "center", fontWeight: 800 }}>초대 거절</DialogTitle>
+            <DialogTitle sx={{ textAlign: "center", fontWeight: 600 }}>초대 거절</DialogTitle>
             <DialogContent>
               <TextField fullWidth multiline rows={3} value={declineReason} onChange={(e) => setDeclineReason(e.target.value)} placeholder="거절 사유 (선택)" sx={{ mt: 1, "& .MuiOutlinedInput-root": { color: "var(--ink)", background: "var(--surface-2)" } }} />
               {de && <Typography color="error" variant="body2" sx={{ mt: 1, textAlign: "center" }}>{de}</Typography>}
@@ -457,7 +457,7 @@ export default function GroupDetailPage() {
         {/* Header */}
         <div className="mui-card animate-fade-in-up" style={{ ...card, gap: 8 }}>
           <Link href="/groups/list" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 이벤트 목록</Link>
-          <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em" }}>{group.name}</h1>
+          <h1 style={{ margin: 0, fontSize: 34, fontWeight: 600, letterSpacing: 0 }}>{group.name}</h1>
           {group.description && <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 14, lineHeight: 1.5 }}>{group.description}</p>}
         </div>
 
@@ -519,7 +519,7 @@ export default function GroupDetailPage() {
             {isOwner && !group.closed && (
               <button className="mui-btn" onClick={() => { void handleClose(); }} style={{ ...btnDng, width: "100%" }}>이벤트 종료</button>
             )}
-            {group.closed && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, fontWeight: 700, textAlign: "center" }}>이 이벤트는 종료되었습니다</p>}
+            {group.closed && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, fontWeight: 600, textAlign: "center" }}>이 이벤트는 종료되었습니다</p>}
           </div>
         )}
 
@@ -539,7 +539,7 @@ export default function GroupDetailPage() {
                       myUserId={me?.id}
                       style={userRecordLink}
                     />
-                    {m.userId === me?.id && <span style={{ ...gBadge, background: "rgba(0,206,201,0.15)", color: "var(--accent)" }}>나</span>}
+                    {m.userId === me?.id && <span style={{ ...gBadge, background: "var(--surface-3)", color: "var(--brand)" }}>나</span>}
                   </div>
                   {memberStatsMap.get(m.userId) && (
                     <p style={{ margin: "2px 0 0", color: "var(--ink-secondary)", fontSize: 12 }}>
@@ -552,18 +552,8 @@ export default function GroupDetailPage() {
                   <span
                     style={{
                       ...gBadge,
-                      background:
-                        m.role === "OWNER"
-                          ? "rgba(108,92,231,0.16)"
-                          : m.role === "MANAGER"
-                            ? "rgba(0,206,201,0.16)"
-                            : "var(--surface-3)",
-                      color:
-                        m.role === "OWNER"
-                          ? "var(--brand-light)"
-                          : m.role === "MANAGER"
-                            ? "var(--accent)"
-                            : "var(--ink-secondary)",
+                      background: "var(--surface-3)",
+                      color: m.role === "OWNER" || m.role === "MANAGER" ? "var(--brand)" : "var(--ink-secondary)",
                     }}
                   >
                     {m.role === "OWNER" ? "이벤트장" : m.role === "MANAGER" ? "관리자" : "멤버"}
@@ -598,7 +588,7 @@ export default function GroupDetailPage() {
                     <Link
                       href={`/groups/${group.id}/games/new?mode=create`}
                       className="mui-btn"
-                      style={{ ...gameTopBtn, background: "var(--accent)" }}
+                      style={{ ...gameTopBtn, background: "var(--brand)" }}
                     >
                       + 게임 생성
                     </Link>
@@ -624,11 +614,11 @@ export default function GroupDetailPage() {
                 ["FINISHED", "종료"],
                 ...(isOwnerOrManager ? [["CANCELLED", "취소"]] : []),
               ] as [typeof gameSubTab, string][]).map(([s, label]) => (
-                <button key={s} onClick={() => setGameSubTab(s)} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: gameSubTab === s ? "var(--brand)" : "transparent", color: gameSubTab === s ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer", transition: "all .15s" }}>{label}</button>
+                <button key={s} onClick={() => setGameSubTab(s)} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: gameSubTab === s ? "var(--brand)" : "transparent", color: gameSubTab === s ? "var(--on-primary)" : "var(--muted)", fontWeight: gameSubTab === s ? 600 : 400, fontSize: 13, cursor: "pointer", transition: "background .15s ease, color .15s ease" }}>{label}</button>
               ))}
             </div>
             {group.closed && (
-              <p style={{ margin: 0, color: "var(--warning)", fontSize: 12, fontWeight: 700 }}>
+              <p style={{ margin: 0, color: "var(--warning)", fontSize: 12, fontWeight: 600 }}>
                 종료된 이벤트에서는 결과 확정, 결과 수정, 게임 취소만 가능합니다.
               </p>
             )}
@@ -697,7 +687,7 @@ export default function GroupDetailPage() {
                       ? "종료"
                       : "취소";
               const statusTone = g.status === "IN_PROGRESS"
-                ? { background: "rgba(0,206,201,0.14)", color: "var(--accent)", borderColor: "rgba(0,206,201,0.35)" }
+                ? { background: "var(--surface-3)", color: "var(--brand)", borderColor: "rgba(0,102,204,0.24)" }
                 : g.status === "FINISHED" && g.winnerTeam == null
                   ? { background: "rgba(255,193,7,0.12)", color: "var(--warning)", borderColor: "rgba(255,193,7,0.35)" }
                 : g.status === "FINISHED"
@@ -726,7 +716,7 @@ export default function GroupDetailPage() {
                         </span>
                       )}
                       {g.courtNumber != null && (
-                        <span style={{ ...gBadge, padding: "5px 11px", border: "1px solid rgba(108,92,231,0.35)", background: "rgba(108,92,231,0.12)", color: "var(--brand-light)" }}>
+                        <span style={{ ...gBadge, padding: "5px 11px", border: "1px solid rgba(0,102,204,0.24)", background: "var(--surface-3)", color: "var(--brand)" }}>
                           코트 {g.courtNumber}번
                         </span>
                       )}
@@ -751,11 +741,11 @@ export default function GroupDetailPage() {
                   <div style={gameTeamsGrid}>
                     <div style={gameTeamPanelLeft}>
                       {teamARecordHref ? (
-                        <Link href={teamARecordHref} style={{ ...teamRecordLink, color: "var(--brand-light)", marginBottom: 6 }}>
+                        <Link href={teamARecordHref} style={{ ...teamRecordLink, color: "var(--brand)", marginBottom: 6 }}>
                           팀 A {g.winnerTeam === "A" ? "🏆" : ""}
                         </Link>
                       ) : (
-                        <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--brand-light)", marginBottom: 6 }}>
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "var(--brand)", marginBottom: 6 }}>
                           팀 A {g.winnerTeam === "A" ? "🏆" : ""}
                         </p>
                       )}
@@ -774,20 +764,20 @@ export default function GroupDetailPage() {
                     </div>
                     <div style={gameScoreWrap}>
                       {g.winnerTeam != null ? (
-                        <span style={{ fontSize: 15, fontWeight: 800, letterSpacing: "-0.01em", textAlign: "center" }}>
+                        <span style={{ fontSize: 15, fontWeight: 600, letterSpacing: 0, textAlign: "center" }}>
                           팀 {g.winnerTeam} 승
                         </span>
                       ) : (
-                        <span style={{ fontSize: 14, color: "var(--muted)", fontWeight: 700 }}>VS</span>
+                        <span style={{ fontSize: 14, color: "var(--muted)", fontWeight: 600 }}>VS</span>
                       )}
                     </div>
                     <div style={gameTeamPanelRight}>
                       {teamBRecordHref ? (
-                        <Link href={teamBRecordHref} style={{ ...teamRecordLink, color: "var(--accent)", marginBottom: 6, textAlign: "right" }}>
+                        <Link href={teamBRecordHref} style={{ ...teamRecordLink, color: "var(--brand)", marginBottom: 6, textAlign: "right" }}>
                           팀 B {g.winnerTeam === "B" ? "🏆" : ""}
                         </Link>
                       ) : (
-                        <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "var(--accent)", marginBottom: 6 }}>
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "var(--brand)", marginBottom: 6 }}>
                           팀 B {g.winnerTeam === "B" ? "🏆" : ""}
                         </p>
                       )}
@@ -807,19 +797,19 @@ export default function GroupDetailPage() {
                   </div>
 
                   {isProposalPending && (
-                    <p style={{ margin: 0, fontSize: 12, color: "var(--warning)", fontWeight: 700 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--warning)", fontWeight: 600 }}>
                       관리자 수락 대기 중인 게임 제안입니다.
                     </p>
                   )}
                   {g.proposalStatus === "REJECTED" && g.proposalRejectReason && (
-                    <p style={{ margin: 0, fontSize: 12, color: "var(--danger)", fontWeight: 700 }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--danger)", fontWeight: 600 }}>
                       거절 사유: {g.proposalRejectReason}
                     </p>
                   )}
 
                   {(g.status === "PENDING" || g.status === "IN_PROGRESS") && isMember && !group.closed && (
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 700 }}>코트 번호</span>
+                      <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600 }}>코트 번호</span>
                       <input
                         type="number"
                         min={1}
@@ -827,7 +817,7 @@ export default function GroupDetailPage() {
                         value={courtInputs[g.id] ?? (g.courtNumber != null ? String(g.courtNumber) : "")}
                         onChange={(e) => setCourtInputs((prev) => ({ ...prev, [g.id]: e.target.value }))}
                         disabled={!isProposalApproved}
-                        style={{ width: 84, height: 34, borderRadius: 9, border: "1px solid var(--line-2)", background: "var(--surface-2)", color: "var(--ink)", padding: "0 10px", fontSize: 13, fontWeight: 700 }}
+                        style={{ width: 84, height: 34, borderRadius: 9, border: "1px solid var(--line-2)", background: "var(--surface)", color: "var(--ink)", padding: "0 10px", fontSize: 13, fontWeight: 400 }}
                       />
                       <button disabled={!isProposalApproved} onClick={() => { void handleSaveCourtNumber(g.id, g.courtNumber); }} style={{ ...btnSec, minHeight: 34, padding: "0 12px", fontSize: 12, opacity: isProposalApproved ? 1 : 0.4 }}>
                         저장
@@ -835,7 +825,7 @@ export default function GroupDetailPage() {
                     </div>
                   )}
                   {pendingMessage && (
-                    <p style={{ margin: 0, fontSize: 12, color: "var(--warning)", fontWeight: 700, padding: "8px 10px", borderRadius: 10, background: "rgba(255,193,7,0.08)", border: "1px solid rgba(255,193,7,0.22)" }}>
+                    <p style={{ margin: 0, fontSize: 12, color: "var(--warning)", fontWeight: 600, padding: "8px 10px", borderRadius: 10, background: "rgba(255,193,7,0.08)", border: "1px solid rgba(255,193,7,0.22)" }}>
                       {pendingMessage}
                     </p>
                   )}
@@ -843,13 +833,13 @@ export default function GroupDetailPage() {
                   <div style={{ display: "flex", gap: 6, borderTop: "1px solid var(--line)", paddingTop: 10 }}>
                     {canManageProposal && (
                       <>
-                        <button className="mui-btn" onClick={() => { void handleApproveProposal(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}>제안 수락</button>
+                        <button className="mui-btn" onClick={() => { void handleApproveProposal(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--brand)", color: "var(--on-primary)" }}>제안 수락</button>
                         <button className="mui-btn" onClick={() => { void handleRejectProposal(g.id); }} style={{ ...btnDng, flex: 1, minHeight: 36, fontSize: 13 }}>제안 거절</button>
                       </>
                     )}
                     {g.status === "PENDING" && isMember && isProposalApproved && !group.closed && <button className="mui-btn" onClick={() => { void handleStartGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13 }}>시작</button>}
-                    {g.status === "IN_PROGRESS" && isMember && !group.closed && <button className="mui-btn" onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--accent)" }}>게임 완료</button>}
-                    {g.status === "FINISHED" && isPlayer && !group.closed && g.winnerTeam == null && g.pendingWinnerTeam == null && <button className="mui-btn" onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setPendingWinnerTeam(null); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}>결과 입력</button>}
+                    {g.status === "IN_PROGRESS" && isMember && !group.closed && <button className="mui-btn" onClick={() => { void handleFinishGame(g.id); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--brand)" }}>게임 완료</button>}
+                    {g.status === "FINISHED" && isPlayer && !group.closed && g.winnerTeam == null && g.pendingWinnerTeam == null && <button className="mui-btn" onClick={() => { setScoreDialog({ gameId: g.id, autoConfirm: false }); setPendingWinnerTeam(null); }} style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--brand)", color: "var(--on-primary)" }}>결과 입력</button>}
                     {canManagerForceConfirm && (
                       <button
                         onClick={() => {
@@ -860,7 +850,7 @@ export default function GroupDetailPage() {
                             setPendingWinnerTeam(null);
                           }
                         }}
-                        style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--success)", color: "#fff" }}
+                        style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--brand)", color: "var(--on-primary)" }}
                       >
                         {hasPendingScore ? "관리자 결과 확정" : "결과 확정"}
                       </button>
@@ -872,7 +862,7 @@ export default function GroupDetailPage() {
                           setScoreDialog({ gameId: g.id, autoConfirm: true });
                           setPendingWinnerTeam((g.winnerTeam === "A" || g.winnerTeam === "B") ? g.winnerTeam : null);
                         }}
-                        style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--warning)", color: "#000" }}
+                        style={{ ...btnP, flex: 1, minHeight: 36, fontSize: 13, background: "var(--brand)", color: "var(--on-primary)" }}
                       >
                         결과 수정
                       </button>
@@ -895,15 +885,15 @@ export default function GroupDetailPage() {
           <div className="mui-card animate-fade-in-up" style={{ ...card, gap: 10 }}>
             <h2 style={sh}>랭킹</h2>
             <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)" }}>
-              <button className="mui-btn" onClick={() => setRankingMode("PERSONAL")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "PERSONAL" ? "var(--brand)" : "transparent", color: rankingMode === "PERSONAL" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>개인</button>
-              <button className="mui-btn" onClick={() => setRankingMode("TEAM")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "TEAM" ? "var(--brand)" : "transparent", color: rankingMode === "TEAM" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>팀</button>
+              <button className="mui-btn" onClick={() => setRankingMode("PERSONAL")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "PERSONAL" ? "var(--brand)" : "transparent", color: rankingMode === "PERSONAL" ? "var(--on-primary)" : "var(--muted)", fontWeight: rankingMode === "PERSONAL" ? 600 : 400, fontSize: 13, cursor: "pointer" }}>개인</button>
+              <button className="mui-btn" onClick={() => setRankingMode("TEAM")} style={{ flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)", background: rankingMode === "TEAM" ? "var(--brand)" : "transparent", color: rankingMode === "TEAM" ? "var(--on-primary)" : "var(--muted)", fontWeight: rankingMode === "TEAM" ? 600 : 400, fontSize: 13, cursor: "pointer" }}>팀</button>
             </div>
             {rankingMode === "PERSONAL" && memberStats.length === 0 && <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center", padding: 20 }}>개인 랭킹 데이터가 없습니다</p>}
             {rankingMode === "TEAM" && teamRankingEntries.length === 0 && <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center", padding: 20 }}>팀 랭킹 데이터가 없습니다</p>}
 
             {/* 이벤트 내 랭킹 */}
             {rankingMode === "PERSONAL" && <div style={{ ...item, display: "grid", gap: 8 }}>
-              <p style={{ margin: 0, fontWeight: 800, fontSize: 14 }}>이벤트 내 랭킹</p>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>이벤트 내 랭킹</p>
               {memberStats
                 .slice()
                 .sort((a, b) => b.winRate - a.winRate || b.winCount - a.winCount || b.finishedGameCount - a.finishedGameCount)
@@ -913,7 +903,7 @@ export default function GroupDetailPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "6px 0", borderTop: "1px solid var(--line)" }}>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{idx + 1}.</span>
+                        <span style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{idx + 1}.</span>
                         <UserNameActions
                           userId={s.userId}
                           nickname={s.nickname}
@@ -926,7 +916,7 @@ export default function GroupDetailPage() {
                       </div>
                     </div>
                     <div style={{ textAlign: "right" }}>
-                      <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "var(--accent)" }}>{s.winRate.toFixed(0)}%</p>
+                      <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: "var(--brand)" }}>{s.winRate.toFixed(0)}%</p>
                       <p style={{ margin: "2px 0 0", color: "var(--muted)", fontSize: 12 }}>
                         이벤트 {s.winCount}승 / {s.finishedGameCount}전
                       </p>
@@ -946,7 +936,7 @@ export default function GroupDetailPage() {
             </div>}
 
             {rankingMode === "TEAM" && <div style={{ ...item, display: "grid", gap: 8 }}>
-              <p style={{ margin: 0, fontWeight: 800, fontSize: 14 }}>팀 랭킹</p>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>팀 랭킹</p>
               {teamRankingEntries
                 .slice(0, showAllTeamRanking ? undefined : 5)
                 .map((t, idx) => {
@@ -956,7 +946,7 @@ export default function GroupDetailPage() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderTop: "1px solid var(--line)" }}>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                          <span style={{ margin: 0, fontWeight: 700, fontSize: 14 }}>{idx + 1}.</span>
+                          <span style={{ margin: 0, fontWeight: 600, fontSize: 14 }}>{idx + 1}.</span>
                           <span style={{ ...userRecordLink, fontSize: 14, display: "inline-flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                             {sortedPlayers[0] && (
                               <UserNameActions
@@ -968,7 +958,7 @@ export default function GroupDetailPage() {
                                 style={{ fontSize: 13 }}
                               />
                             )}
-                            <span style={{ color: "var(--muted)", fontWeight: 700 }}>/</span>
+                            <span style={{ color: "var(--muted)", fontWeight: 600 }}>/</span>
                             {sortedPlayers[1] && (
                               <UserNameActions
                                 userId={sortedPlayers[1].userId}
@@ -985,7 +975,7 @@ export default function GroupDetailPage() {
                           이벤트 {t.wins}승 {t.losses}패 / {t.games}전
                         </p>
                       </div>
-                      <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: "var(--accent)" }}>{t.winRate.toFixed(0)}%</p>
+                      <p style={{ margin: 0, fontWeight: 600, fontSize: 14, color: "var(--brand)" }}>{t.winRate.toFixed(0)}%</p>
                     </div>
                   </Link>
                   );
@@ -1005,7 +995,7 @@ export default function GroupDetailPage() {
 
         {/* Result Dialog */}
         <MuiDialog open={scoreDialog !== null} onClose={() => setScoreDialog(null)} fullWidth maxWidth="xs" slotProps={{ paper: { sx: { background: "var(--surface)", borderRadius: "var(--radius-lg)" } } }}>
-          <DialogTitle sx={{ textAlign: "center", fontWeight: 800 }}>승패 입력</DialogTitle>
+          <DialogTitle sx={{ textAlign: "center", fontWeight: 600 }}>승패 입력</DialogTitle>
           <DialogContent sx={{ textAlign: "center" }}>
             <p style={{ margin: "0 0 16px 0", color: "var(--ink-secondary)", fontSize: 14 }}>승리 팀을 선택하세요</p>
             <div style={{ display: "grid", gap: 10 }}>
@@ -1072,30 +1062,29 @@ const sec: CSSProperties = { maxWidth: 620, margin: "0 auto", display: "grid", g
 const card: CSSProperties = {
   padding: "20px 22px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00)), var(--glass)",
-  border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
-  backdropFilter: "blur(10px)",
+  background: "var(--surface)",
+  border: "1px solid var(--hairline)",
+  boxShadow: "none",
   display: "grid",
 };
 const item: CSSProperties = {
   borderRadius: "var(--radius-md)",
   border: "1px solid var(--line)",
   padding: "12px 16px",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00)), var(--surface-2)",
+  background: "var(--surface-2)",
 };
-const sh: CSSProperties = { margin: 0, fontSize: 16, fontWeight: 700, color: "var(--ink-secondary)" };
+const sh: CSSProperties = { margin: 0, fontSize: 17, fontWeight: 600, color: "var(--ink-secondary)" };
 const infoGrid: CSSProperties = { display: "grid", gap: 0 };
 const btnP: CSSProperties = {
   minHeight: 48,
-  borderRadius: "var(--radius-md)",
-  border: "1px solid rgba(155,184,255,0.32)",
-  background: "linear-gradient(180deg, #6a99ff 0%, #4d79e8 100%)",
-  color: "#f8fbff",
-  fontWeight: 800,
-  fontSize: 15,
+  borderRadius: "var(--radius-pill)",
+  border: "1px solid var(--brand)",
+  background: "var(--brand)",
+  color: "var(--on-primary)",
+  fontWeight: 400,
+  fontSize: 17,
   cursor: "pointer",
-  boxShadow: "0 10px 22px rgba(63,105,206,0.32)",
+  boxShadow: "none",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -1106,7 +1095,7 @@ const btnSec: CSSProperties = {
   border: "1px solid var(--line-2)",
   background: "var(--surface-2)",
   color: "var(--ink)",
-  fontWeight: 700,
+  fontWeight: 400,
   fontSize: 15,
   cursor: "pointer",
   display: "flex",
@@ -1115,40 +1104,40 @@ const btnSec: CSSProperties = {
 };
 const btnDng: CSSProperties = {
   minHeight: 48,
-  borderRadius: "var(--radius-md)",
+  borderRadius: "var(--radius-pill)",
   border: "1px solid rgba(255,109,122,0.36)",
-  background: "linear-gradient(180deg, rgba(255,109,122,0.26), rgba(255,109,122,0.12))",
-  color: "#ffd4d9",
-  fontWeight: 800,
-  fontSize: 15,
+  background: "var(--danger-bg)",
+  color: "var(--danger)",
+  fontWeight: 400,
+  fontSize: 17,
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
 };
-const btnKick: CSSProperties = { padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(255,107,107,0.3)", background: "var(--danger-bg)", color: "var(--danger)", fontSize: 12, fontWeight: 700, cursor: "pointer" };
-const gBadge: CSSProperties = { fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 8, background: "var(--surface-3)", color: "var(--ink-secondary)" };
+const btnKick: CSSProperties = { padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(255,107,107,0.3)", background: "var(--danger-bg)", color: "var(--danger)", fontSize: 12, fontWeight: 600, cursor: "pointer" };
+const gBadge: CSSProperties = { fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 8, background: "var(--surface-3)", color: "var(--ink-secondary)", border: "1px solid var(--hairline)" };
 const gameCard: CSSProperties = {
   ...item,
   display: "grid",
   gap: 12,
   padding: "16px",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.00)), var(--glass)",
-  border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  background: "var(--surface)",
+  border: "1px solid var(--hairline)",
+  boxShadow: "none",
 };
 const gameTeamsGrid: CSSProperties = { display: "grid", gridTemplateColumns: "minmax(0,1fr) 56px minmax(0,1fr)", gap: 8, alignItems: "stretch" };
 const gameTeamPanelLeft: CSSProperties = {
-  border: "1px solid rgba(91,140,255,0.36)",
-  background: "rgba(91,140,255,0.10)",
+  border: "1px solid rgba(0, 102, 204, 0.24)",
+  background: "var(--surface-3)",
   borderRadius: 12,
   padding: "10px 12px",
   minWidth: 0,
   overflow: "hidden",
 };
 const gameTeamPanelRight: CSSProperties = {
-  border: "1px solid rgba(24,210,182,0.36)",
-  background: "rgba(24,210,182,0.10)",
+  border: "1px solid rgba(0, 102, 204, 0.24)",
+  background: "var(--surface-3)",
   borderRadius: 12,
   padding: "10px 12px",
   textAlign: "right",
@@ -1159,7 +1148,7 @@ const gameScoreWrap: CSSProperties = {
   minWidth: 56,
   borderRadius: 12,
   border: "1px solid var(--line)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--surface-3)",
+  background: "var(--surface-3)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -1167,7 +1156,7 @@ const gameScoreWrap: CSSProperties = {
 };
 const userRecordLink: CSSProperties = {
   margin: 0,
-  fontWeight: 700,
+  fontWeight: 600,
   fontSize: 15,
   color: "var(--ink)",
   textDecoration: "none",
@@ -1177,7 +1166,7 @@ const teamRecordLink: CSSProperties = {
   display: "block",
   margin: 0,
   fontSize: 12,
-  fontWeight: 800,
+  fontWeight: 600,
   textDecoration: "none",
   maxWidth: "100%",
   whiteSpace: "nowrap",
@@ -1189,8 +1178,8 @@ const gameTopBtn: CSSProperties = {
   padding: "6px 14px",
   borderRadius: "var(--radius-sm)",
   border: 0,
-  color: "#fff",
-  fontWeight: 700,
+  color: "var(--on-primary)",
+  fontWeight: 400,
   fontSize: 13,
   cursor: "pointer",
   textDecoration: "none",
@@ -1214,9 +1203,9 @@ const gameCloseBtn: CSSProperties = {
   justifyContent: "center",
   padding: 0,
 };
-const ta: CSSProperties = { borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: 14, fontSize: 15, resize: "vertical", minHeight: 80, background: "var(--surface-2)", color: "var(--ink)", fontFamily: "inherit" };
-const overlay: CSSProperties = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 };
-const dlg: CSSProperties = { position: "relative", background: "var(--surface)", border: "1px solid var(--line-2)", borderRadius: "var(--radius-xl)", padding: "32px 24px", maxWidth: 400, width: "100%", display: "grid", gap: 16, boxShadow: "var(--shadow-lg)" };
+const ta: CSSProperties = { borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: 14, fontSize: 17, resize: "vertical", minHeight: 80, background: "var(--surface)", color: "var(--ink)", fontFamily: "inherit" };
+const overlay: CSSProperties = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.34)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 20 };
+const dlg: CSSProperties = { position: "relative", background: "var(--surface)", border: "1px solid var(--line-2)", borderRadius: "var(--radius-xl)", padding: "32px 24px", maxWidth: 400, width: "100%", display: "grid", gap: 16, boxShadow: "none" };
 const closeIconBtn: CSSProperties = {
   position: "absolute",
   top: 10,

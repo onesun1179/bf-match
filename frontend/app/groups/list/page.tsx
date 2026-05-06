@@ -13,6 +13,17 @@ import {
 } from "@/lib/auth";
 import {BottomNavMain} from "@/components/bottom-nav-main";
 import {UserInfoChip} from "@/components/user-info-chip";
+import {
+  ContentStack,
+  DisplayTitle,
+  FilterChip,
+  PageShell,
+  PillInput,
+  PrimaryLink,
+  SegmentedControl,
+  SegmentButton,
+  SurfaceCard,
+} from "@/components/ui/apple";
 
 type Tab = "public" | "my";
 type Status = "all" | "active" | "ended";
@@ -60,33 +71,32 @@ export default function GroupListPage() {
   function isEnded(g: GroupSummary) { return g.endAt && new Date(g.endAt) < now; }
 
   return (
-    <main style={main}>
-      <section className="animate-fade-in-up" style={sec}>
+    <PageShell>
+      <ContentStack className="animate-fade-in-up" max={520} gap={14}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>이벤트</h1>
-          <Link href="/groups/create" className="btn-hover" style={btnCreate}>+ 새 이벤트</Link>
+          <DisplayTitle style={{ margin: 0 }}>이벤트</DisplayTitle>
+          <PrimaryLink as={Link} href="/groups/create" className="btn-hover" style={{ padding: "0 18px" }}>+ 새 이벤트</PrimaryLink>
         </div>
 
         {/* Tab */}
-        <div style={tabBar}>
-          <button className="btn-hover" onClick={() => setTab("public")} style={tabStyle(tab === "public")}>공개 이벤트</button>
-          <button className="btn-hover" onClick={() => setTab("my")} style={tabStyle(tab === "my")}>내 이벤트</button>
-        </div>
+        <SegmentedControl>
+          <SegmentButton className="btn-hover" onClick={() => setTab("public")} selected={tab === "public"}>공개 이벤트</SegmentButton>
+          <SegmentButton className="btn-hover" onClick={() => setTab("my")} selected={tab === "my"}>내 이벤트</SegmentButton>
+        </SegmentedControl>
 
         {/* Search + Filter */}
         <div style={{ display: "grid", gap: 8 }}>
-          <input
+          <PillInput
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="이벤트명 또는 설명 검색"
-            style={searchInput}
           />
           <div style={{ display: "flex", gap: 6 }}>
             {(["active", "ended", "all"] as Status[]).map((s) => (
-              <button key={s} onClick={() => setStatus(s)} style={filterChip(status === s)}>
+              <FilterChip key={s} onClick={() => setStatus(s)} selected={status === s}>
                 {s === "active" ? "활성" : s === "ended" ? "종료" : "전체"}
-              </button>
+              </FilterChip>
             ))}
           </div>
         </div>
@@ -94,12 +104,12 @@ export default function GroupListPage() {
         {loading && <p style={{ color: "var(--muted)", textAlign: "center", padding: 40 }}>불러오는 중...</p>}
 
         {!loading && filtered.length === 0 && !error && (
-          <div style={{ ...card, textAlign: "center", padding: "48px 20px" }}>
+          <SurfaceCard style={{ textAlign: "center", padding: "48px 20px" }}>
             <p style={{ margin: 0, fontSize: 40 }}>{"\u{1F3F8}"}</p>
             <p style={{ margin: "12px 0 0", color: "var(--muted)", fontSize: 15 }}>
               {search ? "검색 결과가 없습니다" : tab === "public" ? "공개 이벤트이 없습니다" : "참여 중인 이벤트이 없습니다"}
             </p>
-          </div>
+          </SurfaceCard>
         )}
 
         {filtered.map((g) => {
@@ -114,7 +124,7 @@ export default function GroupListPage() {
                     {ended && <span style={{ ...badge, background: "var(--danger-bg)", color: "var(--danger)" }}>종료</span>}
                   </div>
                   {isMember && (
-                    <span style={{ ...badge, background: g.myRole === "OWNER" ? "rgba(108,92,231,0.15)" : g.myRole === "MANAGER" ? "rgba(0,206,201,0.15)" : "var(--surface-3)", color: g.myRole === "OWNER" ? "var(--brand-light)" : g.myRole === "MANAGER" ? "var(--accent)" : "var(--ink-secondary)" }}>
+                    <span style={{ ...badge, background: "var(--surface-3)", border: "1px solid var(--hairline)", color: g.myRole === "OWNER" || g.myRole === "MANAGER" ? "var(--brand)" : "var(--ink-secondary)" }}>
                       {roleLabel(g.myRole)}
                     </span>
                   )}
@@ -141,25 +151,13 @@ export default function GroupListPage() {
         })}
 
         {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{error}</p>}
-      </section>
+      </ContentStack>
 
       <BottomNavMain active="event" />
-    </main>
+    </PageShell>
   );
 }
 
-const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
-const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", gap: 14 };
-const card: CSSProperties = { padding: "20px 22px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid" };
 const groupCard: CSSProperties = { padding: "18px 20px", borderRadius: "var(--radius-lg)", transition: "opacity .15s" };
-const btnCreate: CSSProperties = { padding: "8px 16px", borderRadius: "var(--radius-sm)", background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 14, textDecoration: "none" };
-const badge: CSSProperties = { fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 999 };
-const meta: CSSProperties = { fontSize: 12, fontWeight: 600, padding: "3px 8px", borderRadius: 8, background: "var(--surface-3)", color: "var(--muted)" };
-const searchInput: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: "1px solid rgba(173, 193, 230, 0.2)", padding: "0 16px", fontSize: 15, background: "rgba(22, 27, 37, 0.6)", color: "var(--ink)", outline: "none", backdropFilter: "blur(8px)", boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)", transition: "all 0.2s" };
-function filterChip(active: boolean): CSSProperties {
-  return { padding: "6px 14px", borderRadius: 999, border: "1px solid rgba(173, 193, 230, 0.15)", fontSize: 13, fontWeight: 700, cursor: "pointer", background: active ? "var(--brand)" : "rgba(22, 27, 37, 0.6)", color: active ? "#fff" : "var(--muted)", transition: "all .15s" };
-}
-const tabBar: CSSProperties = { display: "flex", gap: 4, padding: 6, borderRadius: "var(--radius-md)", background: "rgba(22, 27, 37, 0.6)", backdropFilter: "blur(12px)", border: "1px solid rgba(173, 193, 230, 0.1)" };
-function tabStyle(active: boolean): CSSProperties {
-  return { flex: 1, padding: "12px 0", border: 0, borderRadius: "var(--radius-sm)", background: active ? "var(--brand)" : "transparent", color: active ? "#fff" : "var(--muted)", fontWeight: 800, fontSize: 14, cursor: "pointer", transition: "all .2s ease" };
-}
+const badge: CSSProperties = { fontSize: 12, fontWeight: 600, padding: "4px 10px", borderRadius: 999 };
+const meta: CSSProperties = { fontSize: 12, fontWeight: 400, padding: "3px 8px", borderRadius: 8, background: "var(--surface-3)", color: "var(--muted)", border: "1px solid var(--hairline)" };

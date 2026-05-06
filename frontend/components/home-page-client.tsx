@@ -52,20 +52,25 @@ export function HomePageClient() {
       <section style={section}>
         {/* Hero */}
         <div style={hero}>
-          <div style={heroDepth} />
           <div style={heroTop}>
             <div style={brandBadge}>BF MATCH</div>
             <span style={heroGhostTag}>MATCH HUB</span>
           </div>
-          <h1 style={{ margin: "14px 0 0", fontSize: 36, fontWeight: 900, lineHeight: 1.1, letterSpacing: "-0.04em", color: "#FFFFFF", textShadow: "0 4px 20px rgba(0,0,0,0.5)" }}>
+          <h1 style={{ margin: "34px 0 0", fontSize: 40, fontWeight: 600, lineHeight: 1.1, letterSpacing: 0, color: "var(--on-dark)" }}>
             오늘 칠 사람,
             <br />
-            실력 맞게 <span style={{ color: "var(--brand-light)" }}>바로 찾기</span>
+            실력 맞게 <span style={{ color: "var(--primary-on-dark)" }}>바로 찾기</span>
           </h1>
-          <p style={{ margin: "12px 0 0", color: "#D6E0F6", fontSize: 15, lineHeight: 1.6, maxWidth: 320, opacity: 0.9 }}>
+          <p style={{ margin: "14px 0 0", color: "var(--body-muted, #cccccc)", fontSize: 17, lineHeight: 1.47, maxWidth: 330 }}>
             급수 + 경험치를 함께 반영해서
             이벤트, 팀, 게임 제안까지 한 흐름으로 연결합니다.
           </p>
+          <div aria-hidden="true" style={heroCourt}>
+            <div style={courtNet} />
+            <div style={courtLineA} />
+            <div style={courtLineB} />
+            <div style={shuttleMark}>BF</div>
+          </div>
           <div style={heroStatsRow}>
             <StatPill label="등급 기반" value="F~S" />
             <StatPill label="팀 매칭" value="2:2" />
@@ -87,7 +92,7 @@ export function HomePageClient() {
                   grade={v.me.skill?.nationalGrade ?? null}
                   lv={v.me.skill?.lv ?? null}
                   myUserId={v.me.id}
-                  style={{ margin: 0, fontWeight: 800, fontSize: 20 }}
+                  style={{ margin: 0, fontWeight: 600, fontSize: 20 }}
                 />
                 {v.me.email && <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 13 }}>{v.me.email}</p>}
               </div>
@@ -128,10 +133,10 @@ export function HomePageClient() {
 
         {!v.loading && !v.me && (
           <div className="glass-card animate-fade-in-up" style={{ ...cardMain, gap: 16 }}>
-            <p style={{ margin: 0, color: "var(--ink)", fontSize: 16, textAlign: "center", fontWeight: 700 }}>
+            <p style={{ margin: 0, color: "var(--ink)", fontSize: 17, textAlign: "center", fontWeight: 600 }}>
               로그인이 필요합니다
             </p>
-            <a href={getKakaoLoginUrl()} className="btn-hover" style={{...btnPrimary, background: "var(--kakao)", color: "#3C1E1E"}}>
+            <a href={getKakaoLoginUrl()} className="btn-hover" style={{...btnPrimary, background: "var(--kakao)", color: "#191919"}}>
               카카오로 로그인
             </a>
             <button
@@ -158,7 +163,7 @@ export function HomePageClient() {
         <div style={overlay} onClick={() => setShowExpGuide(false)}>
           <div style={dialog} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800 }}>EXP 습득량 안내</h2>
+              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>EXP 습득량 안내</h2>
               <button type="button" onClick={() => setShowExpGuide(false)} style={dialogCloseBtn} aria-label="닫기">
                 ×
               </button>
@@ -197,68 +202,106 @@ const section: CSSProperties = { maxWidth: 480, margin: "0 auto", display: "grid
 const hero: CSSProperties = {
   position: "relative",
   overflow: "hidden",
-  padding: "22px 20px 18px",
-  borderRadius: "var(--radius-xl)",
-  background: "linear-gradient(145deg, rgba(23,29,44,0.96), rgba(12,15,23,0.92) 54%, rgba(26,36,44,0.94))",
-  border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow-lg)",
-  backdropFilter: "blur(24px)",
-};
-const heroDepth: CSSProperties = {
-  position: "absolute",
-  inset: 0,
-  background: "linear-gradient(120deg, rgba(111,145,255,0.22), transparent 34%), linear-gradient(300deg, rgba(33,208,173,0.18), transparent 44%), linear-gradient(180deg, rgba(255,255,255,0.08), transparent 42%)",
-  pointerEvents: "none",
+  minHeight: 430,
+  margin: "-24px -16px 0",
+  padding: "44px 28px 24px",
+  borderRadius: 0,
+  background: "var(--surface-tile-1)",
 };
 const heroTop: CSSProperties = { position: "relative", zIndex: 2, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 };
 const brandBadge: CSSProperties = {
   display: "inline-flex",
   alignItems: "center",
-  height: 30,
-  padding: "0 10px",
+  minHeight: 30,
+  padding: "0 12px",
   borderRadius: 999,
-  background: "rgba(111, 145, 255, 0.18)",
-  border: "1px solid rgba(169, 190, 255, 0.38)",
-  color: "var(--brand-light)",
-  fontSize: 11,
-  fontWeight: 800,
-  letterSpacing: "0.06em",
+  background: "var(--primary)",
+  border: "1px solid var(--primary)",
+  color: "var(--on-primary)",
+  fontSize: 12,
+  fontWeight: 600,
+  letterSpacing: 0,
 };
 const heroGhostTag: CSSProperties = {
-  height: 30,
-  padding: "0 11px",
+  minHeight: 30,
+  padding: "0 12px",
   borderRadius: 999,
-  border: "1px solid var(--line-2)",
-  color: "var(--ink-secondary)",
+  border: "1px solid rgba(255, 255, 255, 0.26)",
+  color: "var(--body-muted, #cccccc)",
   fontSize: 12,
-  fontWeight: 700,
+  fontWeight: 400,
   display: "inline-flex",
   alignItems: "center",
 };
-const heroStatsRow: CSSProperties = { position: "relative", zIndex: 2, marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" };
+const heroCourt: CSSProperties = {
+  position: "relative",
+  zIndex: 1,
+  width: "min(320px, 86vw)",
+  aspectRatio: "4 / 3",
+  margin: "32px auto 0",
+  border: "2px solid rgba(255, 255, 255, 0.62)",
+  background: "var(--surface-tile-2)",
+  boxShadow: "var(--product-shadow)",
+};
+const courtNet: CSSProperties = {
+  position: "absolute",
+  top: "50%",
+  left: 0,
+  right: 0,
+  height: 2,
+  background: "rgba(255, 255, 255, 0.58)",
+};
+const courtLineA: CSSProperties = {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  left: "30%",
+  width: 2,
+  background: "rgba(255, 255, 255, 0.34)",
+};
+const courtLineB: CSSProperties = {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  right: "30%",
+  width: 2,
+  background: "rgba(255, 255, 255, 0.34)",
+};
+const shuttleMark: CSSProperties = {
+  position: "absolute",
+  right: 18,
+  bottom: 16,
+  width: 54,
+  height: 54,
+  borderRadius: 999,
+  display: "grid",
+  placeItems: "center",
+  background: "var(--canvas)",
+  color: "var(--ink)",
+  fontSize: 18,
+  fontWeight: 600,
+};
+const heroStatsRow: CSSProperties = { position: "relative", zIndex: 2, marginTop: 22, display: "flex", gap: 8, flexWrap: "wrap" };
 const cardMain: CSSProperties = {
-  padding: "20px 20px 18px",
+  padding: "24px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01)), rgba(22, 27, 37, 0.7)",
-  backdropFilter: "blur(16px)",
-  WebkitBackdropFilter: "blur(16px)",
-  border: "1px solid rgba(173, 193, 230, 0.15)",
-  boxShadow: "0 12px 32px rgba(0, 0, 0, 0.4)",
+  background: "var(--surface)",
+  border: "1px solid var(--hairline)",
+  boxShadow: "none",
   display: "grid",
   gap: 12,
-  transition: "all 0.3s ease",
 };
-const btnPrimary: CSSProperties = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: 48, borderRadius: "var(--radius-md)", background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 15, border: 0, cursor: "pointer", textDecoration: "none", transition: "opacity .15s" };
-const btnSecondary: CSSProperties = { ...btnPrimary, background: "var(--surface-3)", color: "var(--ink)" };
-const btnGhost: CSSProperties = { padding: "6px 12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--line-2)", background: "rgba(255,255,255,0.02)", color: "var(--ink-secondary)", fontWeight: 600, fontSize: 13, cursor: "pointer", flexShrink: 0 };
+const btnPrimary: CSSProperties = { display: "flex", alignItems: "center", justifyContent: "center", minHeight: 44, borderRadius: "var(--radius-pill)", background: "var(--brand)", color: "var(--on-primary)", fontWeight: 400, fontSize: 17, border: 0, cursor: "pointer", textDecoration: "none" };
+const btnSecondary: CSSProperties = { ...btnPrimary, background: "transparent", color: "var(--brand)", border: "1px solid var(--brand)" };
+const btnGhost: CSSProperties = { padding: "8px 14px", borderRadius: "var(--radius-sm)", border: "1px solid var(--line-2)", background: "var(--surface-3)", color: "var(--ink-secondary)", fontWeight: 400, fontSize: 14, cursor: "pointer", flexShrink: 0 };
 const xpWrap: CSSProperties = {
   padding: "12px 12px",
   borderRadius: "var(--radius-sm)",
   border: "1px solid var(--line)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0)), var(--surface-2)",
+  background: "var(--surface-2)",
 };
-const xpTrack: CSSProperties = { flex: 1, height: 10, borderRadius: 999, background: "rgba(255,255,255,0.07)", overflow: "hidden" };
-const xpFill: CSSProperties = { height: "100%", borderRadius: 999, background: "linear-gradient(90deg, var(--accent), #44e3cc)", transition: "width .35s ease" };
+const xpTrack: CSSProperties = { flex: 1, height: 10, borderRadius: 999, background: "var(--divider-soft)", overflow: "hidden" };
+const xpFill: CSSProperties = { height: "100%", borderRadius: 999, background: "var(--brand)", transition: "width .35s ease" };
 const expInfoBtn: CSSProperties = {
   width: 18,
   height: 18,
@@ -267,7 +310,7 @@ const expInfoBtn: CSSProperties = {
   background: "var(--surface-2)",
   color: "var(--ink-secondary)",
   fontSize: 11,
-  fontWeight: 800,
+  fontWeight: 600,
   padding: 0,
   lineHeight: 1,
   display: "inline-flex",
@@ -279,7 +322,7 @@ const expInfoBtn: CSSProperties = {
 const overlay: CSSProperties = {
   position: "fixed",
   inset: 0,
-  background: "rgba(3, 8, 18, 0.46)",
+  background: "rgba(0, 0, 0, 0.34)",
   zIndex: 2500,
   display: "grid",
   placeItems: "center",
@@ -287,10 +330,10 @@ const overlay: CSSProperties = {
 };
 const dialog: CSSProperties = {
   width: "min(360px, calc(100vw - 18px))",
-  borderRadius: 16,
+  borderRadius: "var(--radius-lg)",
   background: "var(--surface)",
   border: "1px solid var(--line-2)",
-  boxShadow: "var(--shadow-lg)",
+  boxShadow: "none",
   padding: "14px 14px 12px",
 };
 const dialogCloseBtn: CSSProperties = {
@@ -310,18 +353,18 @@ const dialogCloseBtn: CSSProperties = {
 };
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 10px", borderRadius: 999, border: "1px solid var(--line)", background: "rgba(7,12,22,0.56)" }}>
-      <span style={{ fontSize: 11, color: "var(--muted)", fontWeight: 700 }}>{label}</span>
-      <span style={{ fontSize: 12, color: "var(--ink)", fontWeight: 800 }}>{value}</span>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 6, minHeight: 30, padding: "0 11px", borderRadius: 999, border: "1px solid rgba(255, 255, 255, 0.22)", background: "transparent" }}>
+      <span style={{ fontSize: 11, color: "var(--body-muted, #cccccc)", fontWeight: 400 }}>{label}</span>
+      <span style={{ fontSize: 12, color: "var(--on-dark)", fontWeight: 600 }}>{value}</span>
     </span>
   );
 }
 
 function QuickMetric({ title, value }: { title: string; value: string }) {
   return (
-    <div style={{ borderRadius: 12, padding: "10px 8px", background: "var(--surface-2)", border: "1px solid var(--line)", textAlign: "center" }}>
-      <p style={{ margin: 0, fontSize: 11, color: "var(--muted)", fontWeight: 700 }}>{title}</p>
-      <p style={{ margin: "3px 0 0", fontSize: 15, fontWeight: 800 }}>{value}</p>
+    <div style={{ borderRadius: "var(--radius-sm)", padding: "10px 8px", background: "var(--surface-2)", border: "1px solid var(--line)", textAlign: "center" }}>
+      <p style={{ margin: 0, fontSize: 12, color: "var(--muted)", fontWeight: 400 }}>{title}</p>
+      <p style={{ margin: "3px 0 0", fontSize: 15, fontWeight: 600 }}>{value}</p>
     </div>
   );
 }
@@ -330,7 +373,7 @@ function ExpGuideRow({ label, value }: { label: string; value: number }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderRadius: 10, border: "1px solid var(--line)", background: "var(--surface-2)", padding: "8px 10px" }}>
       <span style={{ fontSize: 12, color: "var(--ink-secondary)", fontWeight: 700 }}>{label}</span>
-      <span style={{ fontSize: 13, fontWeight: 800, color: "var(--brand-light)" }}>{value.toFixed(3)} EXP</span>
+      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--brand)" }}>{value.toFixed(3)} EXP</span>
     </div>
   );
 }

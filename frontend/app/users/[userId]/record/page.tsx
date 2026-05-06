@@ -103,7 +103,7 @@ export default function UserRecordPage() {
     <main style={main}>
       <section style={sec}>
         <Link href="/groups/list" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 이벤트 목록</Link>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>사용자 기록</h1>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: 0 }}>사용자 기록</h1>
 
         <div style={card}>
           <UserNameActions
@@ -120,9 +120,9 @@ export default function UserRecordPage() {
         <div style={card}>
           <h2 style={sh}>전체 전적</h2>
           <div style={{ display: "flex", justifyContent: "space-around", textAlign: "center", padding: "12px 0" }}>
-            <Stat value={`${data.totalWinRate.toFixed(0)}%`} label="승률" color="var(--brand-light)" />
+            <Stat value={`${data.totalWinRate.toFixed(0)}%`} label="승률" color="var(--brand)" />
             <Stat value={`${data.totalGames}`} label="전체" />
-            <Stat value={`${data.totalWins}`} label="승" color="var(--accent)" />
+            <Stat value={`${data.totalWins}`} label="승" color="var(--brand)" />
             <Stat value={`${data.totalLosses}`} label="패" color="var(--danger)" />
           </div>
         </div>
@@ -141,14 +141,14 @@ export default function UserRecordPage() {
             />
             <div style={{ padding: "12px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", textAlign: "center" }}>
               <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>주력 타입</p>
-              <p style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 800 }}>{mainType?.label ?? "-"}</p>
+              <p style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 600 }}>{mainType?.label ?? "-"}</p>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
                 {mainType ? `${mainType.stat.games}전 / ${mainType.stat.winRate.toFixed(0)}%` : "기록 없음"}
               </p>
             </div>
             <div style={{ padding: "12px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", textAlign: "center" }}>
               <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>참여 이벤트</p>
-              <p style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 800 }}>{activeEventCount}</p>
+              <p style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 600 }}>{activeEventCount}</p>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>최근 이벤트 기준</p>
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function UserRecordPage() {
                   </Link>
                   <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--muted)" }}>{row.wins}승 {row.losses}패 / {row.games}전</p>
                 </div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand-light)" }}>{row.winRate.toFixed(0)}%</p>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand)" }}>{row.winRate.toFixed(0)}%</p>
               </div>
             ))
           )}
@@ -191,14 +191,14 @@ export default function UserRecordPage() {
 }
 
 function Stat({ value, label, color }: { value: string; label: string; color?: string }) {
-  return <div><p style={{ margin: 0, fontSize: 28, fontWeight: 800, color }}>{value}</p><p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 12 }}>{label}</p></div>;
+  return <div><p style={{ margin: 0, fontSize: 28, fontWeight: 600, color }}>{value}</p><p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 12 }}>{label}</p></div>;
 }
 
 function TypeCard({ label, stat }: { label: string; stat: TypeStat }) {
   return (
     <div style={{ padding: "12px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", textAlign: "center" }}>
       <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>{label}</p>
-      <p style={{ margin: "6px 0 0", fontSize: 22, fontWeight: 800 }}>{stat.games > 0 ? `${stat.winRate.toFixed(0)}%` : "-"}</p>
+      <p style={{ margin: "6px 0 0", fontSize: 22, fontWeight: 600 }}>{stat.games > 0 ? `${stat.winRate.toFixed(0)}%` : "-"}</p>
       <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>{stat.wins}승 {stat.losses}패 / {stat.games}전</p>
     </div>
   );

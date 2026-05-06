@@ -23,9 +23,9 @@ export default function MyPage() {
     <main style={main}>
       <section className="animate-fade-in-up" style={sec}>
         <div className="glass-card" style={hero}>
-          <p style={{ margin: 0, color: "var(--brand-light)", fontWeight: 700 }}>마이</p>
-          <h1 style={{ margin: "8px 0 6px", fontSize: 30, fontWeight: 800 }}>내 메뉴</h1>
-          <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 15 }}>
+          <p style={{ margin: 0, color: "var(--brand)", fontWeight: 600 }}>마이</p>
+          <h1 style={{ margin: "8px 0 6px", fontSize: 34, fontWeight: 600 }}>내 메뉴</h1>
+          <p style={{ margin: 0, color: "var(--ink-secondary)", fontSize: 17 }}>
             기록과 설정을 여기에서 관리하세요.
           </p>
         </div>
@@ -54,14 +54,14 @@ export default function MyPage() {
   );
 }
 
-const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
+const main: CSSProperties = { minHeight: "100vh", padding: "32px 16px 88px" };
 const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", gap: 12 };
 const hero: CSSProperties = {
   padding: "24px 24px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(135deg, rgba(91, 140, 255, 0.1), rgba(24, 210, 182, 0.05))",
-  border: "1px solid rgba(173, 193, 230, 0.2)",
-  boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+  background: "var(--surface)",
+  border: "1px solid var(--hairline)",
+  boxShadow: "none",
 };
 const itemLink: CSSProperties = {
   padding: "18px 20px",
@@ -82,6 +82,6 @@ const itemIcon: CSSProperties = {
   placeItems: "center",
   fontSize: 18,
 };
-const itemTitle: CSSProperties = { margin: 0, fontSize: 16, fontWeight: 700 };
+const itemTitle: CSSProperties = { margin: 0, fontSize: 17, fontWeight: 600 };
 const itemDesc: CSSProperties = { margin: 0, fontSize: 13, color: "var(--ink-secondary)" };
 const arrow: CSSProperties = { fontSize: 22, color: "var(--muted)" };

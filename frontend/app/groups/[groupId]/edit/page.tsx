@@ -119,7 +119,7 @@ export default function GroupEditPage() {
       <section style={sec}>
         <div>
           <Link href={`/groups/${groupId}`} style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 이벤트 상세</Link>
-          <h1 style={{ margin: "8px 0 0", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>이벤트 정보 수정</h1>
+          <h1 style={{ margin: "8px 0 0", fontSize: 34, fontWeight: 600, letterSpacing: 0 }}>이벤트 정보 수정</h1>
         </div>
         <div style={card}>
           <form onSubmit={(e) => { void handleSubmit(e); }} style={{ display: "grid", gap: 14 }}>
@@ -181,7 +181,7 @@ const sec: CSSProperties = { maxWidth: 520, margin: "0 auto", display: "grid", g
 const card: CSSProperties = { padding: "24px", borderRadius: "var(--radius-xl)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid", gap: 8 };
 const lw: CSSProperties = { display: "grid", gap: 6 };
 const lb: CSSProperties = { fontWeight: 600, fontSize: 13, color: "var(--ink-secondary)" };
-const inp: CSSProperties = { minHeight: 44, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: "0 14px", fontSize: 15, background: "var(--surface-2)", color: "var(--ink)", outline: "none" };
-const btn: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: 0, background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 4 };
+const inp: CSSProperties = { minHeight: 44, borderRadius: "var(--radius-pill)", border: "1px solid var(--line-2)", padding: "0 18px", fontSize: 17, background: "var(--surface)", color: "var(--ink)", outline: "none" };
+const btn: CSSProperties = { minHeight: 44, borderRadius: "var(--radius-pill)", border: 0, background: "var(--brand)", color: "var(--on-primary)", fontWeight: 400, fontSize: 17, cursor: "pointer", marginTop: 4 };
 const grid2: CSSProperties = { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 };
 const st: CSSProperties = { margin: "8px 0 0", fontSize: 14, fontWeight: 700, color: "var(--ink-secondary)" };

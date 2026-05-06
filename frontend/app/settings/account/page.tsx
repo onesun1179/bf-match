@@ -85,9 +85,9 @@ export default function AccountSettingsPage() {
     <main style={{ minHeight: "100vh", padding: "24px 16px 80px" }}>
       <section style={wrap}>
         <div style={hero}>
-          <p style={{ margin: 0, color: "var(--brand-light)", fontWeight: 700 }}>계정 및 보안</p>
-          <h1 style={{ margin: "8px 0 6px", fontSize: 28, fontWeight: 800 }}>계정 관리</h1>
-          <Link href="/settings" style={{ color: "var(--brand-light)", fontWeight: 700 }}>
+          <p style={{ margin: 0, color: "var(--brand)", fontWeight: 700 }}>계정 및 보안</p>
+          <h1 style={{ margin: "8px 0 6px", fontSize: 28, fontWeight: 600 }}>계정 관리</h1>
+          <Link href="/settings" style={{ color: "var(--brand)", fontWeight: 700 }}>
             설정으로 돌아가기
           </Link>
         </div>
@@ -167,7 +167,7 @@ export default function AccountSettingsPage() {
         </form>
 
         {(message || error) && (
-          <p style={{ margin: 0, color: error ? "var(--danger)" : "var(--brand-light)", fontSize: 14, fontWeight: 700 }}>
+          <p style={{ margin: 0, color: error ? "var(--danger)" : "var(--brand)", fontSize: 14, fontWeight: 700 }}>
             {error || message}
           </p>
         )}
@@ -191,7 +191,7 @@ const card: CSSProperties = {
   display: "grid",
   gap: 14,
 };
-const title: CSSProperties = { margin: 0, fontWeight: 800, fontSize: 17 };
+const title: CSSProperties = { margin: 0, fontWeight: 600, fontSize: 17 };
 const desc: CSSProperties = { margin: "4px 0 0", color: "var(--muted)", fontSize: 13, lineHeight: 1.5 };
 const label: CSSProperties = { display: "grid", gap: 8 };
 const labelText: CSSProperties = { color: "var(--ink-secondary)", fontSize: 13, fontWeight: 700 };
@@ -210,6 +210,6 @@ const primaryBtn: CSSProperties = {
   borderRadius: 12,
   border: 0,
   background: "var(--brand)",
-  color: "#fff",
-  fontWeight: 800,
+  color: "var(--on-primary)",
+  fontWeight: 600,
 };

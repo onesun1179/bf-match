@@ -36,7 +36,7 @@ export default function InviteHistoryPage() {
       <section style={sec}>
         <div>
           <Link href={`/groups/${groupId}`} style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 이벤트 상세</Link>
-          <h1 style={{ margin: "8px 0 0", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>초대 이력</h1>
+          <h1 style={{ margin: "8px 0 0", fontSize: 24, fontWeight: 600, letterSpacing: 0 }}>초대 이력</h1>
         </div>
 
         {loading && <p style={{ color: "var(--muted)", textAlign: "center", padding: 40 }}>불러오는 중...</p>}

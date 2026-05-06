@@ -213,7 +213,7 @@ export default function NewGamePage() {
             ×
           </Link>
           <Link href={`/groups/${group.id}?view=games`} style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 게임으로</Link>
-          <h1 style={{ margin: "8px 0 0", fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em" }}>
+          <h1 style={{ margin: "8px 0 0", fontSize: 34, fontWeight: 600, letterSpacing: 0 }}>
             {effectiveMode === "CREATE" ? "게임 생성" : "게임 제안"}
           </h1>
           <p style={{ margin: "4px 0 0", color: "var(--ink-secondary)", fontSize: 13 }}>{group.name}</p>
@@ -247,7 +247,7 @@ export default function NewGamePage() {
             <h2 style={sh}>선택된 팀</h2>
             <div style={{ display: "grid", gap: 8, marginTop: 10 }}>
               <div style={selectedTeamRow}>
-                <p style={{ ...teamLabel, color: "var(--brand-light)" }}>팀 A ({selectedTeamA.length}/2)</p>
+                <p style={{ ...teamLabel, color: "var(--brand)" }}>팀 A ({selectedTeamA.length}/2)</p>
                 {selectedTeamA.length === 0 ? (
                   <p style={teamMembersText}>-</p>
                 ) : (
@@ -283,7 +283,7 @@ export default function NewGamePage() {
                 )}
               </div>
               <div style={selectedTeamRow}>
-                <p style={{ ...teamLabel, color: "var(--accent)" }}>팀 B ({selectedTeamB.length}/2)</p>
+                <p style={{ ...teamLabel, color: "var(--brand)" }}>팀 B ({selectedTeamB.length}/2)</p>
                 {selectedTeamB.length === 0 ? (
                   <p style={teamMembersText}>-</p>
                 ) : (
@@ -357,7 +357,7 @@ export default function NewGamePage() {
                     alignItems: "center",
                     padding: "8px 12px",
                     borderRadius: 10,
-                    background: inA ? "rgba(108,92,231,0.08)" : inB ? "rgba(0,206,201,0.08)" : "var(--surface-3)",
+                    background: inA ? "rgba(0,102,204,0.08)" : inB ? "rgba(0,102,204,0.08)" : "var(--surface-3)",
                   }}
                 >
                   <div>
@@ -377,14 +377,14 @@ export default function NewGamePage() {
                     <button
                       disabled={isClosed}
                       onClick={() => togglePlayer(m.userId, "A")}
-                      style={{ ...pickBtn, background: inA ? "var(--brand)" : "var(--surface-2)", color: inA ? "#fff" : "var(--muted)", opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
+                      style={{ ...pickBtn, background: inA ? "var(--brand)" : "var(--surface-2)", color: inA ? "var(--on-primary)" : "var(--muted)", opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
                     >
                       A
                     </button>
                     <button
                       disabled={isClosed}
                       onClick={() => togglePlayer(m.userId, "B")}
-                      style={{ ...pickBtn, background: inB ? "var(--accent)" : "var(--surface-2)", color: inB ? "#fff" : "var(--muted)", opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
+                      style={{ ...pickBtn, background: inB ? "var(--brand)" : "var(--surface-2)", color: inB ? "var(--on-primary)" : "var(--muted)", opacity: isClosed ? 0.45 : 1, cursor: isClosed ? "not-allowed" : "pointer" }}
                     >
                       B
                     </button>
@@ -405,10 +405,10 @@ export default function NewGamePage() {
 const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 40px" };
 const sec: CSSProperties = { maxWidth: 560, margin: "0 auto", display: "grid", gap: 12 };
 const card: CSSProperties = { position: "relative", padding: "16px 18px", borderRadius: "var(--radius-lg)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid" };
-const sh: CSSProperties = { margin: 0, fontSize: 15, fontWeight: 800, color: "var(--ink-secondary)" };
+const sh: CSSProperties = { margin: 0, fontSize: 15, fontWeight: 600, color: "var(--ink-secondary)" };
 const muted: CSSProperties = { color: "var(--muted)", textAlign: "center", padding: 60 };
 const selectedTeamRow: CSSProperties = { borderRadius: 10, border: "1px solid var(--line)", background: "var(--surface-2)", padding: "10px 12px", display: "grid", gap: 4 };
-const teamLabel: CSSProperties = { margin: 0, fontSize: 12, fontWeight: 800 };
+const teamLabel: CSSProperties = { margin: 0, fontSize: 12, fontWeight: 600 };
 const teamMembersText: CSSProperties = { margin: 0, fontSize: 13, color: "var(--ink)", fontWeight: 700 };
 const stickyWrap: CSSProperties = {
   position: "sticky",
@@ -417,15 +417,15 @@ const stickyWrap: CSSProperties = {
   display: "grid",
   gap: 8,
   paddingBottom: 2,
-  background: "linear-gradient(to bottom, rgba(8,10,20,0.95), rgba(8,10,20,0.82) 70%, rgba(8,10,20,0))",
+  background: "var(--surface)",
   backdropFilter: "blur(6px)",
 };
 const chipBtn: CSSProperties = { border: 0, borderRadius: 999, padding: "6px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer", background: "var(--surface-2)", color: "var(--ink-secondary)" };
-const pickBtn: CSSProperties = { border: 0, borderRadius: 999, minWidth: 34, height: 28, fontSize: 12, fontWeight: 800, cursor: "pointer" };
+const pickBtn: CSSProperties = { border: 0, borderRadius: 999, minWidth: 34, height: 28, fontSize: 12, fontWeight: 600, cursor: "pointer" };
 const actionBtn: CSSProperties = { flex: 1, minHeight: 40, borderRadius: "var(--radius-sm)", border: 0, fontWeight: 700, fontSize: 14, textAlign: "center", display: "inline-flex", alignItems: "center", justifyContent: "center" };
-const actionPrimary: CSSProperties = { background: "var(--brand)", color: "#fff", cursor: "pointer" };
-const modeBtn: CSSProperties = { border: 0, borderRadius: 999, height: 30, padding: "0 12px", fontSize: 12, fontWeight: 800, cursor: "pointer" };
-const modeBtnOn: CSSProperties = { background: "var(--brand)", color: "#fff" };
+const actionPrimary: CSSProperties = { background: "var(--brand)", color: "var(--on-primary)", cursor: "pointer" };
+const modeBtn: CSSProperties = { border: 0, borderRadius: 999, height: 30, padding: "0 12px", fontSize: 12, fontWeight: 600, cursor: "pointer" };
+const modeBtnOn: CSSProperties = { background: "var(--brand)", color: "var(--on-primary)" };
 const modeBtnOff: CSSProperties = { background: "var(--surface-2)", color: "var(--ink-secondary)" };
 const closeIconLink: CSSProperties = {
   position: "absolute",

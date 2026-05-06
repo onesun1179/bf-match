@@ -81,7 +81,7 @@ export default function TeamRecordPage() {
     <main style={main}>
       <section style={sec}>
         <Link href="/ranking" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 랭킹으로</Link>
-        <h1 style={{ margin: "4px 0 0", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>팀 기록</h1>
+        <h1 style={{ margin: "4px 0 0", fontSize: 24, fontWeight: 600, letterSpacing: 0 }}>팀 기록</h1>
 
         <div style={card}>
           <h2 style={sh}>팀 구성</h2>
@@ -133,7 +133,7 @@ export default function TeamRecordPage() {
                 <p style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>{row.typeLabel} · #{row.entry.rank}</p>
                 <p style={{ margin: "3px 0 0", color: "var(--muted)", fontSize: 12 }}>{row.entry.winCount}승 {row.entry.gameCount}전</p>
               </div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand-light)" }}>{row.entry.winRate.toFixed(1)}%</p>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand)" }}>{row.entry.winRate.toFixed(1)}%</p>
             </div>
           ))}
         </div>
@@ -146,7 +146,7 @@ function Stat({ title, value }: { title: string; value: string }) {
   return (
     <div style={{ borderRadius: 10, background: "var(--surface-2)", padding: "10px 8px", textAlign: "center" }}>
       <p style={{ margin: 0, fontSize: 11, color: "var(--muted)", fontWeight: 700 }}>{title}</p>
-      <p style={{ margin: "4px 0 0", fontSize: 18, fontWeight: 800 }}>{value}</p>
+      <p style={{ margin: "4px 0 0", fontSize: 18, fontWeight: 600 }}>{value}</p>
     </div>
   );
 }
@@ -156,9 +156,9 @@ const sec: CSSProperties = { maxWidth: 560, margin: "0 auto", display: "grid", g
 const card: CSSProperties = {
   padding: "16px 18px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
+  background: "var(--surface)",
   border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  boxShadow: "none",
 };
-const sh: CSSProperties = { margin: 0, fontSize: 15, fontWeight: 800, color: "var(--ink-secondary)" };
+const sh: CSSProperties = { margin: 0, fontSize: 15, fontWeight: 600, color: "var(--ink-secondary)" };
 const muted: CSSProperties = { color: "var(--muted)", textAlign: "center", padding: 60 };

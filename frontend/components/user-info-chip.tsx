@@ -1,5 +1,6 @@
 "use client";
 
+import styled from "@emotion/styled";
 import {CSSProperties} from "react";
 import type {Gender, Grade} from "@/lib/auth";
 
@@ -13,9 +14,9 @@ type Props = {
 
 export function UserInfoChip({ nickname, gender = null, grade = null, lv = null, style }: Props) {
   const text = `${levelLabel(lv, grade)} ${nickname}`;
-  const tone = gender === "MALE" ? maleTone : gender === "FEMALE" ? femaleTone : neutralTone;
+  const tone = gender === "MALE" || gender === "FEMALE" ? "accent" : "neutral";
 
-  return <span style={{ ...chip, ...tone, ...style }} title={text}>{text}</span>;
+  return <Chip $tone={tone} style={style} title={text}>{text}</Chip>;
 }
 
 function levelLabel(lv: number | null, grade: Grade | null): string {
@@ -33,31 +34,18 @@ function levelLabel(lv: number | null, grade: Grade | null): string {
   return "Lv -";
 }
 
-const chip: CSSProperties = {
-  display: "inline-block",
-  maxWidth: "100%",
-  padding: "4px 10px",
-  borderRadius: 999,
-  color: "var(--ink)",
-  fontWeight: 700,
-  fontSize: "inherit",
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  verticalAlign: "top",
-};
-
-const neutralTone: CSSProperties = {
-  border: "1px solid rgba(173,193,230,0.36)",
-  background: "linear-gradient(180deg, rgba(173,193,230,0.14), rgba(173,193,230,0.06))",
-};
-
-const maleTone: CSSProperties = {
-  border: "1px solid rgba(91,140,255,0.45)",
-  background: "linear-gradient(180deg, rgba(91,140,255,0.24), rgba(91,140,255,0.10))",
-};
-
-const femaleTone: CSSProperties = {
-  border: "1px solid rgba(255,109,179,0.42)",
-  background: "linear-gradient(180deg, rgba(255,109,179,0.22), rgba(255,109,179,0.10))",
-};
+const Chip = styled.span<{$tone: "neutral" | "accent"}>`
+  display: inline-block;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid ${({$tone}) => $tone === "accent" ? "rgba(0, 102, 204, 0.28)" : "var(--hairline)"};
+  background: var(--surface-3);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: top;
+`;

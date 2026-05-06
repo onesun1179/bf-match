@@ -121,20 +121,20 @@ function RankingPageContent() {
     <main style={main}>
       <section style={sec}>
         <div style={hero}>
-          <p style={{ margin: 0, color: "var(--brand-light)", fontSize: 12, fontWeight: 700 }}>BF MATCH RANKING</p>
-          <h1 style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em" }}>랭킹</h1>
+          <p style={{ margin: 0, color: "var(--brand)", fontSize: 12, fontWeight: 600 }}>BF MATCH RANKING</p>
+          <h1 style={{ margin: "8px 0 0", fontSize: 34, fontWeight: 600, letterSpacing: 0 }}>랭킹</h1>
         </div>
 
         <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)", border: "1px solid var(--line)" }}>
           <button onClick={() => setMode("PERSONAL")} style={{
             flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)",
             background: mode === "PERSONAL" ? "var(--brand)" : "transparent",
-            color: mode === "PERSONAL" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 14, cursor: "pointer",
+            color: mode === "PERSONAL" ? "var(--on-primary)" : "var(--muted)", fontWeight: mode === "PERSONAL" ? 600 : 400, fontSize: 14, cursor: "pointer",
           }}>개인 랭킹</button>
           <button onClick={() => setMode("TEAM")} style={{
             flex: 1, padding: "8px 0", border: 0, borderRadius: "var(--radius-sm)",
             background: mode === "TEAM" ? "var(--brand)" : "transparent",
-            color: mode === "TEAM" ? "#fff" : "var(--muted)", fontWeight: 700, fontSize: 14, cursor: "pointer",
+            color: mode === "TEAM" ? "var(--on-primary)" : "var(--muted)", fontWeight: mode === "TEAM" ? 600 : 400, fontSize: 14, cursor: "pointer",
           }}>팀 랭킹</button>
         </div>
 
@@ -150,8 +150,8 @@ function RankingPageContent() {
                   <button key={g} onClick={() => { setGradeTab(g); setTypeTab("ALL"); }} style={{
                     padding: "8px 12px", border: 0, borderRadius: "var(--radius-sm)", whiteSpace: "nowrap",
                     background: gradeTab === g ? "var(--brand)" : "transparent",
-                    color: gradeTab === g ? "#fff" : has ? "var(--ink-secondary)" : "var(--muted)",
-                    fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: has ? 1 : 0.4,
+                    color: gradeTab === g ? "var(--on-primary)" : has ? "var(--ink-secondary)" : "var(--muted)",
+                    fontWeight: gradeTab === g ? 600 : 400, fontSize: 14, cursor: "pointer", opacity: has ? 1 : 0.4,
                   }}>{g}</button>
                 );
               })}
@@ -164,9 +164,9 @@ function RankingPageContent() {
                 return (
                   <button key={t.key} onClick={() => setTypeTab(t.key)} style={{
                     padding: "6px 14px", border: 0, borderRadius: 999, whiteSpace: "nowrap",
-                    background: typeTab === t.key ? "var(--accent)" : "var(--surface-3)",
-                    color: typeTab === t.key ? "#fff" : has ? "var(--ink-secondary)" : "var(--muted)",
-                    fontWeight: 700, fontSize: 13, cursor: "pointer", opacity: has ? 1 : 0.5,
+                    background: typeTab === t.key ? "var(--brand)" : "var(--surface-3)",
+                    color: typeTab === t.key ? "var(--on-primary)" : has ? "var(--ink-secondary)" : "var(--muted)",
+                    fontWeight: typeTab === t.key ? 600 : 400, fontSize: 13, cursor: "pointer", opacity: has ? 1 : 0.5,
                   }}>{t.label}</button>
                 );
               })}
@@ -184,8 +184,8 @@ function RankingPageContent() {
                   <button key={g} onClick={() => { setTeamGradeTab(g); setTeamTypeTab("ALL"); }} style={{
                     padding: "8px 12px", border: 0, borderRadius: "var(--radius-sm)", whiteSpace: "nowrap",
                     background: teamGradeTab === g ? "var(--brand)" : "transparent",
-                    color: teamGradeTab === g ? "#fff" : has ? "var(--ink-secondary)" : "var(--muted)",
-                    fontWeight: 700, fontSize: 14, cursor: "pointer", opacity: has ? 1 : 0.4,
+                    color: teamGradeTab === g ? "var(--on-primary)" : has ? "var(--ink-secondary)" : "var(--muted)",
+                    fontWeight: teamGradeTab === g ? 600 : 400, fontSize: 14, cursor: "pointer", opacity: has ? 1 : 0.4,
                   }}>{g}</button>
                 );
               })}
@@ -196,9 +196,9 @@ function RankingPageContent() {
                 return (
                   <button key={`team-${t.key}`} onClick={() => setTeamTypeTab(t.key)} style={{
                     padding: "6px 14px", border: 0, borderRadius: 999, whiteSpace: "nowrap",
-                    background: teamTypeTab === t.key ? "var(--accent)" : "var(--surface-3)",
-                    color: teamTypeTab === t.key ? "#fff" : has ? "var(--ink-secondary)" : "var(--muted)",
-                    fontWeight: 700, fontSize: 13, cursor: "pointer", opacity: has ? 1 : 0.5,
+                    background: teamTypeTab === t.key ? "var(--brand)" : "var(--surface-3)",
+                    color: teamTypeTab === t.key ? "var(--on-primary)" : has ? "var(--ink-secondary)" : "var(--muted)",
+                    fontWeight: teamTypeTab === t.key ? 600 : 400, fontSize: 13, cursor: "pointer", opacity: has ? 1 : 0.5,
                   }}>{t.label}</button>
                 );
               })}
@@ -232,19 +232,19 @@ function RankingPageContent() {
             }}
             style={{ ...card, display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}
           >
-            <div style={{ width: 36, textAlign: "center", fontSize: idx < 3 ? 24 : 16, fontWeight: 800, color: idx < 3 ? "var(--accent)" : "var(--muted)", flexShrink: 0 }}>
+            <div style={{ width: 36, textAlign: "center", fontSize: idx < 3 ? 24 : 16, fontWeight: 600, color: idx < 3 ? "var(--brand)" : "var(--muted)", flexShrink: 0 }}>
               {medal(idx)}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <UserNameActions userId={r.userId} nickname={r.nickname} gender={r.gender} grade={r.grade} lv={r.lv} style={{ fontWeight: 700, fontSize: 15 }} />
+                <UserNameActions userId={r.userId} nickname={r.nickname} gender={r.gender} grade={r.grade} lv={r.lv} style={{ fontWeight: 600, fontSize: 15 }} />
                 {r.currentGrade !== r.grade && (
-                  <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 6, background: "rgba(108,92,231,0.15)", color: "var(--brand-light)" }}>현재 {r.currentGrade}</span>
+                  <span style={{ fontSize: 11, padding: "2px 6px", borderRadius: 6, background: "rgba(0,102,204,0.15)", color: "var(--brand)" }}>현재 {r.currentGrade}</span>
                 )}
               </div>
             </div>
             <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "var(--brand-light)" }}>{r.winRate.toFixed(1)}%</p>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 15, color: "var(--brand)" }}>{r.winRate.toFixed(1)}%</p>
               <p style={{ margin: "3px 0 0", color: "var(--muted)", fontSize: 12 }}>{r.winCount}승 {r.gameCount}전</p>
             </div>
           </div>
@@ -253,7 +253,7 @@ function RankingPageContent() {
         {!loading && mode === "PERSONAL" && entries.length > personalVisibleCount && (
           <button
             onClick={() => setPersonalVisibleCount((prev) => prev + 5)}
-            style={{ border: "1px solid var(--line)", background: "var(--surface-2)", color: "var(--ink)", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+            style={{ border: "1px solid var(--line)", background: "var(--surface-2)", color: "var(--ink)", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
           >
             더보기
           </button>
@@ -273,7 +273,7 @@ function RankingPageContent() {
             }}
             style={{ ...card, display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}
           >
-            <div style={{ width: 36, textAlign: "center", fontSize: idx < 3 ? 24 : 16, fontWeight: 800, color: idx < 3 ? "var(--accent)" : "var(--muted)", flexShrink: 0 }}>
+            <div style={{ width: 36, textAlign: "center", fontSize: idx < 3 ? 24 : 16, fontWeight: 600, color: idx < 3 ? "var(--brand)" : "var(--muted)", flexShrink: 0 }}>
               {medal(idx)}
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -292,7 +292,7 @@ function RankingPageContent() {
               </div>
             </div>
             <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: "var(--brand-light)" }}>{r.winRate.toFixed(1)}%</p>
+              <p style={{ margin: 0, fontWeight: 600, fontSize: 15, color: "var(--brand)" }}>{r.winRate.toFixed(1)}%</p>
               <p style={{ margin: "3px 0 0", color: "var(--muted)", fontSize: 12 }}>{r.winCount}승 {r.gameCount}전</p>
             </div>
           </div>
@@ -301,7 +301,7 @@ function RankingPageContent() {
         {!loading && mode === "TEAM" && teamEntriesByGrade.length > teamVisibleCount && (
           <button
             onClick={() => setTeamVisibleCount((prev) => prev + 5)}
-            style={{ border: "1px solid var(--line)", background: "var(--surface-2)", color: "var(--ink)", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+            style={{ border: "1px solid var(--line)", background: "var(--surface-2)", color: "var(--ink)", borderRadius: 10, padding: "10px 12px", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
           >
             더보기
           </button>
@@ -318,12 +318,12 @@ function RankingPageFallback() {
     <main style={main}>
       <section style={sec}>
         <div style={hero}>
-          <p style={{ margin: 0, color: "var(--brand-light)", fontSize: 12, fontWeight: 700 }}>BF MATCH RANKING</p>
-          <h1 style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em" }}>랭킹</h1>
+          <p style={{ margin: 0, color: "var(--brand)", fontSize: 12, fontWeight: 600 }}>BF MATCH RANKING</p>
+          <h1 style={{ margin: "8px 0 0", fontSize: 34, fontWeight: 600, letterSpacing: 0 }}>랭킹</h1>
         </div>
         <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: "var(--radius-md)", background: "var(--surface-2)", border: "1px solid var(--line)" }}>
-          <div style={{ flex: 1, minHeight: 34, borderRadius: "var(--radius-sm)", background: "rgba(255,255,255,0.07)" }} />
-          <div style={{ flex: 1, minHeight: 34, borderRadius: "var(--radius-sm)", background: "rgba(255,255,255,0.07)" }} />
+          <div style={{ flex: 1, minHeight: 34, borderRadius: "var(--radius-sm)", background: "var(--divider-soft)" }} />
+          <div style={{ flex: 1, minHeight: 34, borderRadius: "var(--radius-sm)", background: "var(--divider-soft)" }} />
         </div>
         <RankingLoadingState />
       </section>
@@ -398,21 +398,21 @@ function replaceRankingQuery(query: { mode: RankingMode; grade: Grade; type: Ran
   window.history.replaceState(window.history.state, "", `${url.pathname}?${url.searchParams.toString()}${url.hash}`);
 }
 
-const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
+const main: CSSProperties = { minHeight: "100vh", padding: "32px 16px 88px" };
 const sec: CSSProperties = { maxWidth: 620, margin: "0 auto", display: "grid", gap: 10 };
 const hero: CSSProperties = {
   padding: "18px 20px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(24,210,182,0.08) 60%, rgba(255,255,255,0.02)), var(--glass)",
-  border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  background: "var(--surface)",
+  border: "1px solid var(--hairline)",
+  boxShadow: "none",
 };
 const card: CSSProperties = {
   padding: "15px 18px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
-  border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  background: "var(--surface)",
+  border: "1px solid var(--hairline)",
+  boxShadow: "none",
 };
 const teamMemberRow: CSSProperties = {
   display: "block",
@@ -421,7 +421,7 @@ const teamMemberRow: CSSProperties = {
 };
 const teamMemberName: CSSProperties = {
   fontSize: 15,
-  fontWeight: 700,
+  fontWeight: 600,
   lineHeight: 1.3,
   overflow: "hidden",
   textOverflow: "ellipsis",
@@ -429,7 +429,7 @@ const teamMemberName: CSSProperties = {
 };
 const loadingWrap: CSSProperties = { display: "grid", gap: 10 };
 const loadingSurface: CSSProperties = {
-  background: "rgba(255,255,255,0.07)",
+  background: "var(--divider-soft)",
 };
 const loadingTabRow: CSSProperties = {
   display: "flex",

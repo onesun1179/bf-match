@@ -169,16 +169,16 @@ export default function NotificationSettingsPage() {
     <main style={{ minHeight: "100vh", padding: "24px 16px 80px" }}>
       <section style={{ maxWidth: 520, margin: "0 auto", display: "grid", gap: 16 }}>
         <div style={hero}>
-          <p style={{ margin: 0, color: "var(--brand-light)", fontWeight: 700 }}>설정 &gt; 알림 관리</p>
-          <h1 style={{ margin: "8px 0 6px", fontSize: 30, fontWeight: 800 }}>알림 관리</h1>
+          <p style={{ margin: 0, color: "var(--brand)", fontWeight: 700 }}>설정 &gt; 알림 관리</p>
+          <h1 style={{ margin: "8px 0 6px", fontSize: 30, fontWeight: 600 }}>알림 관리</h1>
           <p style={{ margin: 0, color: "var(--ink-secondary)", lineHeight: 1.6 }}>
             현재 제공되는 알림 항목을 확인하고 항목별로 ON/OFF를 설정할 수 있습니다.
           </p>
           <div style={{ marginTop: 10, display: "flex", gap: 12 }}>
-            <Link href="/settings" style={{ color: "var(--brand-light)", fontWeight: 700 }}>
+            <Link href="/settings" style={{ color: "var(--brand)", fontWeight: 700 }}>
               설정으로
             </Link>
-            <Link href="/" style={{ color: "var(--brand-light)", fontWeight: 700 }}>
+            <Link href="/" style={{ color: "var(--brand)", fontWeight: 700 }}>
               홈으로
             </Link>
           </div>
@@ -262,6 +262,6 @@ const toggleDot: CSSProperties = {
   width: 20,
   height: 20,
   borderRadius: 10,
-  background: "#fff",
+  background: "var(--surface)",
   transition: "transform .2s",
 };

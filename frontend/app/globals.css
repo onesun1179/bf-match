@@ -1,35 +1,60 @@
 :root {
-  color-scheme: dark;
-  --bg: #07080d;
-  --surface: #11141c;
-  --surface-2: #181d28;
-  --surface-3: #232b3a;
-  --ink: #f7f9ff;
-  --ink-secondary: #c7d0e4;
-  --muted: #8f9ab0;
-  --brand: #6f91ff;
-  --brand-light: #a9beff;
-  --accent: #21d0ad;
-  --accent-warm: #f6ba63;
-  --danger: #ff7181;
-  --danger-bg: rgba(255, 109, 122, 0.12);
-  --success: #23c686;
-  --success-bg: rgba(35, 198, 134, 0.13);
-  --warning: #f3c56f;
-  --warning-bg: rgba(243, 197, 111, 0.14);
-  --line: rgba(199, 211, 236, 0.15);
-  --line-2: rgba(213, 224, 246, 0.24);
-  --glass: rgba(17, 20, 28, 0.74);
-  --glass-strong: rgba(24, 29, 40, 0.9);
-  --glass-border: rgba(218, 229, 250, 0.18);
-  --focus-ring: rgba(169, 190, 255, 0.46);
+  color-scheme: light;
+
+  --bg: #f5f5f7;
+  --canvas: #ffffff;
+  --canvas-parchment: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #f5f5f7;
+  --surface-3: #fafafc;
+  --surface-tile-1: #272729;
+  --surface-tile-2: #2a2a2c;
+  --surface-tile-3: #252527;
+  --surface-black: #000000;
+
+  --ink: #1d1d1f;
+  --ink-secondary: #333333;
+  --muted: #7a7a7a;
+  --body-muted: #cccccc;
+  --on-dark: #ffffff;
+  --on-primary: #ffffff;
+
+  --brand: #0066cc;
+  --brand-light: #0066cc;
+  --primary: #0066cc;
+  --primary-focus: #0071e3;
+  --primary-on-dark: #2997ff;
+  --accent: #0066cc;
+  --accent-warm: #0066cc;
+
+  --danger: #b42318;
+  --danger-bg: rgba(180, 35, 24, 0.08);
+  --success: #1d1d1f;
+  --success-bg: rgba(29, 29, 31, 0.06);
+  --warning: #8a6116;
+  --warning-bg: rgba(138, 97, 22, 0.08);
+
+  --line: rgba(0, 0, 0, 0.08);
+  --line-2: #e0e0e0;
+  --hairline: #e0e0e0;
+  --divider-soft: #f0f0f0;
+  --glass: rgba(245, 245, 247, 0.8);
+  --glass-strong: rgba(245, 245, 247, 0.88);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --focus-ring: #0071e3;
+
   --kakao: #fee500;
-  --radius-sm: 10px;
-  --radius-md: 14px;
+  --radius-sm: 8px;
+  --radius-md: 11px;
   --radius-lg: 18px;
-  --radius-xl: 24px;
-  --shadow: 0 16px 36px rgba(0, 0, 0, 0.32);
-  --shadow-lg: 0 28px 70px rgba(0, 0, 0, 0.48);
+  --radius-xl: 18px;
+  --radius-pill: 9999px;
+  --shadow: none;
+  --shadow-lg: none;
+  --product-shadow: rgba(0, 0, 0, 0.22) 3px 5px 30px 0;
+
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Apple SD Gothic Neo", "Pretendard Variable", "Pretendard", "Noto Sans KR", "Segoe UI", sans-serif;
+  --font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Apple SD Gothic Neo", "Pretendard Variable", "Pretendard", "Noto Sans KR", "Segoe UI", sans-serif;
 }
 
 * {
@@ -42,7 +67,10 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Pretendard Variable", "Pretendard", -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-text);
+  font-size: 17px;
+  line-height: 1.47;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: contain;
@@ -50,64 +78,64 @@ body {
 
 body {
   min-height: 100vh;
-  background:
-    linear-gradient(180deg, rgba(111, 145, 255, 0.16) 0%, rgba(7, 8, 13, 0) 34%),
-    linear-gradient(135deg, rgba(33, 208, 173, 0.1) 0%, rgba(246, 186, 99, 0.06) 46%, rgba(255, 113, 129, 0.08) 100%),
-    var(--bg);
-  background-attachment: fixed;
 }
 
-@keyframes bgGlow {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 100% 100%; }
-}
-
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
-}
-
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 0 0 rgba(91, 140, 255, 0.4); }
-  70% { box-shadow: 0 0 0 10px rgba(91, 140, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(91, 140, 255, 0); }
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
 }
 
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in-up {
-  animation: fade-in-up 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fade-in-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.glass-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.01)), var(--glass);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+.glass-card,
+.mui-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  box-shadow: none;
+  transition: border-color 0.18s ease, transform 0.18s ease;
 }
 
-.glass-card:hover {
-  border-color: rgba(169, 190, 255, 0.34);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+.glass-card:hover,
+.mui-card:hover {
+  border-color: rgba(0, 102, 204, 0.22);
+  box-shadow: none;
 }
 
-.btn-hover {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+.btn-hover,
+.mui-btn {
+  transition: transform 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
 }
 
-.btn-hover:active {
-  transform: scale(0.96);
+.btn-hover:active,
+.mui-btn:active {
+  transform: scale(0.95);
 }
 
 .btn-hover:hover {
-  filter: brightness(1.1);
+  filter: none;
+}
+
+.mui-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.mui-btn::after {
+  display: none;
 }
 
 a {
@@ -120,74 +148,44 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid var(--focus-ring);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }
 
 ::selection {
-  background: rgba(91, 140, 255, 0.34);
-  color: #fff;
+  background: rgba(0, 102, 204, 0.18);
+  color: var(--ink);
 }
 
-input, select, textarea, button {
+input,
+select,
+textarea,
+button {
   font-family: inherit;
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: var(--muted);
 }
 
-/* ── Material UI-like Utilities ── */
-.mui-btn {
-  position: relative;
-  overflow: hidden;
-  transition: background-color 0.25s, box-shadow 0.25s, transform 0.1s;
-}
-.mui-btn::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 150%;
-  aspect-ratio: 1;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.5s, opacity 0.5s;
-}
-.mui-btn:active::after {
-  transform: translate(-50%, -50%) scale(1);
-  opacity: 1;
-  transition: 0s;
-}
-
-.mui-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0)), var(--surface);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-.mui-card:hover {
-  border-color: rgba(169, 190, 255, 0.3);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+button {
+  letter-spacing: 0;
 }
 
 @keyframes mui-dialog-enter {
   from {
     opacity: 0;
-    transform: scale(0.9) translateY(20px);
+    transform: scale(0.98) translateY(12px);
   }
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
 }
+
 .mui-dialog {
-  animation: mui-dialog-enter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  animation: mui-dialog-enter 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {

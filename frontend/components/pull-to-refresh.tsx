@@ -141,9 +141,11 @@ const indicator: CSSProperties = {
   height: 38,
   padding: "0 12px",
   borderRadius: 999,
-  background: "rgba(15, 18, 26, 0.92)",
+  background: "var(--glass-strong)",
+  backdropFilter: "saturate(180%) blur(20px)",
+  WebkitBackdropFilter: "saturate(180%) blur(20px)",
   border: "1px solid var(--line-2)",
-  boxShadow: "0 12px 28px rgba(0, 0, 0, 0.34)",
+  boxShadow: "none",
   color: "var(--ink)",
   pointerEvents: "none",
   transition: "opacity .12s ease-out, transform .12s ease-out",
@@ -151,10 +153,10 @@ const indicator: CSSProperties = {
 const indicatorIcon: CSSProperties = {
   width: 18,
   height: 18,
-  color: "var(--brand-light)",
+  color: "var(--brand)",
 };
 const indicatorText: CSSProperties = {
   fontSize: 12,
-  fontWeight: 800,
+  fontWeight: 600,
   whiteSpace: "nowrap",
 };

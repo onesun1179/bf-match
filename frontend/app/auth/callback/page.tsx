@@ -23,7 +23,7 @@ export default function AuthCallbackPage() {
     <main style={main}>
       <div style={card}>
         <div style={{ width: 48, height: 48, borderRadius: 14, background: "var(--brand)", display: "grid", placeItems: "center", fontSize: 24, margin: "0 auto" }}>{"\u{1F3F8}"}</div>
-        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 800, textAlign: "center" }}>로그인 완료</h1>
+        <h1 style={{ margin: 0, fontSize: 22, fontWeight: 600, textAlign: "center" }}>로그인 완료</h1>
         {!error && <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center" }}>잠시 후 이동합니다...</p>}
         {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{error}</p>}
       </div>

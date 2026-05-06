@@ -81,7 +81,7 @@ function BucketSection({
 
   return (
     <section style={card}>
-      <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>{title}</h2>
+      <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>{title}</h2>
       <p style={{ margin: "6px 0 0", color: "var(--ink-secondary)", fontSize: 13 }}>
         {bucket.wins}승 {bucket.losses}패 / {bucket.games}전 · 승률 {bucket.winRate.toFixed(1)}%
       </p>
@@ -101,7 +101,7 @@ function BucketSection({
                 {g.isWin ? "승" : "패"}
               </p>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
-                <Link href={`/groups/${g.groupId}`} onClick={(e) => e.stopPropagation()} style={{ color: "var(--brand-light)", fontWeight: 700, textDecoration: "none" }}>{g.groupName}</Link>
+                <Link href={`/groups/${g.groupId}`} onClick={(e) => e.stopPropagation()} style={{ color: "var(--brand)", fontWeight: 700, textDecoration: "none" }}>{g.groupName}</Link>
                 {" · "}
                 {g.finishedAt ? new Date(g.finishedAt).toLocaleString("ko-KR") : "-"}
               </p>
@@ -171,7 +171,7 @@ export default function WithMeRecordPage() {
     <main style={main}>
       <section style={sec}>
         <div style={hero}>
-          <p style={{ margin: 0, color: "var(--brand-light)", fontSize: 12, fontWeight: 700 }}>HEAD TO HEAD</p>
+          <p style={{ margin: 0, color: "var(--brand)", fontSize: 12, fontWeight: 700 }}>HEAD TO HEAD</p>
           <div style={{ marginTop: 6 }}>
             <UserNameActions
               userId={data.targetUserId}
@@ -179,7 +179,7 @@ export default function WithMeRecordPage() {
               gender={data.targetGender}
               grade={data.targetNationalGrade}
               myUserId={me?.id}
-              style={{ fontSize: 24, fontWeight: 800 }}
+              style={{ fontSize: 24, fontWeight: 600 }}
             />
           </div>
           <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
@@ -189,20 +189,20 @@ export default function WithMeRecordPage() {
         </div>
 
         <section style={card}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>상성 요약</h2>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>상성 요약</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8, marginTop: 10 }}>
             <MiniStat title="전체" value={`${totalGames}전`} />
             <MiniStat title="통합 승률" value={`${totalRate.toFixed(0)}%`} />
             <MiniStat title="파트너 승률" value={`${data.partner.winRate.toFixed(0)}%`} />
             <MiniStat title="상대 승률" value={`${data.opponent.winRate.toFixed(0)}%`} />
           </div>
-          <p style={{ margin: "10px 0 0", fontSize: 12, color: synergyGap >= 0 ? "var(--accent)" : "var(--danger)" }}>
+          <p style={{ margin: "10px 0 0", fontSize: 12, color: synergyGap >= 0 ? "var(--brand)" : "var(--danger)" }}>
             상성 지수 {synergyGap >= 0 ? "+" : ""}{synergyGap.toFixed(1)}p (파트너 승률 - 상대 승률)
           </p>
         </section>
 
         <section style={card}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>최근 흐름</h2>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>최근 흐름</h2>
           <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
             <div style={flowRow}>
               <p style={flowTitle}>파트너 최근 10</p>
@@ -218,7 +218,7 @@ export default function WithMeRecordPage() {
         </section>
 
         <section style={card}>
-          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800 }}>함께 뛴 이벤트</h2>
+          <h2 style={{ margin: 0, fontSize: 18, fontWeight: 600 }}>함께 뛴 이벤트</h2>
           {eventSummaries.length === 0 ? (
             <p style={{ margin: "12px 0 0", color: "var(--muted)", fontSize: 13 }}>최근 경기 없음</p>
           ) : (
@@ -258,27 +258,27 @@ const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px" };
 const sec: CSSProperties = { maxWidth: 620, margin: "0 auto", display: "grid", gap: 12 };
 const hero: CSSProperties = {
   border: "1px solid var(--glass-border)",
-  background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(24,210,182,0.08) 60%, rgba(255,255,255,0.02)), var(--glass)",
+  background: "var(--surface)",
   borderRadius: "var(--radius-lg)",
   padding: "18px 20px",
-  boxShadow: "var(--shadow)",
+  boxShadow: "none",
 };
 const card: CSSProperties = {
   border: "1px solid var(--glass-border)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
+  background: "var(--surface)",
   borderRadius: "var(--radius-lg)",
   padding: "16px 18px",
-  boxShadow: "var(--shadow)",
+  boxShadow: "none",
 };
 const muted: CSSProperties = { color: "var(--muted)", textAlign: "center", padding: 60 };
 const gameRow: CSSProperties = {
   border: "1px solid var(--line)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.00)), var(--surface-2)",
+  background: "var(--surface)",
   borderRadius: 12,
   padding: "10px 12px",
 };
 const moreBtn: CSSProperties = { border: "1px solid var(--line)", background: "var(--surface-2)", color: "var(--ink)", borderRadius: 10, padding: "10px 12px", fontSize: 13, fontWeight: 700, cursor: "pointer" };
-const linkBtn: CSSProperties = { textDecoration: "none", color: "var(--brand-light)", fontWeight: 700, fontSize: 13 };
+const linkBtn: CSSProperties = { textDecoration: "none", color: "var(--brand)", fontWeight: 700, fontSize: 13 };
 const flowRow: CSSProperties = { border: "1px solid var(--line)", background: "var(--surface-2)", borderRadius: 10, padding: "8px 10px" };
 const flowTitle: CSSProperties = { margin: 0, fontSize: 13, fontWeight: 700 };
 const flowMeta: CSSProperties = { margin: "2px 0 0", fontSize: 12, color: "var(--ink-secondary)" };
@@ -288,7 +288,7 @@ function MiniStat({ title, value }: { title: string; value: string }) {
   return (
     <div style={{ borderRadius: 10, background: "var(--surface-2)", padding: "10px 8px", textAlign: "center" }}>
       <p style={{ margin: 0, fontSize: 11, color: "var(--muted)", fontWeight: 700 }}>{title}</p>
-      <p style={{ margin: "4px 0 0", fontSize: 16, fontWeight: 800 }}>{value}</p>
+      <p style={{ margin: "4px 0 0", fontSize: 16, fontWeight: 600 }}>{value}</p>
     </div>
   );
 }

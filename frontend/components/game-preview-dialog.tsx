@@ -63,7 +63,7 @@ export function GamePreviewDialog({ open, game, meUserId, meNickname = "나", me
         </div>
 
         <div style={{ marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Link href={`/groups/${game.groupId}`} style={{ color: "var(--brand-light)", fontSize: 13, fontWeight: 700, textDecoration: "none" }}>
+          <Link href={`/groups/${game.groupId}`} style={{ color: "var(--brand)", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>
             {game.groupName}
           </Link>
           <p style={{ margin: 0, color: "var(--muted)", fontSize: 12 }}>
@@ -74,11 +74,11 @@ export function GamePreviewDialog({ open, game, meUserId, meNickname = "나", me
         <div style={teamsWrap}>
           <div style={teamPanelLeft}>
             {teamAHref ? (
-              <Link href={teamAHref} style={{ ...teamTitle, color: "var(--brand-light)" }}>
+              <Link href={teamAHref} style={{ ...teamTitle, color: "var(--brand)" }}>
                 팀 A {winnerTeam === "A" ? "🏆" : ""}
               </Link>
             ) : (
-              <p style={{ ...teamTitle, color: "var(--brand-light)" }}>팀 A {winnerTeam === "A" ? "🏆" : ""}</p>
+              <p style={{ ...teamTitle, color: "var(--brand)" }}>팀 A {winnerTeam === "A" ? "🏆" : ""}</p>
             )}
             {teamAPlayers.map((p) => (
               <p key={`a-${p.userId}-${p.nickname}`} style={{ margin: 0, fontSize: 13, lineHeight: 1.45 }}>
@@ -87,17 +87,17 @@ export function GamePreviewDialog({ open, game, meUserId, meNickname = "나", me
             ))}
           </div>
           <div style={scoreWrap}>
-            <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.02em" }}>
+            <span style={{ fontSize: 18, fontWeight: 600, letterSpacing: 0 }}>
               {winnerTeam ? `팀 ${winnerTeam} 승` : "결과 미확정"}
             </span>
           </div>
           <div style={teamPanelRight}>
             {teamBHref ? (
-              <Link href={teamBHref} style={{ ...teamTitle, color: "var(--accent)", textAlign: "right" }}>
+              <Link href={teamBHref} style={{ ...teamTitle, color: "var(--brand)", textAlign: "right" }}>
                 팀 B {winnerTeam === "B" ? "🏆" : ""}
               </Link>
             ) : (
-              <p style={{ ...teamTitle, color: "var(--accent)", textAlign: "right" }}>팀 B {winnerTeam === "B" ? "🏆" : ""}</p>
+              <p style={{ ...teamTitle, color: "var(--brand)", textAlign: "right" }}>팀 B {winnerTeam === "B" ? "🏆" : ""}</p>
             )}
             {teamBPlayers.map((p) => (
               <p key={`b-${p.userId}-${p.nickname}`} style={{ margin: 0, fontSize: 13, lineHeight: 1.45, textAlign: "right" }}>
@@ -114,8 +114,7 @@ export function GamePreviewDialog({ open, game, meUserId, meNickname = "나", me
 const overlay: CSSProperties = {
   position: "fixed",
   inset: 0,
-  background: "rgba(2,4,10,0.78)",
-  backdropFilter: "blur(10px)",
+  background: "rgba(0, 0, 0, 0.34)",
   zIndex: 100,
   display: "grid",
   placeItems: "center",
@@ -125,10 +124,10 @@ const overlay: CSSProperties = {
 const panel: CSSProperties = {
   width: "100%",
   maxWidth: 720,
-  borderRadius: 24,
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
-  border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow-lg)",
+  borderRadius: "var(--radius-lg)",
+  background: "var(--surface)",
+  border: "1px solid var(--hairline)",
+  boxShadow: "none",
   padding: 18,
   display: "grid",
   gap: 12,
@@ -136,12 +135,12 @@ const panel: CSSProperties = {
 
 const chip: CSSProperties = {
   border: "1px solid var(--line-2)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.00)), var(--surface-3)",
+  background: "var(--surface-3)",
   color: "var(--ink)",
   borderRadius: 12,
   padding: "8px 12px",
   fontSize: 13,
-  fontWeight: 800,
+  fontWeight: 600,
 };
 const chipMuted: CSSProperties = {
   border: "1px solid rgba(16,185,129,0.35)",
@@ -150,7 +149,7 @@ const chipMuted: CSSProperties = {
   borderRadius: 12,
   padding: "8px 12px",
   fontSize: 13,
-  fontWeight: 800,
+  fontWeight: 600,
 };
 const closeBtn: CSSProperties = {
   width: 34,
@@ -167,16 +166,16 @@ const closeBtn: CSSProperties = {
 const teamsWrap: CSSProperties = { display: "grid", gridTemplateColumns: "1fr 126px 1fr", gap: 12, alignItems: "stretch" };
 const teamPanelLeft: CSSProperties = {
   borderRadius: 14,
-  border: "1px solid rgba(91,140,255,0.36)",
-  background: "rgba(91,140,255,0.12)",
+  border: "1px solid rgba(0, 102, 204, 0.24)",
+  background: "var(--surface-3)",
   padding: "12px 14px",
   display: "grid",
   gap: 4,
 };
 const teamPanelRight: CSSProperties = {
   borderRadius: 14,
-  border: "1px solid rgba(24,210,182,0.36)",
-  background: "rgba(24,210,182,0.12)",
+  border: "1px solid rgba(0, 102, 204, 0.24)",
+  background: "var(--surface-3)",
   padding: "12px 14px",
   display: "grid",
   gap: 4,
@@ -184,9 +183,9 @@ const teamPanelRight: CSSProperties = {
 const scoreWrap: CSSProperties = {
   borderRadius: 14,
   border: "1px solid var(--line)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.00)), var(--surface-2)",
+  background: "var(--surface-2)",
   display: "grid",
   placeItems: "center",
 };
-const teamTitle: CSSProperties = { margin: 0, fontSize: 13, fontWeight: 800, textDecoration: "none" };
-const nameBtn: CSSProperties = { fontWeight: 700, color: "var(--ink)" };
+const teamTitle: CSSProperties = { margin: 0, fontSize: 13, fontWeight: 600, textDecoration: "none" };
+const nameBtn: CSSProperties = { fontWeight: 600, color: "var(--ink)" };

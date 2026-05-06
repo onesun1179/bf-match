@@ -44,7 +44,7 @@ export default function NotificationsPage() {
     <main style={main}>
       <section style={sec}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>알림</h1>
+          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: 0 }}>알림</h1>
           {notifications.some((n) => !n.isRead) && (
             <button onClick={() => { void handleReadAll(); }} style={btnGhost}>모두 읽음</button>
           )}

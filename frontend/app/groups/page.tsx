@@ -9,7 +9,7 @@ export default function GroupsHomePage() {
       <section style={sec}>
         <div>
           <Link href="/" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 홈</Link>
-          <h1 style={{ margin: "8px 0 0", fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>이벤트</h1>
+          <h1 style={{ margin: "8px 0 0", fontSize: 24, fontWeight: 600, letterSpacing: 0 }}>이벤트</h1>
         </div>
 
         <Link href="/groups/create" style={{ textDecoration: "none" }}>

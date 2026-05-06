@@ -1,5 +1,6 @@
 "use client";
 
+import styled from "@emotion/styled";
 import Link from "next/link";
 import {CSSProperties, useEffect, useRef, useState} from "react";
 import {createPortal} from "react-dom";
@@ -59,7 +60,7 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
 
   const showWithMe = myUserId == null || myUserId !== userId;
   const chipText = `${levelLabel(lv, grade)} ${nickname}`;
-  const chipTone = gender === "MALE" ? maleTone : gender === "FEMALE" ? femaleTone : neutralTone;
+  const chipTone = gender === "MALE" || gender === "FEMALE" ? "accent" : "neutral";
 
   function handleChipPointer(e: { preventDefault: () => void; stopPropagation: () => void }) {
     // This component is often rendered inside a parent Link card.
@@ -71,19 +72,18 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
 
   const dialog = (
     <>
-      <div data-testid="user-actions-backdrop" style={backdrop} onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
-      <div
+      <Backdrop data-testid="user-actions-backdrop" onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
+      <MenuWrap
         data-testid="user-actions-wrap"
-        style={menuWrap}
         onClick={(e) => {
           e.stopPropagation();
           if (e.target === e.currentTarget) setOpen(false);
         }}
       >
-        <div ref={menuRef} style={menu}>
-          <div style={menuHeader}>
+        <Menu ref={menuRef}>
+          <MenuHeader>
             <UserInfoChip nickname={nickname} gender={gender} grade={grade} lv={lv} style={{ fontSize: 13 }} />
-            <button
+            <CloseButton
               type="button"
               aria-label="액션 메뉴 닫기"
               onClick={(e) => {
@@ -91,28 +91,26 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
                 e.stopPropagation();
                 setOpen(false);
               }}
-              style={closeBtn}
             >
               ✕
-            </button>
-          </div>
-          <Link href={`/users/${userId}/record`} style={menuItem} onClick={(e) => { e.stopPropagation(); setOpen(false); }}>
+            </CloseButton>
+          </MenuHeader>
+          <MenuItem href={`/users/${userId}/record`} onClick={(e) => { e.stopPropagation(); setOpen(false); }}>
             개인 기록 보기
-          </Link>
+          </MenuItem>
           {showWithMe && (
-            <Link href={`/users/${userId}/record/with-me`} style={menuItem} onClick={(e) => { e.stopPropagation(); setOpen(false); }}>
+            <MenuItem href={`/users/${userId}/record/with-me`} onClick={(e) => { e.stopPropagation(); setOpen(false); }}>
               나와의 전적 보기
-            </Link>
+            </MenuItem>
           )}
-        </div>
-      </div>
+        </Menu>
+      </MenuWrap>
     </>
   );
 
   return (
-    <span
+    <NameWrap
       ref={wrapRef}
-      style={{ position: "relative", display: "inline-block", maxWidth: "100%", verticalAlign: "top" }}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -122,7 +120,7 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
         e.stopPropagation();
       }}
     >
-      <button
+      <NameButton
         type="button"
         className="btn-hover"
         onClick={handleChipPointer}
@@ -135,129 +133,121 @@ export function UserNameActions({ userId, nickname, gender = null, grade = null,
             handleChipPointer(e);
           }
         }}
-        style={{ ...nameBtn, ...style }}
+        style={style}
       >
-        <span style={{ ...tagUnified, ...chipTone, boxShadow: "0 2px 8px rgba(0,0,0,0.2)", transition: "all 0.2s ease" }}>{chipText}</span>
-      </button>
+        <NameTag $tone={chipTone}>{chipText}</NameTag>
+      </NameButton>
       {open && mounted ? createPortal(dialog, document.body) : null}
-    </span>
+    </NameWrap>
   );
 }
 
-const nameBtn: CSSProperties = {
-  border: 0,
-  background: "transparent",
-  color: "var(--ink)",
-  cursor: "pointer",
-  padding: 0,
-  textAlign: "left",
-  fontSize: "inherit",
-  fontWeight: "inherit",
-  display: "inline-flex",
-  alignItems: "center",
-  lineHeight: 1.25,
-  maxWidth: "100%",
-  minWidth: 0,
-};
+const NameWrap = styled.span`
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  vertical-align: top;
+`;
 
-const tagUnified: CSSProperties = {
-  display: "inline-block",
-  padding: "4px 10px",
-  borderRadius: 999,
-  color: "var(--ink)",
-  fontWeight: 700,
-  fontSize: "inherit",
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-  maxWidth: "100%",
-};
+const NameButton = styled.button`
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  font-size: inherit;
+  font-weight: inherit;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.25;
+  max-width: 100%;
+  min-width: 0;
+`;
 
-const neutralTone: CSSProperties = {
-  border: "1px solid rgba(173,193,230,0.36)",
-  background: "linear-gradient(180deg, rgba(173,193,230,0.14), rgba(173,193,230,0.06))",
-};
+const NameTag = styled.span<{$tone: "neutral" | "accent"}>`
+  display: inline-block;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid ${({$tone}) => $tone === "accent" ? "rgba(0, 102, 204, 0.28)" : "var(--hairline)"};
+  background: var(--surface-3);
+  color: var(--ink);
+  font-size: inherit;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color 0.18s ease;
+`;
 
-const maleTone: CSSProperties = {
-  border: "1px solid rgba(91,140,255,0.45)",
-  background: "linear-gradient(180deg, rgba(91,140,255,0.24), rgba(91,140,255,0.10))",
-};
+const MenuWrap = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+`;
 
-const femaleTone: CSSProperties = {
-  border: "1px solid rgba(255,109,179,0.42)",
-  background: "linear-gradient(180deg, rgba(255,109,179,0.22), rgba(255,109,179,0.10))",
-};
+const Menu = styled.div`
+  position: relative;
+  width: min(320px, calc(100vw - 16px));
+  max-height: min(70vh, 420px);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: fade-in-up 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+`;
 
-const menuWrap: CSSProperties = {
-  position: "fixed",
-  inset: 0,
-  zIndex: 2000,
-  display: "grid",
-  placeItems: "center",
-  padding: 16,
-};
+const Backdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.34);
+  z-index: 1999;
+`;
 
-const menu: CSSProperties = {
-  position: "relative",
-  width: "min(320px, calc(100vw - 16px))",
-  maxHeight: "min(70vh, 420px)",
-  background: "rgba(15, 18, 26, 0.8)",
-  backdropFilter: "blur(24px)",
-  WebkitBackdropFilter: "blur(24px)",
-  border: "1px solid rgba(173, 193, 230, 0.15)",
-  borderRadius: 16,
-  overflow: "auto",
-  WebkitOverflowScrolling: "touch",
-  boxShadow: "0 16px 40px rgba(0, 0, 0, 0.5)",
-  animation: "fade-in-up 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-};
+const MenuHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--ink-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 
-const backdrop: CSSProperties = {
-  position: "fixed",
-  inset: 0,
-  background: "rgba(3, 8, 18, 0.34)",
-  zIndex: 1999,
-};
+const CloseButton = styled.button`
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-2);
+  background: var(--surface-3);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 22px;
+  text-align: center;
+  cursor: pointer;
+`;
 
-const menuHeader: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 8,
-  padding: "10px 12px",
-  borderBottom: "1px solid var(--line)",
-  fontSize: 13,
-  fontWeight: 800,
-  color: "var(--ink-secondary)",
-  background: "var(--surface-2)",
-  whiteSpace: "nowrap",
-  overflow: "hidden",
-  textOverflow: "ellipsis",
-};
-
-const closeBtn: CSSProperties = {
-  border: "1px solid rgba(220, 95, 95, 0.5)",
-  background: "rgba(220, 95, 95, 0.15)",
-  color: "#ff8e8e",
-  width: 24,
-  height: 24,
-  borderRadius: 999,
-  fontSize: 12,
-  lineHeight: "22px",
-  textAlign: "center",
-  cursor: "pointer",
-  flex: "0 0 auto",
-  padding: 0,
-};
-
-const menuItem: CSSProperties = {
-  display: "block",
-  padding: "10px 12px",
-  textDecoration: "none",
-  color: "var(--ink)",
-  fontSize: 13,
-  fontWeight: 700,
-};
+const MenuItem = styled(Link)`
+  display: block;
+  padding: 10px 12px;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+`;
 
 function levelLabel(lv: number | null, grade: Grade | null): string {
   if (lv != null && Number.isFinite(lv)) return `Lv ${Math.max(1, Math.floor(lv))}`;

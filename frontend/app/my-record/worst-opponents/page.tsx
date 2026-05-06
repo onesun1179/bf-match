@@ -27,7 +27,7 @@ export default function WorstOpponentsPage() {
         <div style={hero}>
           <Link href="/my-record" style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 내 기록</Link>
           <p style={{ margin: "10px 0 0", color: "var(--danger)", fontSize: 12, fontWeight: 700 }}>RISK MATCHUP</p>
-          <h1 style={{ margin: "6px 0 0", fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em" }}>워스트 상대</h1>
+          <h1 style={{ margin: "6px 0 0", fontSize: 28, fontWeight: 600, letterSpacing: 0 }}>워스트 상대</h1>
           <p style={{ margin: "8px 0 0", color: "var(--ink-secondary)", fontSize: 13 }}>이 상대를 만나면 승률이 낮습니다</p>
         </div>
 
@@ -42,7 +42,7 @@ export default function WorstOpponentsPage() {
         {list.map((p, idx) => (
           <div key={p.userId} style={{ ...card, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ width: 24, fontSize: 14, color: "var(--muted)", fontWeight: 800 }}>{idx + 1}</span>
+              <span style={{ width: 24, fontSize: 14, color: "var(--muted)", fontWeight: 600 }}>{idx + 1}</span>
               <UserNameActions userId={p.userId} nickname={p.nickname} gender={p.gender} grade={p.nationalGrade} style={{ fontSize: 14, fontWeight: 600 }} />
             </div>
             <span style={{ fontSize: 13, color: "var(--danger)" }}>{p.wins}승 {p.games}전 ({p.winRate.toFixed(0)}%)</span>
@@ -60,14 +60,14 @@ const sec: CSSProperties = { maxWidth: 620, margin: "0 auto", display: "grid", g
 const hero: CSSProperties = {
   padding: "18px 20px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(135deg, rgba(255,109,122,0.22), rgba(255,255,255,0.03) 60%, rgba(255,255,255,0.02)), var(--glass)",
+  background: "var(--surface)",
   border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  boxShadow: "none",
 };
 const card: CSSProperties = {
   padding: "14px 18px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
+  background: "var(--surface)",
   border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  boxShadow: "none",
 };

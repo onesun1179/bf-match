@@ -39,12 +39,12 @@ function GameRow({ g, me, onOpen }: { g: RecentGame; me: MeResponse | null; onOp
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
         <div>
           <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: g.isWin ? "var(--accent)" : "var(--danger)" }}>{g.isWin ? "승" : "패"}</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: g.isWin ? "var(--brand)" : "var(--danger)" }}>{g.isWin ? "승" : "패"}</span>
             <span style={{ fontSize: 13, color: "var(--muted)" }}>{gameTypeLabel(g.gameType)}</span>
             {g.gradeAtTime && <span style={{ fontSize: 11, padding: "1px 6px", borderRadius: 6, background: "var(--surface-3)", color: "var(--ink-secondary)" }}>{g.gradeAtTime}</span>}
           </div>
           <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--muted)" }}>
-            <Link href={`/groups/${g.groupId}`} onClick={(e) => e.stopPropagation()} style={{ color: "var(--brand-light)", textDecoration: "none", fontWeight: 700 }}>
+            <Link href={`/groups/${g.groupId}`} onClick={(e) => e.stopPropagation()} style={{ color: "var(--brand)", textDecoration: "none", fontWeight: 700 }}>
               {g.groupName}
             </Link>
           </p>
@@ -167,8 +167,8 @@ export default function MyRecordPage() {
     <main style={main}>
       <section style={sec}>
         <div style={hero}>
-          <p style={{ margin: 0, color: "var(--brand-light)", fontSize: 12, fontWeight: 700 }}>MY PERFORMANCE</p>
-          <h1 style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 900, letterSpacing: "-0.03em" }}>내 기록</h1>
+          <p style={{ margin: 0, color: "var(--brand)", fontSize: 12, fontWeight: 700 }}>MY PERFORMANCE</p>
+          <h1 style={{ margin: "8px 0 0", fontSize: 28, fontWeight: 600, letterSpacing: 0 }}>내 기록</h1>
         </div>
 
         {/* Profile */}
@@ -193,13 +193,13 @@ export default function MyRecordPage() {
         <div style={card}>
           <h2 style={sh}>전체 전적</h2>
           <div style={{ display: "flex", justifyContent: "space-around", textAlign: "center", padding: "12px 0" }}>
-            <Stat value={`${data.totalWinRate.toFixed(0)}%`} label="승률" color="var(--brand-light)" />
+            <Stat value={`${data.totalWinRate.toFixed(0)}%`} label="승률" color="var(--brand)" />
             <Stat value={`${data.totalGames}`} label="전체" />
-            <Stat value={`${data.totalWins}`} label="승" color="var(--accent)" />
+            <Stat value={`${data.totalWins}`} label="승" color="var(--brand)" />
             <Stat value={`${data.totalLosses}`} label="패" color="var(--danger)" />
           </div>
           {data.currentStreak > 0 && (
-            <p style={{ margin: 0, textAlign: "center", fontSize: 14, fontWeight: 700, color: data.currentStreakType === "WIN" ? "var(--accent)" : "var(--danger)" }}>
+            <p style={{ margin: 0, textAlign: "center", fontSize: 14, fontWeight: 700, color: data.currentStreakType === "WIN" ? "var(--brand)" : "var(--danger)" }}>
               현재 {data.currentStreak}{data.currentStreakType === "WIN" ? "연승" : "연패"} 중
             </p>
           )}
@@ -219,14 +219,14 @@ export default function MyRecordPage() {
             />
             <div style={{ padding: "12px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", textAlign: "center" }}>
               <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>주력 타입</p>
-              <p style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 800 }}>{mainType?.label ?? "-"}</p>
+              <p style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 600 }}>{mainType?.label ?? "-"}</p>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
                 {mainType ? `${mainType.stat.games}전 / ${mainType.stat.winRate.toFixed(0)}%` : "기록 없음"}
               </p>
             </div>
             <div style={{ padding: "12px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", textAlign: "center" }}>
               <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>참여 이벤트</p>
-              <p style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 800 }}>{activeEventCount}</p>
+              <p style={{ margin: "6px 0 0", fontSize: 20, fontWeight: 600 }}>{activeEventCount}</p>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>
                 {latestPlayedAt > 0
                   ? `최근 ${new Date(latestPlayedAt).toLocaleDateString("ko-KR", { month: "short", day: "numeric" })}`
@@ -252,7 +252,7 @@ export default function MyRecordPage() {
                   </Link>
                   <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--muted)" }}>{row.wins}승 {row.losses}패 / {row.games}전</p>
                 </div>
-                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand-light)" }}>{row.winRate.toFixed(0)}%</p>
+                <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand)" }}>{row.winRate.toFixed(0)}%</p>
               </div>
             ))
           )}
@@ -328,14 +328,14 @@ export default function MyRecordPage() {
 }
 
 function Stat({ value, label, color }: { value: string; label: string; color?: string }) {
-  return <div><p style={{ margin: 0, fontSize: 28, fontWeight: 800, color }}>{value}</p><p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 12 }}>{label}</p></div>;
+  return <div><p style={{ margin: 0, fontSize: 28, fontWeight: 600, color }}>{value}</p><p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 12 }}>{label}</p></div>;
 }
 
 function TypeCard({ label, stat }: { label: string; stat: TypeStat }) {
   return (
     <div style={{ padding: "12px", borderRadius: "var(--radius-sm)", background: "var(--surface-2)", textAlign: "center" }}>
       <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "var(--ink-secondary)" }}>{label}</p>
-      <p style={{ margin: "6px 0 0", fontSize: 22, fontWeight: 800 }}>{stat.games > 0 ? `${stat.winRate.toFixed(0)}%` : "-"}</p>
+      <p style={{ margin: "6px 0 0", fontSize: 22, fontWeight: 600 }}>{stat.games > 0 ? `${stat.winRate.toFixed(0)}%` : "-"}</p>
       <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--muted)" }}>{stat.wins}승 {stat.losses}패 / {stat.games}전</p>
     </div>
   );
@@ -346,7 +346,7 @@ function Section({ title, moreHref, children }: { title: string; moreHref: strin
     <div style={card}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2 style={sh}>{title}</h2>
-        <Link href={moreHref} style={{ fontSize: 13, color: "var(--brand-light)", fontWeight: 700 }}>더보기</Link>
+        <Link href={moreHref} style={{ fontSize: 13, color: "var(--brand)", fontWeight: 700 }}>더보기</Link>
       </div>
       {children}
     </div>
@@ -360,16 +360,16 @@ const sec: CSSProperties = { maxWidth: 620, margin: "0 auto", display: "grid", g
 const hero: CSSProperties = {
   padding: "18px 20px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(135deg, rgba(91,140,255,0.22), rgba(24,210,182,0.08) 60%, rgba(255,255,255,0.02)), var(--glass)",
+  background: "var(--surface)",
   border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  boxShadow: "none",
 };
 const card: CSSProperties = {
   padding: "18px 20px",
   borderRadius: "var(--radius-lg)",
-  background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.00)), var(--glass)",
+  background: "var(--surface)",
   border: "1px solid var(--glass-border)",
-  boxShadow: "var(--shadow)",
+  boxShadow: "none",
 };
 const sh: CSSProperties = { margin: 0, fontSize: 16, fontWeight: 700, color: "var(--ink-secondary)" };
 const gameBtn: CSSProperties = { width: "100%", border: 0, background: "transparent", padding: "10px 0", textAlign: "left", color: "inherit", cursor: "pointer" };

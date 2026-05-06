@@ -136,7 +136,7 @@ export default function TeamRecordPage() {
     <main style={main}>
       <section style={sec}>
         <Link href={`/groups/${groupId}?view=games`} style={{ color: "var(--muted)", fontSize: 13 }}>&larr; 게임으로</Link>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>팀 기록</h1>
+        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, letterSpacing: 0 }}>팀 기록</h1>
 
         <div style={card}>
           {teamMembers.length > 0 ? (
@@ -202,7 +202,7 @@ export default function TeamRecordPage() {
                 <p style={{ margin: 0, fontSize: 14, fontWeight: 700 }}>{row.label}</p>
                 <p style={{ margin: "3px 0 0", fontSize: 12, color: "var(--muted)" }}>{row.wins}승 {row.losses}패 / {row.games}전</p>
               </div>
-              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand-light)" }}>{row.winRate.toFixed(0)}%</p>
+              <p style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--brand)" }}>{row.winRate.toFixed(0)}%</p>
             </div>
           ))}
         </div>
@@ -216,7 +216,7 @@ export default function TeamRecordPage() {
             return (
               <div key={game.id} style={{ padding: "10px 0", borderTop: "1px solid var(--line)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: isFinished ? (isWin ? "var(--accent)" : "var(--danger)") : "var(--ink-secondary)" }}>
+                  <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: isFinished ? (isWin ? "var(--brand)" : "var(--danger)") : "var(--ink-secondary)" }}>
                     {isFinished ? (isWin ? "승" : "패") : "미종료"} · 팀 {side}
                   </p>
                   <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
@@ -239,7 +239,7 @@ function Stat({ title, value }: { title: string; value: string }) {
   return (
     <div style={{ borderRadius: 10, background: "var(--surface-2)", padding: "10px 8px", textAlign: "center" }}>
       <p style={{ margin: 0, fontSize: 11, color: "var(--muted)", fontWeight: 700 }}>{title}</p>
-      <p style={{ margin: "4px 0 0", fontSize: 18, fontWeight: 800 }}>{value}</p>
+      <p style={{ margin: "4px 0 0", fontSize: 18, fontWeight: 600 }}>{value}</p>
     </div>
   );
 }

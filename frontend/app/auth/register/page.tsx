@@ -4,6 +4,16 @@ import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {CSSProperties, FormEvent, useState} from "react";
 import {registerLocal} from "@/lib/auth";
+import {
+  ContentStack,
+  DisplayTitle,
+  MutedText,
+  PageShell,
+  PillInput,
+  PillSelect,
+  PrimaryButton,
+  SurfaceCard,
+} from "@/components/ui/apple";
 
 const gradeOptions = [
   { value: "F", label: "F (왕초심)" }, { value: "E", label: "E (초심)" },
@@ -31,54 +41,48 @@ export default function RegisterPage() {
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setF((p) => ({ ...p, [k]: e.target.value }));
 
   return (
-    <main style={main}>
-      <section style={sec}>
+    <PageShell center>
+      <ContentStack max={400} gap={20}>
         <div style={{ textAlign: "center", marginBottom: 8 }}>
-          <div style={logo}>{"\u{1F3F8}"}</div>
-          <h1 style={h1}>회원가입</h1>
+          <div style={logo}>BF</div>
+          <DisplayTitle style={{ margin: 0 }}>회원가입</DisplayTitle>
         </div>
-        <div style={card}>
+        <SurfaceCard padding="24px" style={{ gap: 16 }}>
           <form onSubmit={(e) => { void handleSubmit(e); }} style={{ display: "grid", gap: 14 }}>
             <label style={lw}>
               <span style={lb}>이메일</span>
-              <input type="email" value={f.email} onChange={set("email")} placeholder="name@example.com" required maxLength={100} style={inp} />
+              <PillInput type="email" value={f.email} onChange={set("email")} placeholder="name@example.com" required maxLength={100} />
               <span style={helpText}>이메일은 로그인 아이디로 사용되며 비밀번호 초기화 등 개인정보 관련 안내에 사용됩니다.</span>
             </label>
-            <label style={lw}><span style={lb}>비밀번호</span><input type="password" value={f.password} onChange={set("password")} placeholder="4자 이상" required minLength={4} style={inp} /></label>
-            <label style={lw}><span style={lb}>비밀번호 확인</span><input type="password" value={f.passwordConfirm} onChange={set("passwordConfirm")} placeholder="비밀번호 다시 입력" required minLength={4} style={inp} /></label>
-            <label style={lw}><span style={lb}>닉네임</span><input value={f.nickname} onChange={set("nickname")} placeholder="이름" required minLength={2} maxLength={10} style={inp} /></label>
+            <label style={lw}><span style={lb}>비밀번호</span><PillInput type="password" value={f.password} onChange={set("password")} placeholder="4자 이상" required minLength={4} /></label>
+            <label style={lw}><span style={lb}>비밀번호 확인</span><PillInput type="password" value={f.passwordConfirm} onChange={set("passwordConfirm")} placeholder="비밀번호 다시 입력" required minLength={4} /></label>
+            <label style={lw}><span style={lb}>닉네임</span><PillInput value={f.nickname} onChange={set("nickname")} placeholder="이름" required minLength={2} maxLength={10} /></label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <label style={lw}><span style={lb}>성별</span>
-                <select value={f.gender} onChange={set("gender")} style={inp}>
+                <PillSelect value={f.gender} onChange={set("gender")}>
                   <option value="MALE">남성</option>
                   <option value="FEMALE">여성</option>
-                </select>
+                </PillSelect>
               </label>
               <label style={lw}><span style={lb}>시작 급수</span>
-                <select value={f.nationalGrade} onChange={set("nationalGrade")} style={inp}>
+                <PillSelect value={f.nationalGrade} onChange={set("nationalGrade")}>
                   {gradeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
+                </PillSelect>
               </label>
             </div>
-            <button type="submit" disabled={submitting} style={btn}>{submitting ? "가입 중..." : "가입하기"}</button>
+            <PrimaryButton type="submit" disabled={submitting}>{submitting ? "가입 중..." : "가입하기"}</PrimaryButton>
           </form>
           {error && <p style={{ margin: 0, color: "var(--danger)", fontSize: 14, textAlign: "center" }}>{error}</p>}
-        </div>
-        <p style={{ margin: 0, color: "var(--muted)", fontSize: 14, textAlign: "center" }}>
-          이미 계정이 있으신가요? <Link href="/auth/login" style={{ color: "var(--brand-light)", fontWeight: 700 }}>로그인</Link>
-        </p>
-      </section>
-    </main>
+        </SurfaceCard>
+        <MutedText style={{ textAlign: "center" }}>
+          이미 계정이 있으신가요? <Link href="/auth/login" style={{ color: "var(--brand)", fontWeight: 600 }}>로그인</Link>
+        </MutedText>
+      </ContentStack>
+    </PageShell>
   );
 }
 
-const main: CSSProperties = { minHeight: "100vh", padding: "24px 16px 80px", display: "grid", alignContent: "center" };
-const sec: CSSProperties = { maxWidth: 400, width: "100%", margin: "0 auto", display: "grid", gap: 20 };
-const card: CSSProperties = { padding: "24px", borderRadius: "var(--radius-xl)", background: "var(--surface)", border: "1px solid var(--line)", display: "grid", gap: 16 };
-const logo: CSSProperties = { width: 48, height: 48, borderRadius: 14, background: "var(--brand)", display: "inline-grid", placeItems: "center", fontSize: 24, marginBottom: 16 };
-const h1: CSSProperties = { margin: 0, fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" };
+const logo: CSSProperties = { width: 48, height: 48, borderRadius: "var(--radius-sm)", background: "var(--brand)", color: "var(--on-primary)", display: "inline-grid", placeItems: "center", fontSize: 17, fontWeight: 600, marginBottom: 16 };
 const lw: CSSProperties = { display: "grid", gap: 6 };
 const lb: CSSProperties = { fontWeight: 600, fontSize: 13, color: "var(--ink-secondary)" };
 const helpText: CSSProperties = { color: "var(--muted)", fontSize: 12, lineHeight: 1.45 };
-const inp: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: "1px solid var(--line-2)", padding: "0 16px", fontSize: 15, background: "var(--surface-2)", color: "var(--ink)", outline: "none" };
-const btn: CSSProperties = { minHeight: 48, borderRadius: "var(--radius-md)", border: 0, background: "var(--brand)", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", marginTop: 4 };
